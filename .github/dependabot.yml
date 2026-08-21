@@ -1,0 +1,39 @@
+version: 2
+updates:
+  # Frontend (app/) npm dependency surface.
+  - package-ecosystem: "npm"
+    directory: "/app"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "app"
+
+  # contracts/ has no package.json -- Foundry dependencies are git submodules, not an npm-style
+  # manifest -- but Dependabot's "gitsubmodule" ecosystem covers exactly that case, so each
+  # submodule gets its own entry (directory = the submodule's own path) instead of being skipped.
+  - package-ecosystem: "gitsubmodule"
+    directory: "/contracts/lib/forge-std"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "contracts"
+
+  - package-ecosystem: "gitsubmodule"
+    directory: "/contracts/lib/openzeppelin-contracts"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "contracts"
+
+  # Keep the CI workflow's own action versions current.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "ci"

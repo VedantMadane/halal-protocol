@@ -1,0 +1,112 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f7f8fa;
+  --background-subtle: #eef1f5;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-border: #e2e8f0;
+  --muted: #64748b;
+  --muted-foreground: #94a3b8;
+  --primary: #0f9d68;
+  --primary-foreground: #ffffff;
+  --primary-soft: #e3f6ec;
+  --accent: #b45309;
+  --accent-soft: #fef3c7;
+  --danger: #be123c;
+  --danger-soft: #ffe4e6;
+  --ring: #0f9d68;
+}
+
+:root[data-theme="dark"] {
+  --background: #0a0e14;
+  --background-subtle: #0f151d;
+  --foreground: #e6edf3;
+  --card: #111926;
+  --card-border: #1f2b3a;
+  --muted: #8b98a9;
+  --muted-foreground: #5c6c7d;
+  --primary: #22c58a;
+  --primary-foreground: #04140d;
+  --primary-soft: rgba(34, 197, 138, 0.12);
+  --accent: #f0b23c;
+  --accent-soft: rgba(240, 178, 60, 0.12);
+  --danger: #fb7185;
+  --danger-soft: rgba(251, 113, 133, 0.12);
+  --ring: #22c58a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --background: #0a0e14;
+    --background-subtle: #0f151d;
+    --foreground: #e6edf3;
+    --card: #111926;
+    --card-border: #1f2b3a;
+    --muted: #8b98a9;
+    --muted-foreground: #5c6c7d;
+    --primary: #22c58a;
+    --primary-foreground: #04140d;
+    --primary-soft: rgba(34, 197, 138, 0.12);
+    --accent: #f0b23c;
+    --accent-soft: rgba(240, 178, 60, 0.12);
+    --danger: #fb7185;
+    --danger-soft: rgba(251, 113, 133, 0.12);
+    --ring: #22c58a;
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-background-subtle: var(--background-subtle);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-border: var(--card-border);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-soft: var(--primary-soft);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-ring: var(--ring);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+* {
+  border-color: var(--card-border);
+}
+
+html {
+  color-scheme: light;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+}
+
+/* Subtle scrollbar styling that stays legible in both themes */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--card-border);
+  border-radius: 999px;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}

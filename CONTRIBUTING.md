@@ -1,0 +1,109 @@
+# Contributing to Halal (HLC)
+
+Thanks for considering a contribution. Halal is a real financial protocol (a CPI-indexed
+stablecoin plus the DAO that governs it), so contributions to `contracts/` are held to a higher
+bar than a typical app repo — see [Changes to `contracts/src/`](#changes-to-contractssrc) below
+before you dive in.
+
+## Ground rules
+
+- Be respectful and constructive. See [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md).
+- For anything beyond a small fix (a new feature, a behavior change, a non-trivial refactor),
+  **open an issue first** to discuss the approach before writing code. This avoids wasted work on
+  a PR that turns out to be the wrong direction.
+- For anything that looks like it might be a security vulnerability rather than an ordinary bug,
+  **don't open a public issue** — see [`SECURITY.md`](SECURITY.md) for the private disclosure
+  process instead.
+
+## Fork / branch / PR flow
+
+1. Fork the repository and clone your fork.
+2. Create a topic branch off `main`: `git checkout -b feat/short-description`.
+3. Make your changes, following the code style and testing expectations below.
+4. Push your branch to your fork and open a pull request against `main` on the upstream repo.
+5. Fill out the PR template — describe *what* changed and *why*, and link the issue it addresses
+   if there is one.
+6. Be responsive to review feedback. A maintainer will merge once checks pass and review is
+   satisfied.
+
+CI (`.github/workflows/ci.yml`) runs the contracts and frontend test suites on every push and PR.
+A PR won't be merged with a red CI run.
+
+## Running the test suites
+
+### Contracts (`contracts/`)
+
+The contracts are a [Foundry](https://book.getfoundry.sh/) project.
+
+```bash
+cd contracts
+forge install      # pulls in the git-submodule dependencies (forge-std, OpenZeppelin)
+forge build
+forge test          # full suite
+forge test -vvv     # verbose, useful when a test fails
+forge fmt --check   # verify formatting without rewriting files
+forge fmt           # actually reformat
+```
+
+### Frontend (`app/`)
+
+The frontend is a Next.js app using `pnpm`.
+
+```bash
+cd app
+pnpm install
+pnpm lint
+pnpm build   # production build; also run `pnpm dev` locally for interactive testing
+```
+
+## Code style
+
+- **Solidity**: run `forge fmt` before committing — `contracts/foundry.toml` pins the formatting
+  rules (120-char line length, 4-space tabs, double quotes) so there's no ambiguity about style.
+  CI runs `forge fmt --check` and will fail on unformatted code.
+- **Frontend**: follow the existing ESLint configuration in `app/eslint.config.mjs` (`pnpm lint`
+  in `app/`). Match the conventions already used in the surrounding code (component structure,
+  naming, hooks usage) rather than introducing a new pattern for a single file.
+
+## Commit messages
+
+This project uses [Conventional Commits](https://www.conventionalcommits.org/). Prefix your
+commit subject with a type, e.g.:
+
+- `feat: add reserve health view to PSM dashboard`
+- `fix: correct rounding in HalalPSM._hlcToReserve`
+- `docs: clarify voting-period block-time caveat`
+- `test: add fuzz test for HalalVesting.revoke`
+- `chore: bump OpenZeppelin Contracts submodule`
+- `ci: cache forge dependencies in workflow`
+
+Squash trivial "fix typo" follow-up commits into a single logical commit where practical before
+merge; it's fine to keep a messier history while a PR is in review.
+
+## Changes to `contracts/src/`
+
+`contracts/src/` is the actual on-chain logic — `HalalToken`, `HalalVesting`, `HalalPSM`,
+`HalalDAO`, `HalalTimelock`. These contracts are **not upgradeable** by design (see
+[`docs/AddingFeature.md`](docs/AddingFeature.md) for the intended extension pattern — new
+functionality is added as a separate contract granted a role by DAO vote, not by patching
+existing contracts), and the protocol is **unaudited** (see [`SECURITY.md`](SECURITY.md)). That
+combination means bugs here are unusually expensive to get wrong. So, for any PR touching
+`contracts/src/`:
+
+- **Discuss significant changes in an issue first.** "Significant" means anything beyond a
+  comment/NatSpec fix or an obviously-safe typo — if in doubt, open the issue.
+- **Tests are not optional.** New behavior needs new tests; changed behavior needs updated
+  tests demonstrating the change is correct. `contracts/test/` currently passes 82/82 — a PR that
+  drops that number, or that changes contract behavior without a corresponding test change, will
+  need justification before it can be merged.
+- **Explain the "why," not just the "what."** For contract changes especially, reviewers need to
+  understand the reasoning to properly evaluate risk — see
+  [`docs/DESIGN-DECISIONS.md`](docs/DESIGN-DECISIONS.md) for the kind of rationale we're looking
+  for and for context on prior deliberate deviations from the original design docs.
+- **Consider gas, access control, and edge cases explicitly** in the PR description — who can
+  call the new/changed function, what happens at zero/max values, and whether the change
+  interacts with the PSM's collateralization accounting or the DAO's timelock-gated execution
+  path.
+
+We'd rather take longer on a `contracts/src/` PR and get it right than move fast on code that
+moves real value.

@@ -1,0 +1,38 @@
+# This project is a monorepo (contracts/ = Foundry, app/ = Next.js). This root .gitignore
+# covers both subtrees plus general OS/editor cruft and the clutter-quarantine directory below.
+
+# ── Foundry (contracts/) ─────────────────────────────────────────────────
+contracts/out/
+contracts/cache/
+
+# Broadcast logs are real-deployment provenance and are worth committing per Foundry convention
+# (see https://book.getfoundry.sh/tutorials/best-practices#scripts) -- only the local/test chain
+# (Anvil's default chain id 31337) is ignored, since those runs have no lasting provenance value.
+contracts/broadcast/*/31337/
+
+contracts/lcov.info
+
+# ── Node / Next.js (app/) ────────────────────────────────────────────────
+app/node_modules/
+app/.next/
+app/.env*.local
+!app/.env.example
+
+# ── OS / editor cruft ────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# ── Clutter quarantine ───────────────────────────────────────────────────
+# Unrelated files moved out of the way during OSS prep; never part of this project's release.
+.attic/
+
+# ── Local tooling config (not part of the public release) ────────────────
+CLAUDE.md
+.claude/
+.playwright-mcp/
