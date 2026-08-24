@@ -74,6 +74,7 @@ jobs:
       - name: Local deployment smoke test
         run: |
           ANVIL_MNEMONIC='test test test test test test test test test test test junk'
+          DEPLOY_LOG=/tmp/halal-deploy.log
           anvil --silent --mnemonic "$ANVIL_MNEMONIC" --port 18545 >/tmp/halal-anvil.log 2>&1 &
           ANVIL_PID=$!
           trap 'kill "$ANVIL_PID"' EXIT
@@ -81,7 +82,20 @@ jobs:
           LOCAL_PRIVATE_KEY=$(cast wallet derive --insecure "$ANVIL_MNEMONIC" | awk '/Private key:/ { print $3; exit }')
           PRIVATE_KEY="$LOCAL_PRIVATE_KEY" \
             forge script script/DeployLocal.s.sol:DeployLocalHalalSystem \
-            --rpc-url http://127.0.0.1:18545 --broadcast
+            --rpc-url http://127.0.0.1:18545 --broadcast --non-interactive | tee "$DEPLOY_LOG"
+          value_from_env() {
+            awk -F= -v key="$1" '$1 ~ key {gsub(/^[[:space:]]+|[[:space:]]+$/, "", $2); print $2}' "$DEPLOY_LOG"
+          }
+          RPC_URL=http://127.0.0.1:18545 \
+            TIMELOCK="$(value_from_env NEXT_PUBLIC_HLC_TIMELOCK_31337)" \
+            TOKEN="$(value_from_env NEXT_PUBLIC_HLC_TOKEN_31337)" \
+            TEAM_VESTING="$(value_from_env NEXT_PUBLIC_HLC_TEAM_VESTING_31337)" \
+            TREASURY_VESTING="$(value_from_env NEXT_PUBLIC_HLC_TREASURY_VESTING_31337)" \
+            DAO="$(value_from_env NEXT_PUBLIC_HLC_DAO_31337)" \
+            PSM="$(value_from_env NEXT_PUBLIC_HLC_PSM_31337)" \
+            RESERVE_TOKEN="$(awk '/Local demo reserve:/ {gsub(/^[[:space:]]+|[[:space:]]+$/, "", $4); print $4}' "$DEPLOY_LOG")" \
+            DEPLOYER_ADDRESS="$(cast wallet address --private-key "$LOCAL_PRIVATE_KEY")" \
+            ../scripts/verify-deployment.sh
 
       - name: forge test
         run: forge test -vvv
