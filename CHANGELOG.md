@@ -4,6 +4,9 @@ All notable changes to this project are documented here.
 
 ## Unreleased
 
+- Fixed the PSM swap form to parse withdrawals in HLC's fixed 18-decimal units while preserving
+  the reserve token's native decimals for deposit and output formatting.
+- Added a visible dashboard warning when the on-chain CPI updater cadence is overdue.
 - Hardened the PSM against quote drift, unsupported decimals, fee-on-transfer reserves, reserve
   shortfalls, outgoing-transfer floor breaches, zero-receipt top-ups, zero-output withdrawals, and
   unauthorized redemption.
