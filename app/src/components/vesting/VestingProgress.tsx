@@ -1,9 +1,9 @@
 import { ProgressBar } from "@/components/ui/ProgressBar";
-import { formatTokenGrouped } from "@/lib/format";
+import { bigintRatio, formatTokenGrouped } from "@/lib/format";
 import type { VestingSchedule } from "@/hooks/useVesting";
 
 export function VestingProgress({ schedule }: { schedule: VestingSchedule }) {
-  const ratio = schedule.totalAllocation > 0n ? Number(schedule.vested) / Number(schedule.totalAllocation) : 0;
+  const ratio = bigintRatio(schedule.vested, schedule.totalAllocation);
 
   return (
     <div className="space-y-3">

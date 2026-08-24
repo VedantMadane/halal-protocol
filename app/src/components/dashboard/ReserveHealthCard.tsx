@@ -2,17 +2,7 @@ import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { formatTokenGrouped } from "@/lib/format";
-
-const RATIO_SCALE = 1_000_000n;
-
-/** Convert arbitrary uint256 reserve values to a bounded UI ratio without Number overflow. */
-function reserveRatio(balance: bigint | undefined, required: bigint | undefined): number {
-  if (required === 0n) return 1;
-  if (balance === undefined || required === undefined || required === 0n) return 0;
-  const scaled = balance >= required ? RATIO_SCALE : (balance * RATIO_SCALE) / required;
-  return Number(scaled) / Number(RATIO_SCALE);
-}
+import { bigintRatio, formatTokenGrouped } from "@/lib/format";
 
 export function ReserveHealthCard({
   reserveBalance,
@@ -31,7 +21,7 @@ export function ReserveHealthCard({
 }) {
   const decimals = reserveDecimals ?? 18;
   const isHealthy = reserveSurplus !== undefined ? reserveSurplus >= 0n : undefined;
-  const ratio = reserveRatio(reserveBalance, reserveRequired);
+  const ratio = reserveRequired === 0n ? 1 : bigintRatio(reserveBalance, reserveRequired);
 
   return (
     <Card>

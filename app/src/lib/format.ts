@@ -97,6 +97,14 @@ export function formatRatio(ratio: number, decimals = 2): string {
   return `${(clamped * 100).toFixed(decimals)}%`;
 }
 
+/** Converts a non-negative bigint ratio to a bounded 0–1 number without bigint overflow. */
+export function bigintRatio(numerator: bigint | undefined, denominator: bigint | undefined): number {
+  if (numerator === undefined || denominator === undefined || denominator === 0n) return 0;
+  const scale = 1_000_000n;
+  const scaled = numerator >= denominator ? scale : (numerator * scale) / denominator;
+  return Number(scaled) / Number(scale);
+}
+
 /**
  * Governor proposal ids are keccak-derived uint256 values, so they're huge and not meant to be
  * read digit-by-digit. Show a shortened hex form like a tx hash, with the full decimal value
