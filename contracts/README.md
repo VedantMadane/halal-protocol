@@ -10,6 +10,7 @@ the [root README](../README.md) and [`../docs/`](../docs).
 - `test/` — Foundry test suite (115 tests at the time of writing: 112 unit/configuration tests plus 3 stateful
   PSM invariants; run `forge test` to confirm).
 - `script/Deploy.s.sol` — full deployment script (token, vesting, DAO, timelock, role wiring).
+- `../scripts/verify-deployment.sh` — read-only post-deployment wiring and role verifier.
 - The production deployer selects an approximately one-week voting period on Arbitrum by default;
   review or override it for every target chain.
 - `script/Examples.s.sol` — example governance proposal templates (CPI update, source switch,
@@ -58,3 +59,13 @@ Requires a `.env` with `PRIVATE_KEY`, `RPC_URL`, `RESERVE_TOKEN`, `TEAM_BENEFICI
 ```shell
 forge script script/Deploy.s.sol:DeployHalalSystem --rpc-url $RPC_URL --private-key $PRIVATE_KEY --broadcast
 ```
+
+After deployment, independently verify the on-chain wiring before accepting funds:
+
+```shell
+../scripts/verify-deployment.sh
+```
+
+Set `RPC_URL`, `TIMELOCK`, `TOKEN`, `TEAM_VESTING`, `TREASURY_VESTING`, `DAO`, `PSM`, and `RESERVE_TOKEN`;
+optionally set `DEPLOYER_ADDRESS` and `CPI_UPDATER` to check those role assignments too. The
+verifier is read-only and does not require a private key or `--broadcast`.

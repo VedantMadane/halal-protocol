@@ -190,7 +190,13 @@ forge script script/Deploy.s.sol:DeployHalalSystem \
   --private-key $PRIVATE_KEY \
   --broadcast
 
-# 4. Verify on Arbiscan
+# 4. Independently verify wiring (read-only; do not use --broadcast)
+RPC_URL="$RPC_URL" TIMELOCK=0x<timelock> TOKEN=0x<token> TEAM_VESTING=0x<team_vesting> \
+TREASURY_VESTING=0x<treasury_vesting> DAO=0x<dao> PSM=0x<psm> \
+RESERVE_TOKEN=0x<reserve_token> \
+../scripts/verify-deployment.sh
+
+# 5. Verify on Arbiscan
 # Visit: https://sepolia.arbiscan.io
 # Check each contract address from deploy output
 ```
