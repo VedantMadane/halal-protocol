@@ -151,6 +151,7 @@ export default function ProposalDetailPage() {
                 isConnected={isConnected}
                 votingPower={detail.votingPowerAtSnapshot}
                 readError={detail.isError}
+                proposalEta={detail.proposalEta}
                 deploymentVerified={deploymentIntegrity.isVerified}
                 verificationChecking={deploymentIntegrity.isChecking}
                 onChanged={detail.refetch}

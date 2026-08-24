@@ -17,6 +17,8 @@ All notable changes to this project are documented here.
   silently disabled deposit/withdraw button.
 - Added a client-side on-chain deployment-integrity check and blocked governance, PSM, and vesting
   signing actions until the configured contract graph is verified.
+- Added live governance timelock ETA handling so queued proposals cannot present an executable
+  action before the delay has elapsed.
 - Hardened the PSM against quote drift, unsupported decimals, fee-on-transfer reserves, reserve
   shortfalls, outgoing-transfer floor breaches, zero-receipt top-ups, zero-output withdrawals, and
   unauthorized redemption.

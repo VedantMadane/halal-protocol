@@ -29,6 +29,7 @@ export function useProposalDetail(proposalId: bigint | undefined) {
               functionName: "hasVoted",
               args: [proposalId, address ?? ZERO_ADDRESS],
             },
+            { address: deployment.dao, abi: halalDaoAbi, functionName: "proposalEta", args: [proposalId] },
           ] as const)
         : [],
     query: {
@@ -44,6 +45,7 @@ export function useProposalDetail(proposalId: bigint | undefined) {
   const deadline = data?.[3]?.status === "success" ? (data[3].result as bigint) : undefined;
   const proposer = data?.[4]?.status === "success" ? (data[4].result as string) : undefined;
   const hasVoted = data?.[5]?.status === "success" ? (data[5].result as boolean) : undefined;
+  const proposalEta = data?.[6]?.status === "success" ? (data[6].result as bigint) : undefined;
 
   // Quorum and the connected wallet's voting power are only well-defined once we have a
   // snapshot block/timepoint to evaluate them at (matches what castVote actually checks).
@@ -73,6 +75,7 @@ export function useProposalDetail(proposalId: bigint | undefined) {
     deadline,
     proposer,
     hasVoted,
+    proposalEta,
     quorumNeeded,
     votingPowerAtSnapshot,
     isLoading,

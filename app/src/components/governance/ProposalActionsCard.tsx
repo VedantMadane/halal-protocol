@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import type { Address, Hex } from "viem";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -8,7 +8,7 @@ import { TxStatus } from "@/components/TxStatus";
 import { Alert } from "@/components/ui/Alert";
 import { useTxState } from "@/hooks/useTxState";
 import { halalDaoAbi } from "@/abis";
-import { descriptionHash } from "@/lib/format";
+import { descriptionHash, formatDurationSeconds } from "@/lib/format";
 
 interface Props {
   dao: Address;
@@ -22,6 +22,7 @@ interface Props {
   isConnected: boolean;
   votingPower: bigint | undefined;
   readError: boolean;
+  proposalEta: bigint | undefined;
   deploymentVerified: boolean;
   verificationChecking: boolean;
   onChanged: () => void;
@@ -41,6 +42,7 @@ export function ProposalActionsCard({
   isConnected,
   votingPower,
   readError,
+  proposalEta,
   deploymentVerified,
   verificationChecking,
   onChanged,
@@ -48,8 +50,17 @@ export function ProposalActionsCard({
   const voteTx = useTxState();
   const queueTx = useTxState();
   const executeTx = useTxState();
+  const [now, setNow] = useState<bigint>();
 
   const hash = descriptionHash(description);
+  const executionReady = proposalEta !== undefined && now !== undefined && now >= proposalEta;
+
+  useEffect(() => {
+    const refreshNow = () => setNow(BigInt(Math.floor(Date.now() / 1000)));
+    refreshNow();
+    const interval = window.setInterval(refreshNow, 5_000);
+    return () => window.clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (voteTx.isConfirmed || queueTx.isConfirmed || executeTx.isConfirmed) onChanged();
@@ -138,19 +149,27 @@ export function ProposalActionsCard({
             {!isConnected ? (
               <Alert tone="info">Connect your wallet to execute this proposal.</Alert>
             ) : (
-              <Button
-                onClick={() =>
-                  executeTx.writeContract({
-                    address: dao,
-                    abi: halalDaoAbi,
-                    functionName: "execute",
-                    args: [targets, values, calldatas, hash],
-                  })
-                }
-                loading={executeTx.isPending || executeTx.isConfirming}
-              >
-                Execute
-              </Button>
+              <>
+                {proposalEta !== undefined && !executionReady && now !== undefined && (
+                  <Alert tone="info">
+                    Timelock delay is still active. Approximately {formatDurationSeconds(proposalEta - now)} remaining.
+                  </Alert>
+                )}
+                <Button
+                  onClick={() =>
+                    executeTx.writeContract({
+                      address: dao,
+                      abi: halalDaoAbi,
+                      functionName: "execute",
+                      args: [targets, values, calldatas, hash],
+                    })
+                  }
+                  disabled={!executionReady}
+                  loading={executeTx.isPending || executeTx.isConfirming}
+                >
+                  {proposalEta === undefined ? "Reading timelock ETA" : executionReady ? "Execute" : "Waiting for timelock"}
+                </Button>
+              </>
             )}
             <TxStatus {...executeTx} pendingLabel="Confirm in your wallet…" successLabel="Proposal executed." />
           </>
