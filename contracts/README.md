@@ -7,7 +7,7 @@ the [root README](../README.md) and [`../docs/`](../docs).
 ## Layout
 
 - `src/` — the five core contracts.
-- `test/` — Foundry test suite (114 tests at the time of writing: 111 unit tests plus 3 stateful
+- `test/` — Foundry test suite (115 tests at the time of writing: 112 unit/configuration tests plus 3 stateful
   PSM invariants; run `forge test` to confirm).
 - `script/Deploy.s.sol` — full deployment script (token, vesting, DAO, timelock, role wiring).
 - The production deployer selects an approximately one-week voting period on Arbitrum by default;

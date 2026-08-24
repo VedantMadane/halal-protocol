@@ -7,7 +7,7 @@ read [`SECURITY.md`](../SECURITY.md) before using real funds. It includes:
 
 - **HalalDAO.sol** - OpenZeppelin Governor with voting
 - **HalalTimelock.sol** - 2-day execution delay
-- **Full Test Suite** - 114 tests (111 unit tests plus 3 stateful PSM invariants) covering the core workflows
+- **Full Test Suite** - 115 tests (112 unit/configuration tests plus 3 stateful PSM invariants) covering the core workflows
 - **Deployment Script** - One-command setup
 - **Example Proposals** - Ready-to-use proposal templates
 
@@ -162,7 +162,7 @@ forge test -vvv
 # ✓ test_CastVote_For
 # ✓ test_FullProposalFlow
 # ✓ test_DAO_ControlsPSM_AfterTakeover
-# ... (114 tests: 111 unit + 3 invariants) ...
+# ... (115 tests: 112 unit/configuration + 3 invariants) ...
 ```
 
 ### Step 3: Verify on Arbiscan
@@ -347,7 +347,7 @@ timelocked migration of protocol roles.
 
 Before moving to Arbitrum mainnet:
 
-- [ ] All tests passing locally and on the target network (114/114 local suite)
+- [ ] All tests passing locally and on the target network (115/115 local suite)
 - [ ] Manual proposal cycle tested (create → vote → queue → execute)
 - [ ] Team vesting wallet is multisig (e.g., Gnosis Safe)
 - [ ] Treasury vesting wallet is multisig
@@ -362,7 +362,7 @@ Before moving to Arbitrum mainnet:
 ## Files Included
 
 - `contracts/src/` — five first-party protocol contracts
-- `contracts/test/` — 114 tests (111 unit tests plus 3 stateful PSM invariants) and fixtures
+- `contracts/test/` — 115 tests (112 unit/configuration tests plus 3 stateful PSM invariants) and fixtures
 - `contracts/script/Deploy.s.sol` — full-system deployment script
 - `contracts/script/Examples.s.sol` — governance proposal examples
 - `app/` — Next.js frontend

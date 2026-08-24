@@ -96,7 +96,7 @@ combination means bugs here are unusually expensive to get wrong. So, for any PR
 - **Discuss significant changes in an issue first.** "Significant" means anything beyond a
   comment/NatSpec fix or an obviously-safe typo — if in doubt, open the issue.
 - **Tests are not optional.** New behavior needs new tests; changed behavior needs updated
-  tests demonstrating the change is correct. `contracts/test/` currently passes 114/114 — a PR that
+  tests demonstrating the change is correct. `contracts/test/` currently passes 115/115 — a PR that
   drops that number, or that changes contract behavior without a corresponding test change, will
   need justification before it can be merged.
 - **Explain the "why," not just the "what."** For contract changes especially, reviewers need to
