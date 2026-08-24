@@ -4,6 +4,9 @@ All notable changes to this project are documented here.
 
 ## Unreleased
 
+- Made the dApp's deployment-integrity gate fail closed unless the live token, PSM, and timelock
+  critical roles match the production wiring; the CLI verifier now also checks the open executor
+  role.
 - Made DAO reserve-withdrawal events report the recipient's actual fee-adjusted receipt and reject
   zero-value withdrawals.
 - Added reentrancy protection to DAO reserve deposits and withdrawals, with callback-based regression

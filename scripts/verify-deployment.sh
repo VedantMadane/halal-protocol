@@ -101,6 +101,7 @@ minter_role="$(call "$TOKEN" 'MINTER_ROLE()(bytes32)')"
 admin_role="$(call "$TOKEN" 'DEFAULT_ADMIN_ROLE()(bytes32)')"
 timelock_admin_role="$(call "$TIMELOCK" 'DEFAULT_ADMIN_ROLE()(bytes32)')"
 proposer_role="$(call "$TIMELOCK" 'PROPOSER_ROLE()(bytes32)')"
+executor_role="$(call "$TIMELOCK" 'EXECUTOR_ROLE()(bytes32)')"
 psm_param_role="$(call "$PSM" 'PARAM_ROLE()(bytes32)')"
 psm_admin_role="$(call "$PSM" 'DEFAULT_ADMIN_ROLE()(bytes32)')"
 psm_updater_role="$(call "$PSM" 'UPDATER_ROLE()(bytes32)')"
@@ -110,6 +111,7 @@ expect_true "timelock has HLC admin role" "$(call "$TOKEN" 'hasRole(bytes32,addr
 expect_true "DAO has timelock proposer role" "$(call "$TIMELOCK" 'hasRole(bytes32,address)(bool)' "$proposer_role" "$DAO")"
 expect_true "timelock has PSM admin role" "$(call "$PSM" 'hasRole(bytes32,address)(bool)' "$psm_admin_role" "$TIMELOCK")"
 expect_true "timelock has PSM parameter role" "$(call "$PSM" 'hasRole(bytes32,address)(bool)' "$psm_param_role" "$TIMELOCK")"
+expect_true "timelock has open executor role" "$(call "$TIMELOCK" 'hasRole(bytes32,address)(bool)' "$executor_role" "0x0000000000000000000000000000000000000000")"
 
 if [[ -n "${CPI_UPDATER:-}" ]]; then
   CPI_UPDATER="${CPI_UPDATER,,}"
