@@ -12,9 +12,10 @@ Foundry runs each invariant for 64 sequences of 2,048 calls by default.
 | Genesis-rate collateralization | Reserve held by the PSM is at least `reserveRequired()`. | CPI remains at the genesis rate; reserve top-ups are not modeled. |
 | Supply decomposition | Token supply equals the fixed 10M genesis allocation plus outstanding PSM issuance. | The handler does not call the separately available ERC20 burn path; `cancelRedeemable` preserves this equation by reducing both values. |
 
-These are deliberately state-transition properties rather than claims that the PSM is always
-over-collateralized. When CPI rises after deposits, `reserveRequired()` can exceed the reserve
-balance by design; the protocol exposes that condition through `reserveSurplus()` and requires a
+These are deliberately state-transition properties rather than claims that every governance
+override is fully collateralized. Routine `updateCPI()` reports cannot raise `reserveRequired()`
+above the reserve held by the PSM; the DAO-gated `mockCPI()` emergency path can intentionally do so.
+The protocol exposes any resulting condition through `reserveSurplus()` and requires a
 DAO-controlled reserve top-up before every outstanding claim can be redeemed.
 
 Run the invariant suite directly:

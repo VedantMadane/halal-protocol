@@ -32,7 +32,7 @@ import { HalalToken } from "./HalalToken.sol";
 ///
 /// Chainlink Functions note: the original design calls for an on-chain Chainlink Functions request in
 /// `updateCPI()`. To keep this repo self-contained and testable without a live Functions
-/// subscription, `updateCPI` here is a bounds- and rate-limited *report submission* function gated by
+/// subscription, `updateCPI` here is a bounds-, rate-, cadence-, and reserve-limited *report submission* function gated by
 /// `UPDATER_ROLE`. In production, grant `UPDATER_ROLE` to a Chainlink Functions consumer (or Chainlink
 /// Automation-triggered relayer) that fetches CPI off-chain and submits it here -- routine monthly
 /// updates then don't require a full 9-day governance cycle, while who is allowed to submit, and the
@@ -86,6 +86,7 @@ contract HalalPSM is AccessControl, ReentrancyGuard {
     error UpdateTooSoon();
     error InvalidUpdateInterval();
     error InsufficientReserve();
+    error RateWouldUnderCollateralize();
     error TransferFailed();
     error InsufficientRedeemableBalance();
     error SlippageExceeded();
@@ -256,9 +257,10 @@ contract HalalPSM is AccessControl, ReentrancyGuard {
 
     // ── Oracle / rate management ─────────────────────────────────────────
 
-    /// @notice Submits a new CPI reading. Rate- and step-limited so a malfunctioning or compromised
-    /// updater cannot move the peg further than `MAX_CPI_STEP_BPS` or more often than
-    /// `minUpdateInterval`.
+    /// @notice Submits a new CPI reading. Rate-, step-, cadence-, and reserve-limited so a
+    /// malfunctioning or compromised updater cannot move the peg further than `MAX_CPI_STEP_BPS`,
+    /// more often than `minUpdateInterval`, or above the reserve currently held for all outstanding
+    /// PSM-issued HLC. Governance can use `mockCPI` for an explicitly approved emergency override.
     function updateCPI(uint256 reportedCPI) external onlyRole(UPDATER_ROLE) {
         // validator timestamp manipulation is bounded to seconds, negligible against a multi-day interval
         // forge-lint: disable-next-line(block-timestamp)
@@ -266,6 +268,7 @@ contract HalalPSM is AccessControl, ReentrancyGuard {
             revert UpdateTooSoon();
         }
         _setCPI(reportedCPI, true);
+        if (reserve.balanceOf(address(this)) < reserveRequired()) revert RateWouldUnderCollateralize();
         emit CPIUpdated(previousCPI, cpiRate, true);
     }
 

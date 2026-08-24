@@ -3,7 +3,7 @@
 **Version**: 1.1.0
 **Date**: August 24, 2026
 **Network**: Arbitrum (Sepolia & Mainnet)
-**Status**: Unaudited reference implementation | 115 tests passing (112 unit/configuration + 3 invariants) | Not production-ready
+**Status**: Unaudited reference implementation | 117 tests passing (114 unit/configuration + 3 invariants) | Not production-ready
 
 ---
 
@@ -179,7 +179,7 @@ EOF
 ```bash
 # 1. Test locally
 forge test -vvv
-# Expected: 115/115 tests passing ✓
+# Expected: 117/117 tests passing ✓
 
 # 2. Fund wallet with testnet ETH on Arbitrum Sepolia
 # Visit: https://sepoliafaucet.com
@@ -281,7 +281,8 @@ dao.propose(
 )
 ```
 **Effect**: Applies a DAO-approved manual override within the 0.1–2.0 bounds. Routine reports use
-`updateCPI(reportedCPI)` from a separately granted `UPDATER_ROLE` account and are rate/interval limited.
+`updateCPI(reportedCPI)` from a separately granted `UPDATER_ROLE` account and are rate, cadence, and
+reserve-adequacy limited.
 
 #### 2. Switch CPI Source
 ```solidity
@@ -506,9 +507,9 @@ forge coverage
 ✓ test_TimelockPreventsImmediateExecution
 ✓ test_TeamVestingRevocable
 ✓ test_TreasuryVestingNonRevocable
-✓ 112 unit/configuration tests plus 3 stateful PSM invariants covering the core contracts and governance flows
+✓ 114 unit/configuration tests plus 3 stateful PSM invariants covering the core contracts and governance flows
 
-Total: 115 tests passing ✓
+Total: 117 tests passing ✓
 ```
 
 ### Verify on Arbiscan
@@ -526,7 +527,7 @@ Total: 115 tests passing ✓
 
 ### Before Deployment
 
-- [ ] All 115 tests passing locally, including the stateful invariants
+- [ ] All 117 tests passing locally, including the stateful invariants
 - [ ] Gas estimates reviewed & acceptable
 - [ ] No compiler warnings
 - [ ] Code review completed

@@ -61,11 +61,12 @@ at all — it is fully self-contained so it can be built, tested, and deployed w
 Chainlink Functions subscription. Concretely:
 
 - `updateCPI(uint256 reportedCPI)` is gated by a dedicated `UPDATER_ROLE` (not the DAO's own
-  role) and is bounds- and rate-limited: it reverts with `RateOutOfBounds` outside
+  role) and is bounds-, rate-, cadence-, and reserve-limited: it reverts with `RateOutOfBounds` outside
   `[MIN_CPI, MAX_CPI]` (0.1x–2.0x), with `StepTooLarge` if the move exceeds `MAX_CPI_STEP_BPS`
   (20%) in one call, and with `UpdateTooSoon` if called before `minUpdateInterval` (25 days by
-  default) has elapsed since the last update. It's a *report submission* function, not an oracle
-  call.
+  default) has elapsed since the last update. It also reverts with `RateWouldUnderCollateralize` if
+  the new rate would require more reserve than the PSM currently holds. It's a *report submission*
+  function, not an oracle call.
 - `mockCPI(uint256 newCPI)` is a **separate**, DAO-gated (`PARAM_ROLE`) manual override that
   bypasses the step and interval limits entirely (it still respects `[MIN_CPI, MAX_CPI]`).
   It's meant for governance-approved emergency corrections — e.g. the updater misbehaves, the
@@ -83,8 +84,9 @@ The intended production topology is: the DAO grants `UPDATER_ROLE` to a Chainlin
 consumer contract (or a Chainlink Automation-triggered relayer) that fetches CPI off-chain and
 submits it via `updateCPI`. That keeps routine monthly-ish updates from requiring a full
 governance vote each time, while governance still controls *who* can submit (`UPDATER_ROLE`
-grant/revoke), the bounds those submissions are checked against (`MIN_CPI`/`MAX_CPI`/
-`MAX_CPI_STEP_BPS`), and the emergency override (`mockCPI`, `PARAM_ROLE`). No such consumer
+  grant/revoke), the bounds those submissions are checked against (`MIN_CPI`/`MAX_CPI`/
+  `MAX_CPI_STEP_BPS`), current reserve adequacy, and the emergency override (`mockCPI`,
+  `PARAM_ROLE`). No such consumer
 contract ships in this repo — wiring one up is left as a real integration task for whoever
 operates a production deployment.
 
@@ -199,12 +201,9 @@ retires the matching credit, and returns no reserve; using this path keeps `tota
 `reserveRequired()` accurate. Directly burning a PSM holder's HLC remains voluntary but leaves that
 address's credit outstanding, so integrations should use the PSM-aware path when retiring a claim.
 
-This does **not** change the separate, already-documented fact that a CPI increase can make the
-PSM's aggregate `reserveRequired()` exceed its actual reserve balance even among purely legitimate
-depositors (see point 2 above) — that's an inherent property of CPI-indexed redemption and is
-mitigated by DAO-funded reserve top-ups and the `reserveSurplus()` visibility, not by this fix.
-What this fix closes is redemption by *non-depositors*, which had no legitimate economic
-justification at all.
+The normal updater path now refuses to create that shortfall. Governance can still use the explicit
+`mockCPI` emergency path to accept a reserve shortfall when correcting a disputed or failed oracle,
+but must then use `reserveSurplus()` and `depositReserve()` to restore full backing.
 
 ## 6. No emergency-cancel path for a queued proposal — by design, not oversight
 

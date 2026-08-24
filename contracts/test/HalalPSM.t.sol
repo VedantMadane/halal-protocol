@@ -250,6 +250,39 @@ contract HalalPSMTest is Deployers {
         psm.updateCPI(1_060_000);
     }
 
+    function test_UpdaterCannotRaiseRateAboveHeldReserve() public {
+        vm.prank(alice);
+        psm.deposit(1_000e18);
+
+        bytes32 updaterRole = psm.UPDATER_ROLE();
+        vm.prank(address(timelock));
+        psm.grantRole(updaterRole, address(this));
+
+        vm.warp(block.timestamp + psm.minUpdateInterval() + 1);
+        vm.expectRevert(HalalPSM.RateWouldUnderCollateralize.selector);
+        psm.updateCPI(1_100_000);
+
+        assertEq(psm.cpiRate(), psm.CPI_PRECISION());
+        assertEq(psm.lastUpdated(), block.timestamp - psm.minUpdateInterval() - 1);
+    }
+
+    function test_UpdaterCanRaiseRateAfterReserveTopUp() public {
+        vm.prank(alice);
+        psm.deposit(1_000e18);
+
+        reserve.mint(address(timelock), 100e18);
+        vm.startPrank(address(timelock));
+        reserve.approve(address(psm), 100e18);
+        psm.depositReserve(100e18);
+        psm.grantRole(psm.UPDATER_ROLE(), address(this));
+        vm.stopPrank();
+
+        vm.warp(block.timestamp + psm.minUpdateInterval() + 1);
+        psm.updateCPI(1_100_000);
+        assertEq(psm.cpiRate(), 1_100_000);
+        assertEq(psm.reserveSurplus(), 0);
+    }
+
     function test_UpdaterCanUpdateAfterIntervalElapses() public {
         bytes32 updaterRole = psm.UPDATER_ROLE();
         vm.prank(address(timelock));
