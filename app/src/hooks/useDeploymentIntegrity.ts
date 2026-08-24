@@ -39,6 +39,7 @@ export function useDeploymentIntegrity() {
           { address: deployment.psm, abi: halalPsmAbi, functionName: "hasRole", args: [PARAM_ROLE, deployment.timelock] },
           { address: deployment.timelock, abi: halalTimelockAbi, functionName: "hasRole", args: [PROPOSER_ROLE, deployment.dao] },
           { address: deployment.timelock, abi: halalTimelockAbi, functionName: "hasRole", args: [EXECUTOR_ROLE, zeroAddress] },
+          { address: deployment.timelock, abi: halalTimelockAbi, functionName: "hasRole", args: [zeroHash, deployment.timelock] },
         ] as const)
       : [],
     query: { enabled: deployment !== undefined, refetchInterval: 30_000 },
@@ -62,6 +63,7 @@ export function useDeploymentIntegrity() {
   const psmParam = get<boolean>(12);
   const timelockProposer = get<boolean>(13);
   const timelockExecutor = get<boolean>(14);
+  const timelockSelfAdmin = get<boolean>(15);
   const expected = deployment;
 
   const readFailed = hasReadFailure(data);
@@ -82,7 +84,8 @@ export function useDeploymentIntegrity() {
     psmAdmin === true &&
     psmParam === true &&
     timelockProposer === true &&
-    timelockExecutor === true;
+    timelockExecutor === true &&
+    timelockSelfAdmin === true;
 
   return {
     isVerified,

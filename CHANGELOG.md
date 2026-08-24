@@ -6,6 +6,8 @@ All notable changes to this project are documented here.
 
 - Added wallet-side PSM transaction preflight simulation so stale quotes, allowance changes, and
   reserve shortfalls are shown before a user signs a bounded deposit or withdrawal.
+- Extended deployment verification to require the timelock's self-admin role, which is necessary
+  for queued governance operations to manage protocol roles.
 - Made the dApp's deployment-integrity gate fail closed unless the live token, PSM, and timelock
   critical roles match the production wiring; the CLI verifier now also checks the open executor
   role.
