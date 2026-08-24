@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Read-only post-deployment verifier. Required: RPC_URL, TIMELOCK, TOKEN, TEAM_VESTING,
-# TREASURY_VESTING, DAO, PSM, and RESERVE_TOKEN. Optional: DEPLOYER_ADDRESS, CPI_UPDATER.
+# Read-only post-deployment verifier. Required: RPC_URL, EXPECTED_CHAIN_ID, TIMELOCK, TOKEN,
+# TEAM_VESTING, TREASURY_VESTING, DAO, PSM, and RESERVE_TOKEN. Optional: DEPLOYER_ADDRESS,
+# CPI_UPDATER.
 
-required_vars=(RPC_URL TIMELOCK TOKEN TEAM_VESTING TREASURY_VESTING DAO PSM RESERVE_TOKEN)
+required_vars=(RPC_URL EXPECTED_CHAIN_ID TIMELOCK TOKEN TEAM_VESTING TREASURY_VESTING DAO PSM RESERVE_TOKEN)
 for variable in "${required_vars[@]}"; do
   if [[ -z "${!variable:-}" ]]; then
     echo "Missing required environment variable: $variable" >&2
@@ -61,6 +62,8 @@ expect_contract() {
     exit 1
   fi
 }
+
+expect_equal "RPC chain ID" "$(cast chain-id --rpc-url "$RPC_URL")" "$EXPECTED_CHAIN_ID"
 
 TIMELOCK="${TIMELOCK,,}"
 TOKEN="${TOKEN,,}"

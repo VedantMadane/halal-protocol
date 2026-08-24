@@ -166,6 +166,7 @@ forge install
 cat > .env << 'EOF'
 PRIVATE_KEY=0x<your_deployer_private_key>
 RPC_URL=https://sepolia.arbitrum.io/rpc
+EXPECTED_CHAIN_ID=421614
 RESERVE_TOKEN=0x<existing_reserve_token_address>
 TEAM_BENEFICIARY=0x<team_multisig_address>
 TREASURY_BENEFICIARY=0x<treasury_multisig_address>
@@ -191,7 +192,7 @@ forge script script/Deploy.s.sol:DeployHalalSystem \
   --broadcast
 
 # 4. Independently verify wiring (read-only; do not use --broadcast)
-RPC_URL="$RPC_URL" TIMELOCK=0x<timelock> TOKEN=0x<token> TEAM_VESTING=0x<team_vesting> \
+RPC_URL="$RPC_URL" EXPECTED_CHAIN_ID=421614 TIMELOCK=0x<timelock> TOKEN=0x<token> TEAM_VESTING=0x<team_vesting> \
 TREASURY_VESTING=0x<treasury_vesting> DAO=0x<dao> PSM=0x<psm> \
 RESERVE_TOKEN=0x<reserve_token> \
 ../scripts/verify-deployment.sh

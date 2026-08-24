@@ -124,6 +124,7 @@ forge install
 cat > .env << 'EOF'
 PRIVATE_KEY=0x...                    # Your deployer private key
 RPC_URL=https://sepolia.arbitrum.io/rpc
+EXPECTED_CHAIN_ID=421614
 RESERVE_TOKEN=0x...                   # Existing DAI/USDC reserve token
 TEAM_BENEFICIARY=0x...               # Team multisig
 TREASURY_BENEFICIARY=0x...           # Treasury multisig

@@ -62,7 +62,7 @@ value_from_env() {
   awk -F= -v key="$1" '$1 ~ key {gsub(/^[[:space:]]+|[[:space:]]+$/, "", $2); print $2}' "$DEPLOY_LOG"
 }
 
-RPC_URL="$LOCAL_RPC_URL" \
+RPC_URL="$LOCAL_RPC_URL" EXPECTED_CHAIN_ID=31337 \
   TIMELOCK="$(value_from_env NEXT_PUBLIC_HLC_TIMELOCK_31337)" \
   TOKEN="$(value_from_env NEXT_PUBLIC_HLC_TOKEN_31337)" \
   TEAM_VESTING="$(value_from_env NEXT_PUBLIC_HLC_TEAM_VESTING_31337)" \
