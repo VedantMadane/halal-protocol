@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { formatUnits, parseUnits } from "viem";
-import { useAccount, useReadContract } from "wagmi";
+import { useAccount, useReadContract, useSimulateContract } from "wagmi";
 import { erc20Abi, halalPsmAbi, halalTokenAbi } from "@/abis";
 import { useDeployment } from "@/hooks/useDeployment";
 import { useDeploymentIntegrity } from "@/hooks/useDeploymentIntegrity";
@@ -186,6 +186,27 @@ function SwapFormInner({
         })()
       : undefined;
 
+  // Preflight the exact bounded call before asking the wallet to sign. This catches stale quotes,
+  // reserve shortfalls, and allowance/balance changes without spending gas or presenting a doomed
+  // transaction to the user. The contract remains the final authority at execution time.
+  const actionSimulation = useSimulateContract({
+    address: deploymentPsm,
+    abi: halalPsmAbi,
+    functionName: mode === "deposit" ? "depositWithMinHlcOut" : "withdrawWithMinReserveOut",
+    args: [parsedAmount ?? 0n, minOutput ?? 0n],
+    query: {
+      enabled:
+        deploymentVerified &&
+        walletDataReady &&
+        reserveMetadataReady &&
+        parsedAmount !== undefined &&
+        parsedAmount > 0n &&
+        minOutput !== undefined &&
+        !needsApproval &&
+        !insufficientBalance,
+    },
+  });
+
   function handleMax() {
     if (maxAmount === undefined || !reserveMetadataReady) return;
     setAmountInput(formatUnits(maxAmount, inputDecimals));
@@ -211,13 +232,8 @@ function SwapFormInner({
   }
 
   function handleAction() {
-    if (parsedAmount === undefined || minOutput === undefined) return;
-    actionTx.writeContract({
-      address: deploymentPsm,
-      abi: halalPsmAbi,
-      functionName: mode === "deposit" ? "depositWithMinHlcOut" : "withdrawWithMinReserveOut",
-      args: [parsedAmount, minOutput],
-    });
+    if (!actionSimulation.data?.request) return;
+    actionTx.writeContract(actionSimulation.data.request);
   }
 
   const fromSymbol = mode === "deposit" ? symbol : "HLC";
@@ -228,6 +244,11 @@ function SwapFormInner({
       {readError && (
         <Alert tone="danger" title="Wallet or reserve data could not be loaded">
           {readErrorMessage} Refresh the page or check your network before submitting a transaction.
+        </Alert>
+      )}
+      {actionSimulation.isError && (
+        <Alert tone="danger" title="Transaction preflight failed">
+          {getFriendlyErrorMessage(actionSimulation.error)} Refresh the quote or update your balance before signing.
         </Alert>
       )}
       <div className="flex items-center justify-between">
@@ -358,6 +379,14 @@ function SwapFormInner({
         <Button className="w-full" disabled>
           Amount too small
         </Button>
+      ) : actionSimulation.isLoading ? (
+        <Button className="w-full" disabled>
+          Checking transaction
+        </Button>
+      ) : actionSimulation.isError ? (
+        <Button className="w-full" disabled>
+          Transaction would fail
+        </Button>
       ) : needsApproval ? (
         <Button className="w-full" onClick={handleApprove} loading={approveTx.isPending || approveTx.isConfirming}>
           Approve {fromSymbol}
@@ -366,7 +395,14 @@ function SwapFormInner({
           <Button
             className="w-full"
             onClick={handleAction}
-          disabled={!reserveMetadataReady || parsedAmount === undefined || parsedAmount === 0n || minOutput === undefined || zeroOutput}
+          disabled={
+            !reserveMetadataReady ||
+            parsedAmount === undefined ||
+            parsedAmount === 0n ||
+            minOutput === undefined ||
+            zeroOutput ||
+            !actionSimulation.data?.request
+          }
           loading={actionTx.isPending || actionTx.isConfirming}
         >
           {mode === "deposit" ? "Deposit" : "Withdraw"}

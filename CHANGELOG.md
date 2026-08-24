@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## Unreleased
 
+- Added wallet-side PSM transaction preflight simulation so stale quotes, allowance changes, and
+  reserve shortfalls are shown before a user signs a bounded deposit or withdrawal.
 - Made the dApp's deployment-integrity gate fail closed unless the live token, PSM, and timelock
   critical roles match the production wiring; the CLI verifier now also checks the open executor
   role.
