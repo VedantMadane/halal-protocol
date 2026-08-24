@@ -41,13 +41,28 @@ echo "Deploying Halal locally..."
 (
   cd "$ROOT_DIR/contracts"
   PRIVATE_KEY="$LOCAL_PRIVATE_KEY" forge script script/DeployLocal.s.sol:DeployLocalHalalSystem \
-    --rpc-url "$LOCAL_RPC_URL" --broadcast
+    --rpc-url "$LOCAL_RPC_URL" --broadcast --non-interactive
 ) | tee "$DEPLOY_LOG"
 
 if ! grep -q "NEXT_PUBLIC_HLC_TOKEN_31337" "$DEPLOY_LOG"; then
   echo "Deployment did not print frontend configuration; see /tmp/halal-anvil.log" >&2
   exit 1
 fi
+
+value_from_env() {
+  awk -F= -v key="$1" '$1 ~ key {gsub(/^[[:space:]]+|[[:space:]]+$/, "", $2); print $2}' "$DEPLOY_LOG"
+}
+
+RPC_URL="$LOCAL_RPC_URL" \
+  TIMELOCK="$(value_from_env NEXT_PUBLIC_HLC_TIMELOCK_31337)" \
+  TOKEN="$(value_from_env NEXT_PUBLIC_HLC_TOKEN_31337)" \
+  TEAM_VESTING="$(value_from_env NEXT_PUBLIC_HLC_TEAM_VESTING_31337)" \
+  TREASURY_VESTING="$(value_from_env NEXT_PUBLIC_HLC_TREASURY_VESTING_31337)" \
+  DAO="$(value_from_env NEXT_PUBLIC_HLC_DAO_31337)" \
+  PSM="$(value_from_env NEXT_PUBLIC_HLC_PSM_31337)" \
+  RESERVE_TOKEN="$(awk '/Local demo reserve:/ {gsub(/^[[:space:]]+|[[:space:]]+$/, "", $4); print $4}' "$DEPLOY_LOG")" \
+  DEPLOYER_ADDRESS="$(cast wallet address --private-key "$LOCAL_PRIVATE_KEY")" \
+  "$ROOT_DIR/scripts/verify-deployment.sh"
 
 {
   echo "NEXT_PUBLIC_RPC_URL_31337=$LOCAL_RPC_URL"
