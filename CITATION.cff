@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+message: "If Halal contributes to your research or software, please cite this repository."
+type: software
+title: "Halal (HLC)"
+abstract: >-
+  An unaudited, CPI-indexed, DAO-governed stablecoin reference implementation with Solidity
+  contracts, Foundry tests, and a Next.js dApp.
+version: 0.1.0-alpha
+date-released: 2026-08-24
+repository-code: "https://github.com/fredrikblau/halal-protocol"
+license: MIT
+url: "https://github.com/fredrikblau/halal-protocol"
+authors:
+  - family-names: Blau
+    given-names: Fredrik
+keywords:
+  - stablecoin
+  - CPI
+  - DAO
+  - Solidity
+  - Ethereum
+  - Arbitrum

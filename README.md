@@ -142,3 +142,6 @@ scope, and what response times to expect.
 ## License
 
 MIT — see [`LICENSE`](LICENSE).
+
+If this project contributes to research or another open-source project, see [`CITATION.cff`](CITATION.cff)
+for citation metadata.
