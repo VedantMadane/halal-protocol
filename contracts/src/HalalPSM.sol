@@ -337,12 +337,16 @@ contract HalalPSM is AccessControl, ReentrancyGuard {
     /// reserve required to redeem outstanding PSM-issued HLC at the current CPI rate.
     function withdrawReserve(address to, uint256 amount) external onlyRole(PARAM_ROLE) nonReentrant {
         if (to == address(0)) revert ZeroAddress();
+        if (amount == 0) revert ZeroAmount();
         uint256 balance = reserve.balanceOf(address(this));
         uint256 required = reserveRequired();
         if (balance < required || amount > balance - required) revert InsufficientReserve();
+        uint256 recipientBalanceBefore = reserve.balanceOf(to);
         reserve.safeTransfer(to, amount);
+        uint256 received = reserve.balanceOf(to) - recipientBalanceBefore;
+        if (received == 0) revert ZeroReceived();
         if (reserve.balanceOf(address(this)) < reserveRequired()) revert InsufficientReserve();
-        emit ReserveWithdrawn(to, amount);
+        emit ReserveWithdrawn(to, received);
     }
 
     // ── Internal ─────────────────────────────────────────────────────────

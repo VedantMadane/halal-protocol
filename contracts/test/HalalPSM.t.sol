@@ -417,6 +417,25 @@ contract HalalPSMTest is Deployers {
         assertEq(reserve.balanceOf(address(this)), 500e18);
     }
 
+    function test_DAOReserveWithdrawalReportsActualFeeAdjustedReceipt() public {
+        MockFeeOnTransferERC20 feeReserve = new MockFeeOnTransferERC20(100); // 1% recipient fee
+        HalalPSM feePsm = new HalalPSM(address(feeReserve), address(token), address(timelock), address(0));
+        feeReserve.mint(address(feePsm), 100e18);
+
+        vm.expectEmit(true, false, false, true);
+        emit HalalPSM.ReserveWithdrawn(address(this), 99e18);
+        vm.prank(address(timelock));
+        feePsm.withdrawReserve(address(this), 100e18);
+
+        assertEq(feeReserve.balanceOf(address(this)), 99e18);
+    }
+
+    function test_RevertWhen_DAOReserveWithdrawalIsZero() public {
+        vm.prank(address(timelock));
+        vm.expectRevert(HalalPSM.ZeroAmount.selector);
+        psm.withdrawReserve(address(this), 0);
+    }
+
     function test_ReserveSurplusSaturatesAtInt256Bounds() public {
         reserve.mint(address(psm), uint256(type(int256).max) + 1);
         assertEq(psm.reserveSurplus(), type(int256).max);

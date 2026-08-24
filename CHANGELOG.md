@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## Unreleased
 
+- Made DAO reserve-withdrawal events report the recipient's actual fee-adjusted receipt and reject
+  zero-value withdrawals.
 - Added reentrancy protection to DAO reserve deposits and withdrawals, with callback-based regression
   coverage for malicious reserve-token behavior.
 - Made deployment verification fail closed when the RPC chain ID does not match the operator's
