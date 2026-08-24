@@ -48,9 +48,16 @@ export function TransferRedeemableForm() {
     user.hlcBalance !== undefined &&
     parsedAmount <= user.redeemableBalance &&
     parsedAmount <= user.hlcBalance;
+  const walletDataReady =
+    !user.isLoading &&
+    !user.isError &&
+    user.redeemableBalance !== undefined &&
+    user.hlcBalance !== undefined &&
+    user.hlcAllowance !== undefined;
+  const canAct = walletDataReady && hasBalance;
   const needsApproval =
-    hasBalance && user.hlcAllowance !== undefined && user.hlcAllowance < (parsedAmount as bigint);
-  const canSubmit = isConnected && validRecipient && hasBalance;
+    canAct && user.hlcAllowance !== undefined && user.hlcAllowance < (parsedAmount as bigint);
+  const canSubmit = isConnected && validRecipient && canAct;
 
   function handleMax() {
     if (user.redeemableBalance === undefined || user.hlcBalance === undefined) return;
@@ -59,7 +66,7 @@ export function TransferRedeemableForm() {
   }
 
   function handleApprove() {
-    if (!hasBalance || parsedAmount === undefined) return;
+    if (!canAct || parsedAmount === undefined) return;
     approveTx.writeContract({
       address: deployment!.token,
       abi: halalTokenAbi,
@@ -79,7 +86,7 @@ export function TransferRedeemableForm() {
   }
 
   function handleCancel() {
-    if (!isConnected || !hasBalance || parsedAmount === undefined) return;
+    if (!isConnected || !canAct || parsedAmount === undefined) return;
     cancelTx.writeContract({
       address: deployment!.psm,
       abi: halalPsmAbi,
@@ -154,6 +161,8 @@ export function TransferRedeemableForm() {
 
       {!isConnected ? (
         <Button className="w-full" disabled>Connect wallet to continue</Button>
+      ) : !walletDataReady ? (
+        <Button className="w-full" disabled>Waiting for wallet data</Button>
       ) : !hasBalance ? (
         <Button className="w-full" disabled>Insufficient redeemable HLC</Button>
       ) : needsApproval ? (
