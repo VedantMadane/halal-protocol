@@ -25,6 +25,10 @@ contract HalalDAO is
     GovernorVotesQuorumFraction,
     GovernorTimelockControl
 {
+    error ZeroAddress();
+    error InvalidQuorum();
+    error InvalidProposalThreshold();
+
     constructor(
         IVotes token_,
         TimelockController timelock_,
@@ -38,7 +42,13 @@ contract HalalDAO is
         GovernorVotes(token_)
         GovernorVotesQuorumFraction(quorumPercent_)
         GovernorTimelockControl(timelock_)
-    { }
+    {
+        if (address(token_) == address(0) || address(timelock_) == address(0)) {
+            revert ZeroAddress();
+        }
+        if (proposalThreshold_ == 0) revert InvalidProposalThreshold();
+        if (quorumPercent_ == 0 || quorumPercent_ > 100) revert InvalidQuorum();
+    }
 
     function votingDelay() public view override(Governor, GovernorSettings) returns (uint256) {
         return super.votingDelay();

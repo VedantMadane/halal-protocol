@@ -6,12 +6,14 @@ import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/I
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 import { HalalToken } from "./HalalToken.sol";
 
 /// @title HalalPSM (Peg Stability Module)
 /// @notice Mints HLC against a reserve asset (e.g. DAI) at a CPI-adjusted rate, and burns HLC to
-/// return reserve on withdrawal. HLC minted here is fully collateralized 1:1 by the reserve asset
-/// held in this contract, so PSM issuance does not affect the fixed genesis supply held by vesting.
+/// return reserve on withdrawal. PSM issuance is collateralized by reserve held in this contract
+/// at the applicable rate; CPI increases can create a shortfall that governance must top up before
+/// all outstanding claims can be redeemed.
 ///
 /// CPI rate design: `cpiRate` tracks the price of 1 HLC in reserve-asset terms, scaled by
 /// `CPI_PRECISION`. As CPI (inflation) rises, `cpiRate` rises, so each HLC buys more reserve on
@@ -24,9 +26,9 @@ import { HalalToken } from "./HalalToken.sol";
 /// costless to acquire -- could drain reserve contributed by actual depositors. `redeemableBalance`
 /// tracks, per address, how much HLC that address itself minted via `deposit` and hasn't yet
 /// redeemed; `withdraw` can never pull more than the caller's own credit, regardless of how much
-/// HLC they hold. The tradeoff: PSM-minted HLC transferred to another address loses its redemption
-/// right at this PSM (the recipient can hold/spend it like any HLC, just not `withdraw` it here) --
-/// deliberate, see docs/DESIGN-DECISIONS.md.
+/// HLC they hold. Use `transferRedeemable` to atomically transfer PSM-minted HLC together with its
+/// redemption credit; a plain ERC20 transfer deliberately does not move that credit, see
+/// docs/DESIGN-DECISIONS.md.
 ///
 /// Chainlink Functions note: the original design calls for an on-chain Chainlink Functions request in
 /// `updateCPI()`. To keep this repo self-contained and testable without a live Functions
@@ -45,6 +47,7 @@ contract HalalPSM is AccessControl, ReentrancyGuard {
     uint256 public constant MIN_CPI = 100_000; // 0.1
     uint256 public constant MAX_CPI = 2_000_000; // 2.0
     uint256 public constant MAX_CPI_STEP_BPS = 2_000; // 20% max move per updateCPI() call
+    uint8 public constant MAX_RESERVE_DECIMALS = 77;
 
     IERC20 public immutable reserve;
     HalalToken public immutable hlc;
@@ -70,15 +73,22 @@ contract HalalPSM is AccessControl, ReentrancyGuard {
     event MinUpdateIntervalUpdated(uint256 newInterval);
     event ReserveDeposited(address indexed from, uint256 amount);
     event ReserveWithdrawn(address indexed to, uint256 amount);
+    event RedeemableTransferred(address indexed from, address indexed to, uint256 amount);
+    event RedeemableCancelled(address indexed user, uint256 amount);
 
     error ZeroAmount();
+    error ZeroReceived();
+    error InsufficientOutput();
+    error UnsupportedDecimals();
     error ZeroAddress();
     error RateOutOfBounds();
     error StepTooLarge();
     error UpdateTooSoon();
+    error InvalidUpdateInterval();
     error InsufficientReserve();
     error TransferFailed();
     error InsufficientRedeemableBalance();
+    error SlippageExceeded();
 
     /// @param reserve_ Reserve asset (e.g. DAI). Any ERC20Metadata-compliant token works; decimals
     /// are normalized against HLC's 18 decimals.
@@ -90,7 +100,9 @@ contract HalalPSM is AccessControl, ReentrancyGuard {
 
         reserve = IERC20(reserve_);
         hlc = HalalToken(hlc_);
-        _reserveDecimals = IERC20Metadata(reserve_).decimals();
+        uint8 reserveDecimals = IERC20Metadata(reserve_).decimals();
+        if (reserveDecimals > MAX_RESERVE_DECIMALS) revert UnsupportedDecimals();
+        _reserveDecimals = reserveDecimals;
         lastUpdated = block.timestamp;
 
         _grantRole(DEFAULT_ADMIN_ROLE, dao);
@@ -99,40 +111,103 @@ contract HalalPSM is AccessControl, ReentrancyGuard {
 
     // ── User-facing ──────────────────────────────────────────────────────
 
-    /// @notice Deposits reserve asset, mints the CPI-adjusted amount of HLC to the caller. Mints
-    /// against the actual balance received, not the requested amount, so a fee-on-transfer or
-    /// otherwise non-standard reserve token can't cause HLC to be minted against reserve the PSM
-    /// never actually received.
+    /// @notice Compatibility deposit without an output bound. New integrations should use
+    /// `depositWithMinHlcOut` so a CPI update between quoting and execution cannot worsen output.
     function deposit(uint256 reserveAmount) external nonReentrant {
+        _deposit(reserveAmount, 0);
+    }
+
+    /// @notice Deposits reserve and reverts unless at least `minHlcOut` HLC is minted. Use this
+    /// bounded entrypoint when the quote came from `previewDeposit`; CPI can change before a
+    /// transaction executes.
+    function depositWithMinHlcOut(uint256 reserveAmount, uint256 minHlcOut) external nonReentrant {
+        _deposit(reserveAmount, minHlcOut);
+    }
+
+    function _deposit(uint256 reserveAmount, uint256 minHlcOut) internal {
         if (reserveAmount == 0) revert ZeroAmount();
         uint256 balanceBefore = reserve.balanceOf(address(this));
         reserve.safeTransferFrom(msg.sender, address(this), reserveAmount);
         uint256 received = reserve.balanceOf(address(this)) - balanceBefore;
+        if (received == 0) revert ZeroReceived();
 
         uint256 hlcOut = _reserveToHlc(received);
+        // Do not accept dust that rounds down to zero HLC. Without this check the reserve
+        // transfer would succeed while the depositor receives no redeemable balance.
+        if (hlcOut == 0) revert InsufficientOutput();
+        if (hlcOut < minHlcOut) revert SlippageExceeded();
         totalHlcIssued += hlcOut;
         redeemableBalance[msg.sender] += hlcOut;
         hlc.mint(msg.sender, hlcOut);
         emit Deposited(msg.sender, received, hlcOut);
     }
 
-    /// @notice Burns HLC from the caller (requires prior `approve`), returns the CPI-adjusted amount
-    /// of reserve asset. Capped by the caller's own `redeemableBalance` -- only redeems HLC the
-    /// caller itself minted here via `deposit`, never genesis/vesting HLC or PSM-minted HLC received
-    /// from someone else's deposit (see the contract-level NatSpec for why).
+    /// @notice Compatibility withdrawal without an output bound. New integrations should use
+    /// `withdrawWithMinReserveOut` so a CPI update cannot worsen the quoted return.
     function withdraw(uint256 hlcAmount) external nonReentrant {
+        _withdraw(hlcAmount, 0);
+    }
+
+    /// @notice Withdraws HLC and reverts unless at least `minReserveOut` reserve is returned. Use
+    /// this bounded entrypoint when the quote came from `previewWithdraw`.
+    function withdrawWithMinReserveOut(uint256 hlcAmount, uint256 minReserveOut) external nonReentrant {
+        _withdraw(hlcAmount, minReserveOut);
+    }
+
+    /// @notice Transfers PSM-issued HLC and its redemption credit in one atomic operation. The
+    /// caller must approve this contract for `hlcAmount`; a plain ERC20 transfer cannot move the
+    /// credit because the token has no knowledge of this PSM's per-address accounting.
+    function transferRedeemable(address to, uint256 hlcAmount) external nonReentrant {
+        if (to == address(0)) revert ZeroAddress();
         if (hlcAmount == 0) revert ZeroAmount();
         if (redeemableBalance[msg.sender] < hlcAmount) revert InsufficientRedeemableBalance();
-        uint256 reserveOut = _hlcToReserve(hlcAmount);
-        if (reserve.balanceOf(address(this)) < reserveOut) revert InsufficientReserve();
+
+        bool ok = hlc.transferFrom(msg.sender, to, hlcAmount);
+        if (!ok) revert TransferFailed();
+        redeemableBalance[msg.sender] -= hlcAmount;
+        redeemableBalance[to] += hlcAmount;
+        emit RedeemableTransferred(msg.sender, to, hlcAmount);
+    }
+
+    /// @notice Irreversibly burns HLC and retires the caller's matching redemption credit without
+    /// returning reserve. This is the accounting-aware alternative to calling HLC's public
+    /// `burn()` directly: it releases the surrendered claim from `totalHlcIssued`, allowing the
+    /// corresponding reserve to become surplus. The caller must approve this contract for the HLC.
+    function cancelRedeemable(uint256 hlcAmount) external nonReentrant {
+        if (hlcAmount == 0) revert ZeroAmount();
+        if (redeemableBalance[msg.sender] < hlcAmount) revert InsufficientRedeemableBalance();
 
         totalHlcIssued -= hlcAmount;
         redeemableBalance[msg.sender] -= hlcAmount;
         bool ok = hlc.transferFrom(msg.sender, address(this), hlcAmount);
         if (!ok) revert TransferFailed();
         hlc.burn(hlcAmount);
+        emit RedeemableCancelled(msg.sender, hlcAmount);
+    }
+
+    function _withdraw(uint256 hlcAmount, uint256 minReserveOut) internal {
+        if (hlcAmount == 0) revert ZeroAmount();
+        if (redeemableBalance[msg.sender] < hlcAmount) revert InsufficientRedeemableBalance();
+        uint256 reserveBalanceBefore = reserve.balanceOf(address(this));
+        uint256 reserveDeficitBefore = _reserveDeficit(reserveBalanceBefore, reserveRequired());
+        uint256 reserveOut = _hlcToReserve(hlcAmount);
+        if (reserveOut == 0) revert InsufficientOutput();
+        if (reserveBalanceBefore < reserveOut) revert InsufficientReserve();
+        if (reserveOut < minReserveOut) revert SlippageExceeded();
+
+        totalHlcIssued -= hlcAmount;
+        redeemableBalance[msg.sender] -= hlcAmount;
+        bool ok = hlc.transferFrom(msg.sender, address(this), hlcAmount);
+        if (!ok) revert TransferFailed();
+        hlc.burn(hlcAmount);
+        uint256 userReserveBefore = reserve.balanceOf(msg.sender);
         reserve.safeTransfer(msg.sender, reserveOut);
-        emit Withdrawn(msg.sender, hlcAmount, reserveOut);
+        uint256 received = reserve.balanceOf(msg.sender) - userReserveBefore;
+        if (received == 0) revert ZeroReceived();
+        if (received < minReserveOut) revert SlippageExceeded();
+        uint256 reserveDeficitAfter = _reserveDeficit(reserve.balanceOf(address(this)), reserveRequired());
+        if (reserveDeficitAfter > reserveDeficitBefore) revert InsufficientReserve();
+        emit Withdrawn(msg.sender, hlcAmount, received);
     }
 
     /// @notice Reserve balance the PSM would need on hand to fully redeem all outstanding
@@ -148,10 +223,24 @@ contract HalalPSM is AccessControl, ReentrancyGuard {
 
     /// @notice Actual reserve balance minus `reserveRequired()`. Negative means the PSM cannot
     /// currently redeem all outstanding PSM-issued HLC at the current rate (individual withdrawals
-    /// up to the shortfall will still succeed on a first-come-first-served basis; `withdraw` always
-    /// reverts safely rather than paying out from insufficient funds).
+    /// up to the shortfall will still succeed on a first-come-first-served basis, while transfers
+    /// that would make the deficit worse revert safely.
     function reserveSurplus() external view returns (int256) {
-        return int256(reserve.balanceOf(address(this))) - int256(reserveRequired());
+        uint256 balance = reserve.balanceOf(address(this));
+        uint256 required = reserveRequired();
+        uint256 maxInt = uint256(type(int256).max);
+
+        if (balance >= required) {
+            uint256 surplus = balance - required;
+            // The branch guarantees surplus <= maxInt before this cast.
+            // forge-lint: disable-next-line(unsafe-typecast)
+            return surplus > maxInt ? type(int256).max : int256(surplus);
+        }
+
+        uint256 deficit = required - balance;
+        // The branch guarantees deficit <= maxInt before this cast.
+        // forge-lint: disable-next-line(unsafe-typecast)
+        return deficit > maxInt ? type(int256).min : -int256(deficit);
     }
 
     function previewDeposit(uint256 reserveAmount) external view returns (uint256) {
@@ -170,7 +259,9 @@ contract HalalPSM is AccessControl, ReentrancyGuard {
     function updateCPI(uint256 reportedCPI) external onlyRole(UPDATER_ROLE) {
         // validator timestamp manipulation is bounded to seconds, negligible against a multi-day interval
         // forge-lint: disable-next-line(block-timestamp)
-        if (block.timestamp < lastUpdated + minUpdateInterval) revert UpdateTooSoon();
+        if (block.timestamp < lastUpdated || block.timestamp - lastUpdated < minUpdateInterval) {
+            revert UpdateTooSoon();
+        }
         _setCPI(reportedCPI, true);
         emit CPIUpdated(previousCPI, cpiRate, true);
     }
@@ -188,7 +279,10 @@ contract HalalPSM is AccessControl, ReentrancyGuard {
         emit SourceUpdated(newSource);
     }
 
+    /// @notice Updates the minimum cadence for the normal CPI updater. Zero is rejected; use the
+    /// DAO-gated `mockCPI` path when an emergency update must bypass the normal cadence.
     function setMinUpdateInterval(uint256 newInterval) external onlyRole(PARAM_ROLE) {
+        if (newInterval == 0) revert InvalidUpdateInterval();
         minUpdateInterval = newInterval;
         emit MinUpdateIntervalUpdated(newInterval);
     }
@@ -196,16 +290,22 @@ contract HalalPSM is AccessControl, ReentrancyGuard {
     /// @notice DAO-approved top-up of reserves (e.g. bootstrapping liquidity from the treasury).
     function depositReserve(uint256 amount) external onlyRole(PARAM_ROLE) {
         if (amount == 0) revert ZeroAmount();
+        uint256 balanceBefore = reserve.balanceOf(address(this));
         reserve.safeTransferFrom(msg.sender, address(this), amount);
-        emit ReserveDeposited(msg.sender, amount);
+        uint256 received = reserve.balanceOf(address(this)) - balanceBefore;
+        if (received == 0) revert ZeroReceived();
+        emit ReserveDeposited(msg.sender, received);
     }
 
-    /// @notice DAO-approved reserve withdrawal (e.g. reallocating idle reserve, winding down a
-    /// deprecated PSM). Left deliberately simple; a production deployment may want a reserve-ratio
-    /// floor check here.
+    /// @notice DAO-approved withdrawal of reserve surplus. The PSM never lets this path remove the
+    /// reserve required to redeem outstanding PSM-issued HLC at the current CPI rate.
     function withdrawReserve(address to, uint256 amount) external onlyRole(PARAM_ROLE) {
         if (to == address(0)) revert ZeroAddress();
+        uint256 balance = reserve.balanceOf(address(this));
+        uint256 required = reserveRequired();
+        if (balance < required || amount > balance - required) revert InsufficientReserve();
         reserve.safeTransfer(to, amount);
+        if (reserve.balanceOf(address(this)) < reserveRequired()) revert InsufficientReserve();
         emit ReserveWithdrawn(to, amount);
     }
 
@@ -222,25 +322,37 @@ contract HalalPSM is AccessControl, ReentrancyGuard {
         lastUpdated = block.timestamp;
     }
 
+    function _reserveDeficit(uint256 balance, uint256 required) internal pure returns (uint256) {
+        return required > balance ? required - balance : 0;
+    }
+
     function _reserveToHlc(uint256 reserveAmount) internal view returns (uint256) {
-        uint256 at18 = _scaleTo18(reserveAmount, _reserveDecimals);
-        return (at18 * CPI_PRECISION) / cpiRate;
+        if (_reserveDecimals < HLC_DECIMALS) {
+            uint256 downScale = 10 ** (HLC_DECIMALS - _reserveDecimals);
+            // `downScale * CPI_PRECISION` is bounded by 1e24 for supported decimals. Using mulDiv
+            // avoids overflowing the reserve amount times the conversion numerator when the
+            // resulting HLC amount itself still fits in uint256.
+            return Math.mulDiv(reserveAmount, downScale * CPI_PRECISION, cpiRate);
+        }
+
+        uint256 upScale = 10 ** (_reserveDecimals - HLC_DECIMALS);
+        // Keep extra reserve-token precision through the CPI conversion instead of truncating
+        // to 18 decimals first. This preserves valid sub-18-decimal deposits.
+        return Math.mulDiv(reserveAmount, CPI_PRECISION, cpiRate * upScale);
     }
 
     function _hlcToReserve(uint256 hlcAmount) internal view returns (uint256) {
-        uint256 at18 = (hlcAmount * cpiRate) / CPI_PRECISION;
-        return _scaleFrom18(at18, _reserveDecimals);
-    }
+        if (_reserveDecimals < HLC_DECIMALS) {
+            uint256 downScale = 10 ** (HLC_DECIMALS - _reserveDecimals);
+            return Math.mulDiv(hlcAmount, cpiRate, CPI_PRECISION * downScale);
+        }
+        if (_reserveDecimals == HLC_DECIMALS) {
+            return Math.mulDiv(hlcAmount, cpiRate, CPI_PRECISION);
+        }
 
-    function _scaleTo18(uint256 amount, uint8 decimals) internal pure returns (uint256) {
-        if (decimals == HLC_DECIMALS) return amount;
-        if (decimals < HLC_DECIMALS) return amount * (10 ** (HLC_DECIMALS - decimals));
-        return amount / (10 ** (decimals - HLC_DECIMALS));
-    }
-
-    function _scaleFrom18(uint256 amount, uint8 decimals) internal pure returns (uint256) {
-        if (decimals == HLC_DECIMALS) return amount;
-        if (decimals < HLC_DECIMALS) return amount / (10 ** (HLC_DECIMALS - decimals));
-        return amount * (10 ** (decimals - HLC_DECIMALS));
+        uint256 upScale = 10 ** (_reserveDecimals - HLC_DECIMALS);
+        // Keep the reserve token's extra precision through the CPI conversion. A two-stage
+        // round-down would materially underpay tiny withdrawals when CPI is not exactly 1.0.
+        return Math.mulDiv(hlcAmount, cpiRate * upScale, CPI_PRECISION);
     }
 }

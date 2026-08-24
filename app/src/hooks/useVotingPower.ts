@@ -3,6 +3,7 @@
 import { useAccount, useReadContracts } from "wagmi";
 import { halalTokenAbi, halalDaoAbi } from "@/abis";
 import { useDeployment } from "./useDeployment";
+import { hasReadFailure, partialReadError } from "@/lib/readResults";
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
@@ -23,6 +24,7 @@ export function useVotingPower() {
         : [],
     query: { enabled: !!deployment && !!address, refetchInterval: 20_000 },
   });
+  const readFailed = hasReadFailure(data);
 
   const get = <T>(i: number): T | undefined => (data?.[i]?.status === "success" ? (data[i].result as T) : undefined);
 
@@ -36,8 +38,8 @@ export function useVotingPower() {
     isSelfDelegated: !!delegate && !!address && delegate.toLowerCase() === address.toLowerCase(),
     proposalThreshold: get<bigint>(3),
     isLoading,
-    isError,
-    error,
+    isError: isError || readFailed,
+    error: error ?? (readFailed ? partialReadError() : undefined),
     refetch,
   };
 }

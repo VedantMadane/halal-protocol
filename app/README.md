@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Halal dApp
 
-## Getting Started
+The Halal frontend is a Next.js application for the protocol dashboard, governance, PSM, and
+vesting views. It supports a local Anvil network, Arbitrum Sepolia, and Arbitrum One.
 
-First, run the development server:
+## Run locally
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
+cp .env.example .env.local
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000). The app shows a clear “not deployed” state
+until a complete deployment configuration is provided for the connected chain.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+For a fully working local demo, run `../scripts/local-demo.sh` from the repository root. It starts
+Anvil, deploys the contracts, writes `.env.local`, and launches this app with a faucet-backed `mDAI`
+reserve. This reserve is for local testing only and is not a real stablecoin or production asset.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Environment
 
-## Learn More
+| Variable | Purpose |
+| --- | --- |
+| `NEXT_PUBLIC_RPC_URL_31337` | Optional Anvil RPC URL; defaults to `http://127.0.0.1:8545` |
+| `NEXT_PUBLIC_RPC_URL_421614` | Optional Arbitrum Sepolia RPC URL; falls back to the public chain endpoint |
+| `NEXT_PUBLIC_RPC_URL_42161` | Optional Arbitrum One RPC URL; falls back to the public chain endpoint |
+| `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` | WalletConnect/Reown project ID; injected wallets work without it |
 
-To learn more about Next.js, take a look at the following resources:
+For each supported chain, set all nine `NEXT_PUBLIC_HLC_*_<chainId>` variables in `.env.local`:
+the seven contract addresses, `RESERVE_SYMBOL`, and `DEPLOYMENT_BLOCK`. The accepted suffixes are
+`31337`, `421614`, and `42161`. Addresses are validated at startup and incomplete configurations
+remain disabled. The deployment block bounds the governance event scan, so set it to the block where
+the DAO deployment was mined.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Never put private keys or signing secrets in this file. Every `NEXT_PUBLIC_*` value ships to the
+browser.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Checks
 
-## Deploy on Vercel
+```bash
+pnpm lint
+pnpm build
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Regenerate contract ABIs after changing Solidity interfaces:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+pnpm gen:abis
+```
+
+The frontend is a read/write client for deployed contracts. Contract sources and deployment
+instructions live in [`../contracts`](../contracts) and [`../docs`](../docs).

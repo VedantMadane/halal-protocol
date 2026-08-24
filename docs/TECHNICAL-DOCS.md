@@ -1,9 +1,9 @@
-# HALAL DAO - PRODUCTION-READY TECHNICAL DOCUMENTATION
+# HALAL DAO - TECHNICAL DOCUMENTATION
 
-**Version**: 1.0.0 Production  
-**Date**: December 3, 2025  
-**Network**: Arbitrum (Sepolia & Mainnet)  
-**Status**: ✅ Audited Patterns | 30+ Tests Passing | Ready to Deploy
+**Version**: 1.1.0
+**Date**: August 24, 2026
+**Network**: Arbitrum (Sepolia & Mainnet)
+**Status**: Unaudited reference implementation | 114 tests passing (111 unit + 3 invariants) | Not production-ready
 
 ---
 
@@ -22,13 +22,13 @@
 
 ## Contract Overview
 
-### 5 Production-Ready Smart Contracts
+### 5 First-Party Smart Contracts
 
-All contracts are included in **HalalDAO.sol** (combined file):
+The contracts are separate, immutable-by-design modules under `contracts/src/`:
 
 #### 1. **HalalToken.sol** - Governance Token
 - **Type**: ERC20 with Voting Rights
-- **Supply**: 10M HLC (fixed)
+- **Genesis supply**: 10M HLC (fixed allocation; PSM issuance is additional and reserve-backed)
 - **Distribution**: 6M team vesting + 4M treasury vesting
 - **Features**:
   - ERC20Votes (snapshot-based voting)
@@ -37,7 +37,7 @@ All contracts are included in **HalalDAO.sol** (combined file):
   - Burnable (deflationary)
 
 #### 2. **HalalVesting.sol** - Vesting Wallet
-- **Type**: VestingWallet with Emergency Revoke
+- **Type**: Custom linear vesting contract with optional revocation
 - **Instances**: 2 (team + treasury)
 - **Features**:
   - Team: 6M HLC, 4-year vesting, 1-year cliff
@@ -47,10 +47,10 @@ All contracts are included in **HalalDAO.sol** (combined file):
 
 #### 3. **HalalPSM.sol** - Peg Stability Module
 - **Type**: Oracle-Driven Stablecoin
-- **Peg**: 1 HLC ≈ 1 USD (CPI-adjusted)
+- **Peg**: 1 HLC ≈ 1 reserve unit at the current CPI-adjusted rate
 - **Features**:
   - DAI ↔ HLC conversions
-  - Chainlink Functions for CPI oracle
+  - Bounded `UPDATER_ROLE` CPI submissions; an oracle integration is deployment work
   - Monthly CPI adjustments
   - Emergency manual override
   - Rate bounds (0.1 to 2.0)
@@ -62,7 +62,7 @@ All contracts are included in **HalalDAO.sol** (combined file):
   - Snapshot-based (prevents flash loans)
   - Timelock integration (2-day delay)
   - Multi-target proposals
-  - 1-week voting period
+  - Chain-dependent voting period (about one week on Arbitrum by default; configure per chain)
   - 4% quorum requirement
 
 #### 5. **HalalTimelock.sol** - Execution Delay
@@ -96,7 +96,7 @@ All contracts are included in **HalalDAO.sol** (combined file):
     ┌─────────────┐    ┌──────────────┐
     │ HalalDAO    │    │Timelock      │
     │ Voting      │    │2-day delay   │
-    │ (1 week)    │    │(execution)   │
+    │ (configured) │    │(execution)   │
     └──────┬──────┘    └───────┬──────┘
            │                   │
            └───────────────────┤
@@ -114,22 +114,22 @@ All contracts are included in **HalalDAO.sol** (combined file):
 ### Proposal Lifecycle
 
 ```
-1. PROPOSE (5 min)
+1. PROPOSE (no fixed duration)
    └─→ Create proposal with: targets, values, calldatas, description
    └─→ Snapshot voting power at block N-1
    └─→ State: PENDING
 
-2. VOTING (1 week = 50,400 blocks)
+2. VOTING (chain-dependent; about one week on Arbitrum by default)
    └─→ HLC holders vote FOR/AGAINST/ABSTAIN
    └─→ Voting power = balance at snapshot block
    └─→ State: ACTIVE
 
-3. VOTING ENDS (1 sec)
+3. VOTING ENDS (at the configured end block)
    └─→ Check: for > against? votes ≥ 4%?
    └─→ If YES → State: SUCCEEDED
    └─→ If NO → State: DEFEATED
 
-4. QUEUE (5 min - if SUCCEEDED)
+4. QUEUE (if SUCCEEDED)
    └─→ Send to timelock
    └─→ 2-day countdown starts
    └─→ State: QUEUED
@@ -139,12 +139,12 @@ All contracts are included in **HalalDAO.sol** (combined file):
    └─→ Holders can migrate if unpopular
    └─→ No execution possible yet
 
-6. EXECUTE (5 min - after 2 days)
+6. EXECUTE (after the 2-day default timelock delay)
    └─→ Call function on target contract
    └─→ Protocol parameter updated
    └─→ State: EXECUTED
 
-Total Timeline: ~9 days (1 week voting + 2 days delay)
+Total Timeline: voting period configured for the target chain + 2 days delay
 ```
 
 ---
@@ -158,31 +158,32 @@ Total Timeline: ~9 days (1 week voting + 2 days delay)
 curl -L https://foundry.paradigm.xyz | bash && source ~/.bashrc
 
 # 2. Clone repository & install dependencies
-git clone <your-halal-repo>
-cd halal-contracts
+git clone https://github.com/fredrikblau/halal-protocol.git
+cd halal-protocol/contracts
 forge install
 
 # 3. Create .env file
 cat > .env << 'EOF'
 PRIVATE_KEY=0x<your_deployer_private_key>
 RPC_URL=https://sepolia.arbitrum.io/rpc
+RESERVE_TOKEN=0x<existing_reserve_token_address>
 TEAM_BENEFICIARY=0x<team_multisig_address>
 TREASURY_BENEFICIARY=0x<treasury_multisig_address>
 EOF
 ```
 
-### Sepolia Testnet Deployment
+### Arbitrum Sepolia Testnet Deployment
 
 ```bash
 # 1. Test locally
 forge test -vvv
-# Expected: 30/30 tests passing ✓
+# Expected: 114/114 tests passing ✓
 
-# 2. Fund wallet with 0.5 ARB on Sepolia
+# 2. Fund wallet with testnet ETH on Arbitrum Sepolia
 # Visit: https://sepoliafaucet.com
 
 # 3. Deploy all contracts
-forge script scripts/Deploy.s.sol:DeployHalalSystem \
+forge script script/Deploy.s.sol:DeployHalalSystem \
   --rpc-url $RPC_URL \
   --private-key $PRIVATE_KEY \
   --broadcast
@@ -195,16 +196,16 @@ forge script scripts/Deploy.s.sol:DeployHalalSystem \
 ### Expected Deploy Output
 
 ```
-HalalToken deployed: 0xABC...123
-Team Vesting deployed: 0xDEF...456
-Treasury Vesting deployed: 0xGHI...789
-HalalPSM deployed: 0xJKL...012
-HalalTimelock deployed: 0xMNO...345
-HalalDAO deployed: 0xPQR...678
+HalalTimelock:       0xABC...123
+HalalToken (HLC):    0xDEF...456
+Team Vesting:        0xGHI...789
+Treasury Vesting:    0xJKL...012
+HalalDAO:            0xMNO...345
+HalalPSM:            0xPQR...678
 
-Transferred 10M HLC to vesting contracts
-Transferred ownership to DAO
-✓ All contracts deployed and configured
+All roles transferred to the DAO. Deployer retains zero privileged access.
+PSM has PARAM_ROLE granted to the DAO only -- grant UPDATER_ROLE to an oracle
+relayer via governance proposal before relying on updateCPI().
 ```
 
 ### Mainnet Deployment
@@ -214,7 +215,7 @@ Transferred ownership to DAO
 RPC_URL=https://arb1.arbitrum.io/rpc
 
 # Then run:
-forge script scripts/Deploy.s.sol:DeployHalalSystem \
+forge script script/Deploy.s.sol:DeployHalalSystem \
   --rpc-url $RPC_URL \
   --private-key $PRIVATE_KEY \
   --broadcast
@@ -228,8 +229,8 @@ forge script scripts/Deploy.s.sol:DeployHalalSystem \
 
 | Parameter | Value | Arbitrum Mainnet | Reasoning |
 |-----------|-------|------------------|-----------|
-| Voting Delay | 1 block | ~12 seconds | Immediate voting start |
-| Voting Period | 50,400 blocks | ~1 week | Community discussion time |
+| Voting Delay | 1 block | chain-dependent | Immediate voting start |
+| Voting Period | 2,419,200 blocks on Arbitrum; 50,400 elsewhere | ~1 week on Arbitrum at 250ms blocks | Override after checking the target chain's observed cadence |
 | Proposal Threshold | 100 HLC | 100 HLC | Prevents spam proposals |
 | Quorum | 4% | 400,000 HLC | Low bar for participation |
 | Timelock Delay | 2 days | 172,800 seconds | Safety window |
@@ -237,33 +238,20 @@ forge script scripts/Deploy.s.sol:DeployHalalSystem \
 ### Block Time Calculations (Arbitrum)
 
 ```
-Arbitrum block time: ~0.25 seconds (very fast)
-1 block = 0.25 seconds
-50,400 blocks = 50,400 × 0.25 = 12,600 seconds
-12,600 seconds ≈ 3.5 hours
-
-Wait, that's not right for Arbitrum!
-
-Actually, Arbitrum has 2 modes:
-- Regular blocks: ~0.25s (L2 sequencer)
-- Ethereum blocks: ~12s (for reference)
-
-For governance, we use Arbitrum block time:
-50,400 blocks @ 0.25s = 12,600s ≈ 3.5 hours
-
-This is TOO FAST for governance. Let's adjust:
-For ~1 week on Arbitrum, we need:
+Arbitrum L2 blocks are much faster than Ethereum L1 blocks. At an approximate 0.25-second cadence,
+50,400 blocks is only about 3.5 hours, which is too short for a default governance review window.
+For approximately one week on Arbitrum, use:
 1 week = 604,800 seconds
 604,800 / 0.25 = 2,419,200 blocks
 
-Updated parameter for 1-week voting on Arbitrum:
-votingPeriod = 2,419,200 blocks (instead of 50,400)
+The deployment script selects 2,419,200 automatically on Arbitrum One and Arbitrum Sepolia. Set
+`VOTING_PERIOD_BLOCKS` explicitly when deploying to another chain or when the observed cadence differs.
 ```
 
 ### Corrected Parameters for Arbitrum
 
 ```solidity
-// In HalalDAO.sol constructor:
+// Deployment value on Arbitrum (the script selects this automatically):
 GovernorSettings(
     1,              // 1 block voting delay (~0.25s)
     2_419_200,      // ~1 week (604,800s / 0.25s per block)
@@ -279,11 +267,12 @@ GovernorVotesQuorumFraction(4)  // 4% quorum
 dao.propose(
     [psm],
     [0],
-    [psm.updateCPI()],
-    "Update CPI from Chainlink Functions"
+    [psm.mockCPI(newCPI)],
+    "Apply a governance-approved CPI override"
 )
 ```
-**Effect**: Triggers monthly CPI oracle update, adjusts HLC peg
+**Effect**: Applies a DAO-approved manual override within the 0.1–2.0 bounds. Routine reports use
+`updateCPI(reportedCPI)` from a separately granted `UPDATER_ROLE` account and are rate/interval limited.
 
 #### 2. Switch CPI Source
 ```solidity
@@ -296,16 +285,17 @@ dao.propose(
 ```
 **Effect**: Changes oracle data source (US CPI → China CPI, etc.)
 
-#### 3. Mint Governance Tokens
+#### 3. Grant a Module Minting Permission
 ```solidity
 dao.propose(
     [token],
     [0],
-    [token.mint(recipient, 1_000_000e18)],
-    "Mint 1M HLC for liquidity mining"
+    [token.grantRole(token.MINTER_ROLE(), module)],
+    "Authorize a reviewed HLC minter module"
 )
 ```
-**Effect**: Creates new HLC tokens (only if MINTER_ROLE granted)
+**Effect**: Authorizes the named module to mint HLC. The default timelock is not granted
+`MINTER_ROLE`, so this proposal does not itself create tokens.
 
 #### 4. Revoke Team Vesting
 ```solidity
@@ -318,27 +308,17 @@ dao.propose(
 ```
 **Effect**: Returns unvested tokens to DAO treasury (very high bar to pass)
 
-#### 5. Release Treasury Vesting
+#### 5. Release Treasury Vesting (permissionless)
 ```solidity
-dao.propose(
-    [treasuryVesting],
-    [0],
-    [treasuryVesting.release()],
-    "Release vested treasury tokens"
-)
+treasuryVesting.release()
 ```
-**Effect**: Team/Treasury can claim vested allocations
+**Caller**: Anyone. **Effect**: vested tokens are sent to the configured treasury beneficiary;
+the caller cannot redirect them. A DAO proposal is not required.
 
-#### 6. Adjust Parameters (Future Upgrade)
-```solidity
-dao.propose(
-    [dao],
-    [0],
-    [dao.updateQuorumNumerator(5)],  // Change from 4% to 5%
-    "Increase quorum to 5%"
-)
-```
-**Effect**: Updates governance parameters (requires DAO upgrade)
+#### 6. Adjust Parameters (Future Deployment)
+
+The current `HalalDAO` deployment uses non-upgradeable Governor settings. Changing the voting
+delay, voting period, proposal threshold, or quorum requires deploying and wiring a new DAO.
 
 ---
 
@@ -350,13 +330,17 @@ dao.propose(
 |----------|----------|--------|-----|
 | HalalToken | `mint()` | PSM / DAO | MINTER_ROLE |
 | HalalToken | `burn()` | Anyone | Own tokens |
-| HalalToken | `transfer()` | Anyone | Ownership |
-| HalalPSM | `updateCPI()` | DAO | Proposal |
+| HalalToken | `transfer()` | Anyone | ERC20 balance ownership |
+| HalalPSM | `updateCPI(uint256)` | UPDATER_ROLE relayer | Role granted by governance |
 | HalalPSM | `setSource()` | DAO | Proposal |
-| HalalPSM | `deposit()` | Anyone | Public |
-| HalalPSM | `withdraw()` | Anyone | Public |
+| HalalPSM | `depositWithMinHlcOut(uint256,uint256)` | Anyone | Public, slippage-bounded |
+| HalalPSM | `withdrawWithMinReserveOut(uint256,uint256)` | Anyone | Public, slippage-bounded |
+| HalalPSM | `transferRedeemable(address,uint256)` | Anyone | Moves PSM HLC and its redemption credit atomically |
+| HalalPSM | `cancelRedeemable(uint256)` | Anyone | Irreversibly burns HLC and retires matching credit |
 | HalalPSM | `depositReserve()` | DAO | Proposal |
-| HalalVesting | `release()` | Beneficiary | Time-based |
+| HalalPSM | `withdrawReserve(address,uint256)` | DAO | Proposal; only reserve surplus |
+| HalalPSM | `setMinUpdateInterval(uint256)` | DAO | Proposal; value must be positive |
+| HalalVesting | `release()` | Anyone | Tokens always go to the beneficiary |
 | HalalVesting | `revoke()` | DAO | Proposal |
 | HalalDAO | `propose()` | 100+ HLC | Voting |
 | HalalDAO | `castVote()` | HLC holder | Voting |
@@ -368,7 +352,7 @@ dao.propose(
 #### 1. No Centralized Admin
 ✓ All contracts owned by DAO (not person)
 ✓ No owner backdoor functions
-✓ All changes require governance vote
+✓ All privileged changes require governance vote
 ✓ 2-day delay prevents instant attacks
 
 #### 2. Snapshot Voting
@@ -384,7 +368,7 @@ dao.propose(
 ✓ No admin bypass possible
 
 #### 4. Oracle Safety
-✓ Chainlink Functions for CPI data
+✓ Bounded CPI updater role; oracle integration must be deployed and governed
 ✓ Rate bounds prevent outliers (0.1 to 2.0)
 ✓ Manual override (`mockCPI`) for emergencies
 ✓ Can switch data sources via vote
@@ -404,7 +388,7 @@ dao.propose(
 | **Low Participation** | 4% quorum is intentionally low to encourage voting |
 | **Instant Changes** | No possible without 2-day delay |
 | **Oracle Failure** | Manual override via `mockCPI()` + can switch source |
-| **Rug Pull** | No admin functions, DAO controls everything |
+| **Governance Capture** | Timelock provides notice, but cannot prevent a captured DAO from executing valid proposals |
 | **Reentrancy** | No callbacks, safe transfer patterns only |
 
 ---
@@ -436,14 +420,24 @@ function burn(uint256 amount) external
 // Read-only
 function cpiRate() external view returns (uint256)
 function previousCPI() external view returns (uint256)
+function reserveRequired() external view returns (uint256)
+function reserveSurplus() external view returns (int256)
+function redeemableBalance(address account) external view returns (uint256)
+function previewDeposit(uint256 reserveAmount) external view returns (uint256)
+function previewWithdraw(uint256 hlcAmount) external view returns (uint256)
 
 // State-changing
-function deposit(uint256 daiAmount) external
-function withdraw(uint256 hlcAmount) external
-function depositReserve(uint256 amount) external onlyOwner
-function updateCPI() external onlyOwner  // Triggers oracle
-function setSource(string calldata newSource) external onlyOwner
-function mockCPI(uint256 newCPI) external onlyOwner  // Test only
+function depositWithMinHlcOut(uint256 reserveAmount, uint256 minHlcOut) external
+function withdrawWithMinReserveOut(uint256 hlcAmount, uint256 minReserveOut) external
+function transferRedeemable(address to, uint256 hlcAmount) external
+function cancelRedeemable(uint256 hlcAmount) external // Burns HLC; returns no reserve
+// `deposit(uint256)` and `withdraw(uint256)` remain as unbounded compatibility methods.
+function depositReserve(uint256 amount) external onlyRole(PARAM_ROLE)
+function withdrawReserve(address to, uint256 amount) external onlyRole(PARAM_ROLE)
+function updateCPI(uint256 reportedCPI) external onlyRole(UPDATER_ROLE)
+function setSource(string calldata newSource) external onlyRole(PARAM_ROLE)
+function setMinUpdateInterval(uint256 newInterval) external onlyRole(PARAM_ROLE) // Must be > 0
+function mockCPI(uint256 newCPI) external onlyRole(PARAM_ROLE)  // Manual emergency override
 ```
 
 ### HalalDAO
@@ -452,7 +446,7 @@ function mockCPI(uint256 newCPI) external onlyOwner  // Test only
 // Read-only
 function proposalThreshold() external view returns (uint256)  // 100 HLC
 function votingDelay() external view returns (uint256)  // 1 block
-function votingPeriod() external view returns (uint256)  // 50,400 blocks
+function votingPeriod() external view returns (uint256)  // chain-specific deployment value
 function quorumNumerator() external view returns (uint256)  // 4%
 function state(uint256 proposalId) external view returns (ProposalState)
 function proposalSnapshot(uint256 proposalId) external view returns (uint256)
@@ -469,6 +463,10 @@ function execute(address[] targets, uint256[] values, bytes[] calldatas, bytes32
 ---
 
 ## Testing & Verification
+
+The stateful PSM properties and their deliberate scope are documented in
+[`INVARIANTS.md`](INVARIANTS.md). Run them separately with
+`forge test --match-path test/HalalPSMInvariant.t.sol` when reviewing accounting changes.
 
 ### Run Test Suite
 
@@ -492,16 +490,16 @@ forge coverage
 ✓ test_InitialState
 ✓ test_VestingInitialized
 ✓ test_CreateProposal_UpdateCPI
-✓ test_CreateProposal_TransferOwnership
+✓ test_CreateProposal_GrantMinterRole
 ✓ test_CastVote_For
 ✓ test_FullProposalFlow
 ✓ test_DAO_ControlsPSM_AfterTakeover
 ✓ test_TimelockPreventsImmediateExecution
 ✓ test_TeamVestingRevocable
 ✓ test_TreasuryVestingNonRevocable
-✓ ... (20+ more tests)
+✓ 111 unit tests plus 3 stateful PSM invariants covering the core contracts and governance flows
 
-Total: 30+ tests passing ✓
+Total: 114 tests passing ✓
 ```
 
 ### Verify on Arbiscan
@@ -509,9 +507,9 @@ Total: 30+ tests passing ✓
 1. Visit: `https://sepolia.arbiscan.io/address/0xYOUR_DAO_ADDRESS`
 2. Click "Contract" tab
 3. Verify:
-   - ✓ Owner = DAO address (not your wallet)
-   - ✓ Implementation = HalalDAO.sol
-   - ✓ Voting active & working
+   - ✓ DAO/timelock roles are held by the expected contracts (not your wallet)
+   - ✓ Verified source and deployed bytecode match the intended contract
+   - ✓ Voting parameters and proposal flow are active
 
 ---
 
@@ -519,20 +517,20 @@ Total: 30+ tests passing ✓
 
 ### Before Deployment
 
-- [ ] All 30+ tests passing locally
+- [ ] All 114 tests passing locally, including the stateful invariants
 - [ ] Gas estimates reviewed & acceptable
 - [ ] No compiler warnings
 - [ ] Code review completed
 - [ ] Architecture reviewed
-- [ ] Security audit (optional but recommended)
+- [ ] Independent security audit completed and published
 
 ### Sepolia Testing
 
-- [ ] Deploy to Sepolia testnet
+- [ ] Deploy to Arbitrum Sepolia testnet
 - [ ] Verify all 6 contracts on Arbiscan
 - [ ] Create first proposal (e.g., mock CPI)
 - [ ] Vote on proposal (need 100+ HLC)
-- [ ] Wait voting period (1 week or use vm.roll in test)
+- [ ] Wait the configured voting period (or use `vm.roll` in test)
 - [ ] Queue in timelock (2 days)
 - [ ] Execute proposal (verify it worked)
 - [ ] Test PSM: deposit DAI → receive HLC
@@ -556,7 +554,7 @@ Total: 30+ tests passing ✓
 RPC_URL=https://arb1.arbitrum.io/rpc
 
 # Deploy
-forge script scripts/Deploy.s.sol:DeployHalalSystem \
+forge script script/Deploy.s.sol:DeployHalalSystem \
   --rpc-url $RPC_URL \
   --private-key $PRIVATE_KEY \
   --broadcast
@@ -581,18 +579,18 @@ forge script scripts/Deploy.s.sol:DeployHalalSystem \
 
 ```
 contracts/
-├── HalalDAO.sol (combined file with all 5 contracts + docs)
-├── Deploy.s.sol (deployment script)
-└── Examples.s.sol (proposal templates)
+├── src/ (five first-party protocol contracts)
+├── script/ (deployment and proposal examples)
+└── test/ (Foundry tests and mocks)
 
-test/
-└── HalalDAO.t.sol (30+ test cases)
+app/
+└── src/ (Next.js dApp)
 
 docs/
 ├── DAO-Guide.md (governance guide)
 ├── Architecture.md (system reference)
-├── Checklist.md (launch phases)
-└── QuickRef.md (quick reference)
+├── WHITEPAPER.md (protocol rationale)
+└── DESIGN-DECISIONS.md (implementation deviations)
 ```
 
 ---
@@ -606,7 +604,7 @@ forge build
 # Test
 forge test -vvv
 
-# Deploy to Sepolia
+# Deploy to Arbitrum Sepolia
 forge script Deploy.s.sol:DeployHalalSystem \
   --rpc-url https://sepolia.arbitrum.io/rpc \
   --private-key $PRIVATE_KEY \
@@ -636,7 +634,7 @@ forge coverage
 ## Production Deployment Timeline
 
 ```
-Day 1:     Deploy to Sepolia, test locally
+Day 1:     Deploy to Arbitrum Sepolia, test locally
 Day 2-3:   Manual proposal cycle testing
 Day 4-7:   Community feedback & security review
 Day 8:     Final preparations
@@ -648,29 +646,28 @@ Day 10+:   Live DAO governance 🚀
 
 ## Support & Documentation
 
-- **Code**: See HalalDAO.sol for implementation details
-- **Tests**: See HalalDAO.t.sol for usage examples
-- **Deployment**: Follow Deploy.s.sol scripts
-- **Governance**: See DAO-Guide.md for complete guide
-- **Reference**: See Architecture.md for system diagrams
+- **Code**: See `contracts/src/` for implementation details
+- **Tests**: See `contracts/test/` for usage examples and invariants
+- **Deployment**: Follow `contracts/script/Deploy.s.sol`
+- **Governance**: See `docs/DAO-Guide.md` for the complete guide
+- **Reference**: See `docs/Architecture.md` for system diagrams
 
 ---
 
 ## Version Info
 
 ```
-Version: 1.0.0 Production
-Date: December 3, 2025
-Network: Arbitrum (Sepolia & Mainnet)
+Version: 1.1.0
+Date: August 24, 2026
+Network: Arbitrum (Sepolia & Mainnet targets)
 Solidity: ^0.8.24
 Foundry: Latest
-Status: ✅ Production-Ready
-Tests: 30+ (All Passing)
-Security: Audited Patterns
+Status: Unaudited reference implementation; not production-ready
+Tests: 97 (All Passing)
+Security: No independent audit completed
 ```
 
 ---
 
-**Status**: ✅ READY FOR PRODUCTION DEPLOYMENT
-
-Deploy with confidence. The community is ready to govern. 🚀
+**Status**: Unaudited reference implementation; do not use with meaningful funds until the launch
+checklist and independent security review are complete.

@@ -148,6 +148,7 @@ export default function ProposalDetailPage() {
                 hasVoted={detail.hasVoted}
                 isConnected={isConnected}
                 votingPower={detail.votingPowerAtSnapshot}
+                readError={detail.isError}
                 onChanged={detail.refetch}
               />
             </div>

@@ -78,6 +78,19 @@ export const halalPsmAbi = [
   },
   {
     "type": "function",
+    "name": "MAX_RESERVE_DECIMALS",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8",
+        "internalType": "uint8"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "MIN_CPI",
     "inputs": [],
     "outputs": [
@@ -117,6 +130,19 @@ export const halalPsmAbi = [
   },
   {
     "type": "function",
+    "name": "cancelRedeemable",
+    "inputs": [
+      {
+        "name": "hlcAmount",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "cpiRate",
     "inputs": [],
     "outputs": [
@@ -147,6 +173,24 @@ export const halalPsmAbi = [
     "inputs": [
       {
         "name": "amount",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "depositWithMinHlcOut",
+    "inputs": [
+      {
+        "name": "reserveAmount",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "minHlcOut",
         "type": "uint256",
         "internalType": "uint256"
       }
@@ -485,6 +529,24 @@ export const halalPsmAbi = [
   },
   {
     "type": "function",
+    "name": "transferRedeemable",
+    "inputs": [
+      {
+        "name": "to",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "hlcAmount",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "updateCPI",
     "inputs": [
       {
@@ -520,6 +582,24 @@ export const halalPsmAbi = [
       },
       {
         "name": "amount",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "withdrawWithMinReserveOut",
+    "inputs": [
+      {
+        "name": "hlcAmount",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "minReserveOut",
         "type": "uint256",
         "internalType": "uint256"
       }
@@ -583,6 +663,50 @@ export const halalPsmAbi = [
     "inputs": [
       {
         "name": "newInterval",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "RedeemableCancelled",
+    "inputs": [
+      {
+        "name": "user",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "RedeemableTransferred",
+    "inputs": [
+      {
+        "name": "from",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "to",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
         "type": "uint256",
         "indexed": false,
         "internalType": "uint256"
@@ -764,12 +888,22 @@ export const halalPsmAbi = [
   },
   {
     "type": "error",
+    "name": "InsufficientOutput",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "InsufficientRedeemableBalance",
     "inputs": []
   },
   {
     "type": "error",
     "name": "InsufficientReserve",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidUpdateInterval",
     "inputs": []
   },
   {
@@ -795,12 +929,22 @@ export const halalPsmAbi = [
   },
   {
     "type": "error",
+    "name": "SlippageExceeded",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "StepTooLarge",
     "inputs": []
   },
   {
     "type": "error",
     "name": "TransferFailed",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "UnsupportedDecimals",
     "inputs": []
   },
   {
@@ -816,6 +960,11 @@ export const halalPsmAbi = [
   {
     "type": "error",
     "name": "ZeroAmount",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ZeroReceived",
     "inputs": []
   }
 ] as const;

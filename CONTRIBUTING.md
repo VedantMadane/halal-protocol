@@ -31,6 +31,9 @@ A PR won't be merged with a red CI run.
 
 ## Running the test suites
 
+From the repository root, `make verify` runs the complete contract and frontend verification
+workflow. The subtree commands below are useful for faster iteration.
+
 ### Contracts (`contracts/`)
 
 The contracts are a [Foundry](https://book.getfoundry.sh/) project.
@@ -41,7 +44,7 @@ forge install      # pulls in the git-submodule dependencies (forge-std, OpenZep
 forge build
 forge test          # full suite
 forge test -vvv     # verbose, useful when a test fails
-forge fmt --check   # verify formatting without rewriting files
+  forge fmt --check src test script  # verify first-party formatting without rewriting dependencies
 forge fmt           # actually reformat
 ```
 
@@ -58,7 +61,7 @@ pnpm build   # production build; also run `pnpm dev` locally for interactive tes
 
 ## Code style
 
-- **Solidity**: run `forge fmt` before committing — `contracts/foundry.toml` pins the formatting
+- **Solidity**: run `forge fmt src test script` before committing — `contracts/foundry.toml` pins the formatting
   rules (120-char line length, 4-space tabs, double quotes) so there's no ambiguity about style.
   CI runs `forge fmt --check` and will fail on unformatted code.
 - **Frontend**: follow the existing ESLint configuration in `app/eslint.config.mjs` (`pnpm lint`
@@ -93,7 +96,7 @@ combination means bugs here are unusually expensive to get wrong. So, for any PR
 - **Discuss significant changes in an issue first.** "Significant" means anything beyond a
   comment/NatSpec fix or an obviously-safe typo — if in doubt, open the issue.
 - **Tests are not optional.** New behavior needs new tests; changed behavior needs updated
-  tests demonstrating the change is correct. `contracts/test/` currently passes 82/82 — a PR that
+  tests demonstrating the change is correct. `contracts/test/` currently passes 114/114 — a PR that
   drops that number, or that changes contract behavior without a corresponding test change, will
   need justification before it can be merged.
 - **Explain the "why," not just the "what."** For contract changes especially, reviewers need to

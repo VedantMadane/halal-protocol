@@ -3,6 +3,7 @@
 import { useAccount, useReadContracts } from "wagmi";
 import { halalDaoAbi, halalTokenAbi } from "@/abis";
 import { useDeployment } from "./useDeployment";
+import { hasReadFailure, partialReadError } from "@/lib/readResults";
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000" as const;
 
@@ -61,6 +62,7 @@ export function useProposalDetail(proposalId: bigint | undefined) {
         : [],
     query: { enabled: enabled && snapshot !== undefined },
   });
+  const readFailed = hasReadFailure(data) || hasReadFailure(snapshotData);
   const quorumNeeded = snapshotData?.[0]?.status === "success" ? (snapshotData[0].result as bigint) : undefined;
   const votingPowerAtSnapshot = snapshotData?.[1]?.status === "success" ? (snapshotData[1].result as bigint) : undefined;
 
@@ -74,8 +76,8 @@ export function useProposalDetail(proposalId: bigint | undefined) {
     quorumNeeded,
     votingPowerAtSnapshot,
     isLoading,
-    isError,
-    error,
+    isError: isError || readFailed,
+    error: error ?? (readFailed ? partialReadError() : undefined),
     refetch,
   };
 }

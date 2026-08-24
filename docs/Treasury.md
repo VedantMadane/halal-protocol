@@ -1,4 +1,7 @@
-In your specific project, the **Treasury** acts like the bank account of your "Digital Nation." Since you have no central CEO, no one person can just withdraw money. Every penny spent requires a community vote.
+In this protocol, “treasury” is a role and a set of balances, not a single magical bank account. The DAO
+controls protocol-owned contracts through the timelock, while the treasury beneficiary controls the
+tokens that have actually been released to its wallet. Keep those permissions separate when designing
+budgets and operational procedures.
 
 Here is exactly how your Treasury works, broken down by **Structure**, **Flow**, and **Real-World Examples**.
 
@@ -9,7 +12,7 @@ Here is exactly how your Treasury works, broken down by **Structure**, **Flow**,
 In your deployed contracts, the Treasury is actually **two things**:
 
 1.  **The Treasury Vesting Contract**: Holds the 4,000,000 HLC allocated for the protocol. It releases tokens slowly over 3 years so the market isn't flooded.
-2.  **The Beneficiary Wallet (Multisig)**: This is the address (set in your `.env` as `TREASURY_BENEFICIARY`) that receives the HLC when it is released.
+2.  **The Beneficiary Wallet (Multisig)**: This is the address (set in your `.env` as `TREASURY_BENEFICIARY`) that receives HLC when it is released.
 
 **The Hierarchy:**
 *   **The DAO (Governor):** The "Board of Directors." They vote on *budgets*.
@@ -25,11 +28,11 @@ In your deployed contracts, the Treasury is actually **two things**:
 
 **How the Treasury Handles It:**
 
-1.  **The Vote:** You create a DAO proposal: *"Release 50,000 vested HLC to the Treasury Multisig to create a Uniswap pool."*
-2.  **The Release:** The vote passes. The DAO calls `release()` on the `HalalVesting` contract.
-3.  **The Transfer:** 50,000 HLC moves from the Vesting Contract -> Treasury Multisig.
-4.  **The Execution:** The Multisig signers (trusted team members) take that HLC, pair it with DAI they raised, and deposit it into Uniswap.
-5.  **The Result:** Anyone can now buy/sell HLC. The Treasury now owns the "Liquidity Provider (LP) Tokens," meaning the protocol itself owns its own liquidity (this is called **Protocol Owned Liquidity**).
+1.  **The Budget Decision:** The treasury multisig approves the use of an amount that has already vested. A DAO proposal is not required merely to call `release()`; `release()` is intentionally callable by anyone and always pays the configured beneficiary.
+2.  **The Release:** The beneficiary, a multisig operator, or any third party calls `release()` on the `HalalVesting` contract.
+3.  **The Transfer:** The released HLC moves from the vesting contract to the treasury beneficiary.
+4.  **The Execution:** The multisig signers take that HLC, pair it with DAI they raised, and deposit it into a liquidity venue after reviewing the trade and custody risks.
+5.  **The Result:** Any LP position belongs to the wallet or contract that supplied it; it is not automatically protocol-owned merely because the tokens came from vesting.
 
 ***
 
@@ -39,8 +42,8 @@ In your deployed contracts, the Treasury is actually **two things**:
 
 **How the Treasury Handles It:**
 
-1.  **The Vote:** Proposal: *"Authorize Treasury to sell 100,000 HLC for USDC to pay for audit."*
-2.  **The Swap:** The vote passes. The Treasury Multisig receives the HLC (if vested). They go to Uniswap and swap HLC -> USDC.
+1.  **The Budget Decision:** The multisig approves selling up to a specified amount of HLC for USDC, subject to its own signing policy and any DAO-controlled contract permissions involved in the transaction.
+2.  **The Swap:** The Treasury Multisig receives the HLC (if vested), then executes the reviewed HLC -> USDC trade.
     *   *Note: This lowers the price of HLC slightly, so it must be done carefully.*
 3.  **The Payment:** The Multisig sends the USDC to the auditor.
 4.  **The Receipt:** The final audit report is published to the community as proof of work.
@@ -52,12 +55,14 @@ In your deployed contracts, the Treasury is actually **two things**:
 Right now, your Treasury only holds HLC tokens. But a healthy Treasury should also hold **stablecoins (DAI/USDC)** so you can pay bills even if the HLC price drops.
 
 **How to get Revenue into the Treasury:**
-*   **PSM Fees:** Currently, your PSM is free (1:1). You could upgrade it to charge a 0.1% fee on mints.
+*   **PSM Fees:** Currently, your PSM charges no protocol fee. Its exchange rate still follows the
+    CPI-adjusted rate; a future PSM version could add a fee, but that would require a separately
+    reviewed and governed deployment.
 *   **Lending Fees:** If you launch the Lending module, the interest paid by borrowers goes into the Treasury.
 
 **Scenario:**
-1.  A user mints 1,000 HLC using DAI.
-2.  The protocol charges a 2 DAI fee.
+1.  In a hypothetical fee-enabled version, a user mints 1,000 HLC using DAI.
+2.  That version charges a 2 DAI fee.
 3.  That 2 DAI is sent to the Treasury Multisig.
 4.  Over a year, this accumulates to 500,000 DAI.
 5.  **Result:** Now, if you need to pay for marketing, you use this DAI instead of selling HLC. This prevents dumping your own token price.
@@ -81,7 +86,7 @@ You allocated 4M HLC to the Treasury with **3-year vesting**. This protects the 
       | Time passes... (Tokens vest)
       |
       v
-[DAO Vote: "Call release()"] ----> [Treasury Multisig Wallet]
+[Anyone calls release()] ---------> [Treasury Multisig Wallet]
                                           | (Holds Liquid HLC + Revenue DAI)
                                           |
                   +-----------------------+-----------------------+

@@ -395,6 +395,11 @@ export const halalVestingAbi = [
   },
   {
     "type": "error",
+    "name": "ScheduleOverflow",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "ZeroAddress",
     "inputs": []
   },

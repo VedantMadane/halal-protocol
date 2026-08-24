@@ -21,6 +21,7 @@ interface Props {
   hasVoted: boolean | undefined;
   isConnected: boolean;
   votingPower: bigint | undefined;
+  readError: boolean;
   onChanged: () => void;
 }
 
@@ -37,6 +38,7 @@ export function ProposalActionsCard({
   hasVoted,
   isConnected,
   votingPower,
+  readError,
   onChanged,
 }: Props) {
   const voteTx = useTxState();
@@ -69,6 +71,10 @@ export function ProposalActionsCard({
           <>
             {!isConnected ? (
               <Alert tone="info">Connect your wallet to vote.</Alert>
+            ) : readError || hasVoted === undefined || votingPower === undefined ? (
+              <Alert tone="danger" title="Voting data is unavailable">
+                The proposal snapshot or your voting power could not be read completely. Refresh before signing a vote.
+              </Alert>
             ) : hasVoted ? (
               <Alert tone="success">You&apos;ve already voted on this proposal.</Alert>
             ) : votingPower === 0n ? (
@@ -94,38 +100,46 @@ export function ProposalActionsCard({
 
         {state === 4 && (
           <>
-            <Button
-              onClick={() =>
-                queueTx.writeContract({
-                  address: dao,
-                  abi: halalDaoAbi,
-                  functionName: "queue",
-                  args: [targets, values, calldatas, hash],
-                })
-              }
-              loading={queueTx.isPending || queueTx.isConfirming}
-            >
-              Queue in timelock
-            </Button>
+            {!isConnected ? (
+              <Alert tone="info">Connect your wallet to queue this proposal.</Alert>
+            ) : (
+              <Button
+                onClick={() =>
+                  queueTx.writeContract({
+                    address: dao,
+                    abi: halalDaoAbi,
+                    functionName: "queue",
+                    args: [targets, values, calldatas, hash],
+                  })
+                }
+                loading={queueTx.isPending || queueTx.isConfirming}
+              >
+                Queue in timelock
+              </Button>
+            )}
             <TxStatus {...queueTx} pendingLabel="Confirm in your wallet…" successLabel="Queued — executable after the timelock delay." />
           </>
         )}
 
         {state === 5 && (
           <>
-            <Button
-              onClick={() =>
-                executeTx.writeContract({
-                  address: dao,
-                  abi: halalDaoAbi,
-                  functionName: "execute",
-                  args: [targets, values, calldatas, hash],
-                })
-              }
-              loading={executeTx.isPending || executeTx.isConfirming}
-            >
-              Execute
-            </Button>
+            {!isConnected ? (
+              <Alert tone="info">Connect your wallet to execute this proposal.</Alert>
+            ) : (
+              <Button
+                onClick={() =>
+                  executeTx.writeContract({
+                    address: dao,
+                    abi: halalDaoAbi,
+                    functionName: "execute",
+                    args: [targets, values, calldatas, hash],
+                  })
+                }
+                loading={executeTx.isPending || executeTx.isConfirming}
+              >
+                Execute
+              </Button>
+            )}
             <TxStatus {...executeTx} pendingLabel="Confirm in your wallet…" successLabel="Proposal executed." />
           </>
         )}

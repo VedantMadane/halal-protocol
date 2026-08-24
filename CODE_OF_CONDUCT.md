@@ -61,10 +61,11 @@ offline event.
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported to the community leaders responsible for enforcement at
-**conduct@halal-dao.example** *(placeholder — the project maintainer should
-replace this with a real monitored address before this project is treated as
-live)*. All complaints will be reviewed and investigated promptly and fairly.
+reported privately to the project maintainer through the
+[repository profile](https://github.com/fredrikblau). Please do not include
+confidential security details in a conduct report; use the private security
+advisory process in [`SECURITY.md`](SECURITY.md) for vulnerability reports.
+All complaints will be reviewed and investigated promptly and fairly.
 
 All community leaders are obligated to respect the privacy and security of the
 reporter of any incident.

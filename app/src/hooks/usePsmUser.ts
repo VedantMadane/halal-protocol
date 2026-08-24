@@ -3,6 +3,7 @@
 import { useAccount, useReadContracts } from "wagmi";
 import { erc20Abi, halalPsmAbi, halalTokenAbi } from "@/abis";
 import { useDeployment } from "./useDeployment";
+import { hasReadFailure, partialReadError } from "@/lib/readResults";
 
 /**
  * Per-wallet PSM state: reserve token balance/allowance, HLC balance/allowance, and the amount
@@ -40,6 +41,7 @@ export function usePsmUserState() {
         : [],
     query: { enabled, refetchInterval: 15_000 },
   });
+  const readFailed = hasReadFailure(data);
 
   const get = <T>(i: number): T | undefined => (data?.[i]?.status === "success" ? (data[i].result as T) : undefined);
 
@@ -50,8 +52,8 @@ export function usePsmUserState() {
     hlcAllowance: get<bigint>(3),
     redeemableBalance: get<bigint>(4),
     isLoading,
-    isError,
-    error,
+    isError: isError || readFailed,
+    error: error ?? (readFailed ? partialReadError() : undefined),
     refetch,
   };
 }

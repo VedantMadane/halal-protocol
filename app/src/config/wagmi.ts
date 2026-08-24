@@ -8,8 +8,7 @@ import {
   walletConnectWallet,
 } from "@rainbow-me/rainbowkit/wallets";
 import { http } from "viem";
-import { anvil, supportedChains } from "./chains";
-import { arbitrum, arbitrumSepolia } from "viem/chains";
+import { anvil, arbitrum, arbitrumSepolia, supportedChains } from "./chains";
 
 // RainbowKit requires a WalletConnect Cloud project id for the WalletConnect connector to
 // work. Get a free one at https://cloud.reown.com and set NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID
@@ -37,8 +36,10 @@ export const wagmiConfig = getDefaultConfig({
   ],
   transports: {
     [anvil.id]: http(process.env.NEXT_PUBLIC_RPC_URL_31337 ?? "http://127.0.0.1:8545"),
-    [arbitrumSepolia.id]: http(process.env.NEXT_PUBLIC_RPC_URL_421614),
-    [arbitrum.id]: http(process.env.NEXT_PUBLIC_RPC_URL_42161),
+    // Public fallbacks keep the read-only dashboard usable before a project-specific RPC key is
+    // configured. Deployments should still provide a dedicated, rate-limited RPC endpoint.
+    [arbitrumSepolia.id]: http(process.env.NEXT_PUBLIC_RPC_URL_421614 ?? arbitrumSepolia.rpcUrls.default.http[0]),
+    [arbitrum.id]: http(process.env.NEXT_PUBLIC_RPC_URL_42161 ?? arbitrum.rpcUrls.default.http[0]),
   },
   ssr: true,
 });

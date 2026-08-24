@@ -20,6 +20,17 @@ export const metadata: Metadata = {
   title: "Halal (HLC) — CPI-Indexed Stablecoin DAO",
   description:
     "Dashboard, governance, PSM swaps, and vesting for the Halal protocol — a CPI-indexed stablecoin governed by an on-chain DAO.",
+  keywords: ["Halal", "HLC", "stablecoin", "CPI", "DAO", "Ethereum", "Arbitrum"],
+  openGraph: {
+    title: "Halal (HLC) — CPI-Indexed Stablecoin DAO",
+    description: "Explore Halal’s CPI-indexed stablecoin protocol, PSM, vesting, and on-chain governance.",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "Halal (HLC) — CPI-Indexed Stablecoin DAO",
+    description: "Explore Halal’s CPI-indexed stablecoin protocol, PSM, vesting, and on-chain governance.",
+  },
 };
 
 export default function RootLayout({

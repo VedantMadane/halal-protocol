@@ -2,11 +2,12 @@
 
 ## Overview
 
-This is a **complete, audited-style DAO setup** for the Halal (HLC) stablecoin. It includes:
+This is the operational guide for the Halal (HLC) stablecoin DAO. The protocol remains unaudited;
+read [`SECURITY.md`](../SECURITY.md) before using real funds. It includes:
 
 - **HalalDAO.sol** - OpenZeppelin Governor with voting
 - **HalalTimelock.sol** - 2-day execution delay
-- **Full Test Suite** - 20+ tests covering all workflows
+- **Full Test Suite** - 114 tests (111 unit tests plus 3 stateful PSM invariants) covering the core workflows
 - **Deployment Script** - One-command setup
 - **Example Proposals** - Ready-to-use proposal templates
 
@@ -23,7 +24,7 @@ This is a **complete, audited-style DAO setup** for the Halal (HLC) stablecoin. 
 │         ↓                                                   │
 │  Create Proposal (100 HLC minimum)                         │
 │         ↓                                                   │
-│  Voting Period (1 week snapshot-based)                     │
+│  Voting Period (chain-dependent snapshot-based)            │
 │         ↓                                                   │
 │  IF (For > Against) AND (Votes ≥ 4% quorum)               │
 │         ↓                                                   │
@@ -43,7 +44,7 @@ This is a **complete, audited-style DAO setup** for the Halal (HLC) stablecoin. 
 | Parameter | Value | Rationale |
 |-----------|-------|-----------|
 | Voting Delay | 1 block | Immediate voting after proposal |
-| Voting Period | 50,400 blocks (~1 week) | Time for community discussion |
+| Voting Period | 2,419,200 blocks on Arbitrum (~1 week) | 50,400 elsewhere; override after checking the target chain |
 | Proposal Threshold | 100 HLC | Prevents spam proposals |
 | Quorum | 4% | Low bar for community engagement |
 | Timelock Delay | 2 days | Safety window to exit if unpopular |
@@ -55,9 +56,12 @@ This is a **complete, audited-style DAO setup** for the Halal (HLC) stablecoin. 
 ### 1. **Update CPI Rate**
 ```solidity
 targets: [PSM]
-call: psm.updateCPI()
-effect: Triggers Chainlink Functions oracle update
+call: psm.mockCPI(newCPI)
+effect: DAO-approved manual override, bounded to 0.1–2.0 but not subject to the updater interval/step limit
 ```
+
+Routine oracle reports use `psm.updateCPI(reportedCPI)` from a separately granted `UPDATER_ROLE`
+account; the DAO does not submit those reports in the default deployment.
 
 ### 2. **Switch CPI Source**
 ```solidity
@@ -66,11 +70,11 @@ call: psm.setSource(newJS)
 effect: Switch from US CPI → China CPI (or other)
 ```
 
-### 3. **Mint Governance Tokens**
+### 3. **Grant a Module Minting Permission**
 ```solidity
 targets: [Token]
-call: token.mint(recipient, amount)
-effect: Expand HLC supply (if needed for liquidity)
+call: token.grantRole(token.MINTER_ROLE(), module)
+effect: Authorize a separately reviewed module to mint HLC; the DAO/timelock is not itself a minter
 ```
 
 ### 4. **Revoke Team Vesting**
@@ -80,19 +84,22 @@ call: teamVesting.revoke()
 effect: Emergency return of unvested tokens to DAO treasury
 ```
 
-### 5. **Release Treasury Vesting**
+### 5. **Release Treasury Vesting (no proposal required)**
 ```solidity
-targets: [TreasuryVesting]
 call: treasuryVesting.release()
-effect: Team/Treasury can claim vested tokens
+caller: beneficiary, multisig operator, or any third party
+effect: vested tokens are sent to the configured treasury beneficiary
 ```
 
-### 6. **Change Governance Parameters** (future upgrade)
-```solidity
-targets: [DAO]
-call: dao.updateQuorumNumerator(newPercent)
-effect: Adjust quorum without redeploying
-```
+`release()` is intentionally permissionless because the tokens always go to the configured
+beneficiary. A DAO proposal is only needed for DAO-controlled actions such as revoking the
+revocable team schedule.
+
+### 6. **Change Governance Parameters** (future deployment)
+
+The current non-upgradeable `HalalDAO` keeps its voting delay, voting period, proposal threshold,
+and quorum settings in the deployed Governor. Changing them requires deploying and wiring a new
+DAO through a planned migration.
 
 ---
 
@@ -107,25 +114,24 @@ foundryup
 
 # Clone your project
 git clone <your-repo>
-cd halal-contracts
+cd halal-protocol/contracts
 forge install
 
 # Set environment variables
 cat > .env << 'EOF'
 PRIVATE_KEY=0x...                    # Your deployer private key
 RPC_URL=https://sepolia.arbitrum.io/rpc
-DAO_ADDRESS=0x...                    # Set after first deployment
-PSM_ADDRESS=0x...
+RESERVE_TOKEN=0x...                   # Existing DAI/USDC reserve token
 TEAM_BENEFICIARY=0x...               # Team multisig
 TREASURY_BENEFICIARY=0x...           # Treasury multisig
 EOF
 ```
 
-### Step 1: Deploy on Sepolia
+### Step 1: Deploy on Arbitrum Sepolia
 ```bash
 source .env
 
-forge script scripts/Deploy.s.sol:DeployHalalSystem \
+forge script script/Deploy.s.sol:DeployHalalSystem \
   --rpc-url $RPC_URL \
   --private-key $PRIVATE_KEY \
   --broadcast
@@ -133,14 +139,16 @@ forge script scripts/Deploy.s.sol:DeployHalalSystem \
 
 **Output:**
 ```
-HalalToken:      0xABC...123
-Team Vesting:    0xDEF...456
-Treasury Vesting: 0xGHI...789
-HalalTimelock:   0xJKL...012
-HalalDAO:        0xMNO...345
-HalalPSM:        0xPQR...678
+HalalTimelock:       0xABC...123
+HalalToken (HLC):    0xDEF...456
+Team Vesting:        0xGHI...789
+Treasury Vesting:    0xJKL...012
+HalalDAO:            0xMNO...345
+HalalPSM:            0xPQR...678
 
-✓ All contracts now owned by DAO
+All roles transferred to the DAO. Deployer retains zero privileged access.
+PSM has PARAM_ROLE granted to the DAO only -- grant UPDATER_ROLE to an oracle
+relayer via governance proposal before relying on updateCPI().
 ```
 
 ### Step 2: Run Full Test Suite
@@ -153,25 +161,24 @@ forge test -vvv
 # ✓ test_CastVote_For
 # ✓ test_FullProposalFlow
 # ✓ test_DAO_ControlsPSM_AfterTakeover
-# ... (20+ tests) ...
+# ... (114 tests: 111 unit + 3 invariants) ...
 ```
 
 ### Step 3: Verify on Arbiscan
 Visit: `https://sepolia.arbiscan.io/address/0xMNO...345`
-- Check "Contract" tab → "Read as Proxy"
-- Verify owner is DAO address
+- Check the "Contract" tab and verify the deployed bytecode/source and role configuration
 
 ---
 
 ## Creating Your First Proposal
 
-### Via Frontend (future)
+### Via Frontend
 ```
 1. Connect wallet with HLC tokens
 2. Click "New Proposal"
 3. Fill in:
    - Target: PSM address
-   - Function: updateCPI()
+   - Function: updateCPI(reportedCPI)
    - Title: "Update CPI rate"
    - Description: "Monthly CPI adjustment via Chainlink"
 4. Click "Propose"
@@ -180,7 +187,7 @@ Visit: `https://sepolia.arbiscan.io/address/0xMNO...345`
 ### Via Script
 ```bash
 # Update .env with DAO_ADDRESS, PSM_ADDRESS
-forge script scripts/Examples.s.sol:ExampleProposal_UpdateCPI \
+forge script script/Examples.s.sol:ExampleProposal_UpdateCPI \
   --rpc-url $RPC_URL \
   --private-key $PRIVATE_KEY \
   --broadcast
@@ -188,7 +195,7 @@ forge script scripts/Examples.s.sol:ExampleProposal_UpdateCPI \
 
 ### Via Etherscan (if DAO is verified)
 1. Navigate to DAO contract on Arbiscan
-2. "Contract" tab → "Write as Proxy"
+2. "Contract" tab → "Write Contract"
 3. Call `propose()`
    - targets: [PSM address]
    - values: [0]
@@ -204,7 +211,7 @@ forge script scripts/Examples.s.sol:ExampleProposal_UpdateCPI \
 - Voting starts at block N+1
 - **Snapshot block**: N (voting power fixed)
 
-### Phase 2: Voting Period (1 week)
+### Phase 2: Voting Period (configured for the target chain)
 - Holders vote FOR / AGAINST / ABSTAIN
 - Voting power = HLC balance at snapshot
 - **Quorum needed**: 4% of total supply
@@ -233,22 +240,22 @@ if (forVotes > againstVotes && forVotes >= quorum) {
 ## Test Coverage
 
 ```
-Test Suite: HalalDAOTest (30 tests)
-├── Setup & Ownership [3 tests]
+Test Suite: HalalDAOTest (28 tests)
+├── Setup & role wiring [3 tests]
 │   ├── test_InitialState
 │   ├── test_VestingInitialized
-│   └── test_TransferOwnershipToDAO
+│   └── role-wiring assertions
 │
 ├── Proposal Creation [4 tests]
 │   ├── test_CreateProposal_UpdateCPI
-│   ├── test_CreateProposal_TransferOwnership
+│   ├── test_CreateProposal_GrantMinterRole
 │   ├── test_FailProposal_BelowThreshold
 │   └── test_MultiTargetProposal
 │
 ├── Voting [6 tests]
 │   ├── test_CastVote_For
-│   ├── test_CastVote_Against (TODO)
-│   ├── test_CastVote_Abstain (TODO)
+│   ├── test_CastVote_Against
+│   ├── test_CastVote_Abstain
 │   ├── test_FullProposalFlow
 │   ├── test_ProposalThreshold
 │   └── test_Quorum
@@ -289,25 +296,22 @@ forge coverage
 - ✅ 4% quorum ensures broad consensus
 - ✅ 2-day delay allows exit window
 - ✅ Multi-sig beneficiaries on vesting
-- ✅ Ownership fully transferred to DAO
-- ✅ No admin backdoors (renounceOwnership ready)
+- ✅ Privileged roles handed to the timelock/DAO
+- ✅ No owner-based admin backdoor
 
 ---
 
 ## Upgrading Parameters (Post-Launch)
 
 ### If quorum is too high/low:
-```solidity
-// Propose this:
-targets: [DAO]
-call: dao.updateQuorumNumerator(newPercent)
-// Requires DAO vote to change itself ✓
-```
+
+The current deployment cannot change Governor settings in place. Plan a new DAO deployment and a
+timelocked migration of protocol roles.
 
 ### If voting period too short:
 ```solidity
 // Would require proxy upgrade (not in current design)
-// Alternative: Deploy DAO v2, transfer ownership
+// Alternative: Deploy DAO v2 and migrate protocol roles through a planned governance transition
 ```
 
 ### If timelock too long:
@@ -333,7 +337,7 @@ call: dao.updateQuorumNumerator(newPercent)
 → Against votes ≥ For votes, or below quorum
 
 ### "Execution reverted"
-→ Check target contract has received ownership
+→ Check target contract has the expected DAO/timelock role and calldata is correct
 → Check caldata is correct (use abi.encodeWithSignature)
 
 ---
@@ -342,13 +346,13 @@ call: dao.updateQuorumNumerator(newPercent)
 
 Before moving to Arbitrum mainnet:
 
-- [ ] All tests passing on Sepolia (30/30)
+- [ ] All tests passing locally and on the target network (114/114 local suite)
 - [ ] Manual proposal cycle tested (create → vote → queue → execute)
 - [ ] Team vesting wallet is multisig (e.g., Gnosis Safe)
 - [ ] Treasury vesting wallet is multisig
 - [ ] Chainlink Functions subscription funded
 - [ ] PSM has DAI reserves (recommend 2M DAI minimum)
-- [ ] Security audit (optional but recommended)
+- [ ] Independent security audit completed and published
 - [ ] Community governance guidelines posted
 - [ ] DAO announcement with voting tutorial
 
@@ -356,11 +360,11 @@ Before moving to Arbitrum mainnet:
 
 ## Files Included
 
-[1] - HalalDAO.sol (Governor implementation)
-[2] - HalalTimelock.sol (2-day delay controller)
-[3] - HalalDAO.t.sol (30 comprehensive tests)
-[4] - Deploy.s.sol (One-command deployment)
-[5] - Examples.s.sol (5 proposal templates)
+- `contracts/src/` — five first-party protocol contracts
+- `contracts/test/` — 114 tests (111 unit tests plus 3 stateful PSM invariants) and fixtures
+- `contracts/script/Deploy.s.sol` — full-system deployment script
+- `contracts/script/Examples.s.sol` — governance proposal examples
+- `app/` — Next.js frontend
 
 ---
 
@@ -373,7 +377,7 @@ Before moving to Arbitrum mainnet:
 
 2. **Create your first proposal** (example: mock CPI update)
    ```bash
-   forge script scripts/Examples.s.sol:ExampleProposal_UpdateCPI --broadcast
+   forge script script/Examples.s.sol:ExampleProposal_UpdateCPI --broadcast
    ```
 
 3. **Simulate full vote cycle** (using Foundry time/block manipulation)
@@ -396,14 +400,14 @@ Before moving to Arbitrum mainnet:
 ## Support
 
 Questions on governance?
-- Check `HalalDAO.t.sol` for workflow examples
+- Check `contracts/test/HalalDAO.t.sol` for workflow examples
 - Review OpenZeppelin Governor documentation
 - Consult Arbitrum DAO case studies
 
-You're now running the most sophisticated stablecoin DAO on Arbitrum. 🚀
+This guide supports a testnet or carefully reviewed deployment; it is not a safety or production-readiness claim.
 
 ---
 
-**Last Updated:** December 3, 2025
+**Last Updated:** August 24, 2026
 **Network:** Arbitrum Sepolia → Arbitrum One (mainnet)
-**Status:** Ready for production deployment
+**Status:** Unaudited reference implementation; do not use with meaningful funds

@@ -15,18 +15,21 @@ import { HalalTimelock } from "../src/HalalTimelock.sol";
 ///   TEAM_BENEFICIARY       team vesting beneficiary (should be a multisig)
 ///   TREASURY_BENEFICIARY   treasury vesting beneficiary (should be a multisig)
 /// Optional env vars (defaults match docs/TECHNICAL-DOCS.md):
-///   VOTING_DELAY_BLOCKS (1), VOTING_PERIOD_BLOCKS (50400), PROPOSAL_THRESHOLD_WHOLE_HLC (100),
+///   VOTING_DELAY_BLOCKS (1), VOTING_PERIOD_BLOCKS (chain-aware), PROPOSAL_THRESHOLD_WHOLE_HLC (100),
 ///   QUORUM_PERCENT (4), TIMELOCK_DELAY_SECONDS (172800)
 ///
-/// IMPORTANT: VOTING_PERIOD_BLOCKS is denominated in the target chain's blocks. 50,400 is only
-/// "~1 week" on Ethereum L1 (~12s blocks); see docs/DESIGN-DECISIONS.md before deploying to a
-/// fast L2 like Arbitrum, where the equivalent is closer to 2,419,200 blocks.
+/// IMPORTANT: VOTING_PERIOD_BLOCKS is denominated in the target chain's blocks. The script uses
+/// 2,419,200 blocks (about one week) on Arbitrum and 50,400 blocks elsewhere by default. Always
+/// review the chosen value against the target chain's observed block cadence before deployment.
 ///
 /// Deployment logic is split into small internal helpers (rather than one long `run()`) to stay
 /// under Solidity's local-variable stack limit without needing `via_ir` -- via_ir's more aggressive
 /// optimizations are deliberately kept off project-wide, see docs/DESIGN-DECISIONS.md for the
 /// `block.timestamp`-caching bug that caused across cheatcode time-travel in test runs.
 contract DeployHalalSystem is Script {
+    error InvalidConfig();
+    error InvalidWiring();
+
     struct DeployConfig {
         address deployer;
         address reserveToken;
@@ -41,6 +44,7 @@ contract DeployHalalSystem is Script {
 
     function run()
         external
+        virtual
         returns (
             HalalTimelock timelock,
             HalalToken token,
@@ -54,28 +58,68 @@ contract DeployHalalSystem is Script {
 
         vm.startBroadcast(vm.envUint("PRIVATE_KEY"));
 
-        (timelock, token) = _deployCore(cfg);
-        (teamVesting, treasuryVesting) = _deployVesting(cfg, token, timelock);
-        token.initialMint(address(teamVesting), address(treasuryVesting));
-        dao = _deployGovernance(cfg, token, timelock);
-        psm = new HalalPSM(cfg.reserveToken, address(token), address(timelock));
-        _wireRoles(cfg.deployer, token, timelock, dao, psm);
+        (timelock, token, teamVesting, treasuryVesting, dao, psm) = _deploySystem(cfg);
 
         vm.stopBroadcast();
 
         _logSummary(timelock, token, teamVesting, treasuryVesting, dao, psm);
     }
 
+    /// @dev Shared deployment path used by the production deployment and the local demo script.
+    /// Keeping the role wiring in one function prevents the demo from becoming a second, subtly
+    /// different security model.
+    function _deploySystem(DeployConfig memory cfg)
+        internal
+        returns (
+            HalalTimelock timelock,
+            HalalToken token,
+            HalalVesting teamVesting,
+            HalalVesting treasuryVesting,
+            HalalDAO dao,
+            HalalPSM psm
+        )
+    {
+        (timelock, token) = _deployCore(cfg);
+        (teamVesting, treasuryVesting) = _deployVesting(cfg, token, timelock);
+        token.initialMint(address(teamVesting), address(treasuryVesting));
+        dao = _deployGovernance(cfg, token, timelock);
+        psm = new HalalPSM(cfg.reserveToken, address(token), address(timelock));
+        _wireRoles(cfg.deployer, token, timelock, dao, psm);
+        _assertWiring(cfg.deployer, token, teamVesting, treasuryVesting, dao, timelock, psm);
+    }
+
     function _loadConfig() internal view returns (DeployConfig memory cfg) {
-        cfg.deployer = vm.addr(vm.envUint("PRIVATE_KEY"));
+        uint256 privateKey = vm.envUint("PRIVATE_KEY");
+        if (privateKey == 0) revert InvalidConfig();
+        cfg.deployer = vm.addr(privateKey);
         cfg.reserveToken = vm.envAddress("RESERVE_TOKEN");
         cfg.teamBeneficiary = vm.envAddress("TEAM_BENEFICIARY");
         cfg.treasuryBeneficiary = vm.envAddress("TREASURY_BENEFICIARY");
-        cfg.votingDelay = uint48(vm.envOr("VOTING_DELAY_BLOCKS", uint256(1)));
-        cfg.votingPeriod = uint32(vm.envOr("VOTING_PERIOD_BLOCKS", uint256(50_400)));
-        cfg.proposalThreshold = vm.envOr("PROPOSAL_THRESHOLD_WHOLE_HLC", uint256(100)) * 1e18;
+        uint256 votingDelay = vm.envOr("VOTING_DELAY_BLOCKS", uint256(1));
+        uint256 votingPeriod = vm.envOr("VOTING_PERIOD_BLOCKS", _defaultVotingPeriod(block.chainid));
+        uint256 thresholdWholeHlc = vm.envOr("PROPOSAL_THRESHOLD_WHOLE_HLC", uint256(100));
         cfg.quorumPercent = vm.envOr("QUORUM_PERCENT", uint256(4));
         cfg.timelockDelay = vm.envOr("TIMELOCK_DELAY_SECONDS", uint256(2 days));
+
+        if (
+            votingDelay > type(uint48).max || votingPeriod == 0 || votingPeriod > type(uint32).max
+                || thresholdWholeHlc == 0 || thresholdWholeHlc > type(uint256).max / 1e18 || cfg.quorumPercent == 0
+                || cfg.quorumPercent > 100 || cfg.timelockDelay == 0 || cfg.reserveToken == address(0)
+                || cfg.teamBeneficiary == address(0) || cfg.treasuryBeneficiary == address(0)
+        ) revert InvalidConfig();
+
+        // forge-lint: disable-next-line(unsafe-typecast)
+        cfg.votingDelay = uint48(votingDelay);
+        // forge-lint: disable-next-line(unsafe-typecast)
+        cfg.votingPeriod = uint32(votingPeriod);
+        cfg.proposalThreshold = thresholdWholeHlc * 1e18;
+    }
+
+    function _defaultVotingPeriod(uint256 chainId) internal pure returns (uint256) {
+        // Arbitrum's fast L2 block cadence makes the Ethereum-oriented 50,400-block default
+        // dangerously short. Operators can still override this for a different governance policy.
+        if (chainId == 42_161 || chainId == 421_614) return 2_419_200;
+        return 50_400;
     }
 
     function _deployCore(DeployConfig memory cfg) internal returns (HalalTimelock timelock, HalalToken token) {
@@ -140,6 +184,28 @@ contract DeployHalalSystem is Script {
         timelock.revokeRole(timelock.DEFAULT_ADMIN_ROLE(), deployer);
     }
 
+    function _assertWiring(
+        address deployer,
+        HalalToken token,
+        HalalVesting teamVesting,
+        HalalVesting treasuryVesting,
+        HalalDAO dao,
+        HalalTimelock timelock,
+        HalalPSM psm
+    ) internal view {
+        if (
+            !token.genesisMinted() || token.balanceOf(address(teamVesting)) != token.TEAM_ALLOCATION()
+                || token.balanceOf(address(treasuryVesting)) != token.TREASURY_ALLOCATION()
+                || !token.hasRole(token.MINTER_ROLE(), address(psm))
+                || !token.hasRole(token.DEFAULT_ADMIN_ROLE(), address(timelock))
+                || token.hasRole(token.MINTER_ROLE(), deployer) || token.hasRole(token.DEFAULT_ADMIN_ROLE(), deployer)
+                || !timelock.hasRole(timelock.PROPOSER_ROLE(), address(dao))
+                || timelock.hasRole(timelock.DEFAULT_ADMIN_ROLE(), deployer)
+                || !psm.hasRole(psm.DEFAULT_ADMIN_ROLE(), address(timelock))
+                || !psm.hasRole(psm.PARAM_ROLE(), address(timelock))
+        ) revert InvalidWiring();
+    }
+
     function _logSummary(
         HalalTimelock timelock,
         HalalToken token,
@@ -147,13 +213,14 @@ contract DeployHalalSystem is Script {
         HalalVesting treasuryVesting,
         HalalDAO dao,
         HalalPSM psm
-    ) internal pure {
+    ) internal view {
         console.log("HalalTimelock:      ", address(timelock));
         console.log("HalalToken (HLC):   ", address(token));
         console.log("Team Vesting:       ", address(teamVesting));
         console.log("Treasury Vesting:   ", address(treasuryVesting));
         console.log("HalalDAO:           ", address(dao));
         console.log("HalalPSM:           ", address(psm));
+        console.log("Reserve token:      ", address(psm.reserve()));
         console.log("");
         console.log("All roles transferred to the DAO. Deployer retains zero privileged access.");
         console.log("PSM has PARAM_ROLE granted to the DAO only -- grant UPDATER_ROLE to an oracle");

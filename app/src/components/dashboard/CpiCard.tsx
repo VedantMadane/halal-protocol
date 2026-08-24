@@ -7,12 +7,14 @@ export function CpiCard({
   previousCPI,
   lastUpdated,
   source,
+  reserveSymbol,
   isLoading,
 }: {
   cpiRate: bigint | undefined;
   previousCPI: bigint | undefined;
   lastUpdated: bigint | undefined;
   source: string | undefined;
+  reserveSymbol: string | undefined;
   isLoading: boolean;
 }) {
   const delta =
@@ -31,7 +33,7 @@ export function CpiCard({
         ) : (
           <div className="flex items-baseline gap-2">
             <span className="tabular text-3xl font-semibold tracking-tight">{formatCPIRate(cpiRate)}</span>
-            <span className="text-sm text-muted">HLC / reserve unit</span>
+            <span className="text-sm text-muted">{reserveSymbol ?? "reserve"} / HLC</span>
             {delta !== undefined && (
               <span className={`ml-auto text-xs font-medium ${delta >= 0 ? "text-primary" : "text-danger"}`}>
                 {delta >= 0 ? "+" : ""}

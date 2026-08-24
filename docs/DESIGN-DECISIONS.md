@@ -71,6 +71,9 @@ Chainlink Functions subscription. Concretely:
   It's meant for governance-approved emergency corrections — e.g. the updater misbehaves, the
   off-chain data source is disputed, or the protocol needs to respond faster than
   `minUpdateInterval` allows.
+- `setMinUpdateInterval(uint256)` rejects zero. Governance can choose a shorter positive interval
+  when operating a faster oracle, while the manual override remains the explicit path for bypassing
+  the normal updater cadence.
 
 The intended production topology is: the DAO grants `UPDATER_ROLE` to a Chainlink Functions
 consumer contract (or a Chainlink Automation-triggered relayer) that fetches CPI off-chain and
@@ -84,35 +87,39 @@ operates a production deployment.
 **Two related additions not in the original design:**
 
 - **Decimal normalization.** `HalalPSM` reads the reserve token's `decimals()` at construction
-  time (`_reserveDecimals`) and scales all conversions through `_scaleTo18`/`_scaleFrom18` before
+  time (`_reserveDecimals`) and scales all conversions through its decimal-normalization helpers
+  before
   applying the CPI rate. This means the PSM works correctly with a 6-decimal reserve asset (e.g.
   USDC) as well as an 18-decimal one (e.g. DAI) — the original docs only ever discuss DAI and
-  don't address decimal mismatch.
+  don't address decimal mismatch. Conversions round down; both deposits and withdrawals reject
+  amounts that would produce zero output, so a caller cannot accidentally burn a nonzero HLC claim
+  for a zero-unit reserve return. The arithmetic uses OpenZeppelin's full-precision `Math.mulDiv`
+  where multiplication-before-division could otherwise overflow for a large input whose final
+  result is still representable.
 - **`reserveRequired()` / `reserveSurplus()` views.** These didn't exist in the original design.
   Because deposits lock in reserve at the CPI rate prevailing *at deposit time* while withdrawals
   pay out at the rate prevailing *at withdrawal time*, a CPI that has risen since a given deposit
   means that deposit's eventual redemption can cost more reserve than it originally brought in.
   `reserveRequired()` returns the reserve balance the PSM would need on hand right now to redeem
   *all* outstanding PSM-issued HLC at the current rate; `reserveSurplus()` returns actual balance
-  minus that requirement (negative means under-collateralized). Individual `withdraw` calls
-  always revert safely (`InsufficientReserve`) rather than partially paying out, but these views
-  let the DAO/treasury and any external integrator see a looming shortfall *before* it causes
-  withdrawals to start failing, rather than discovering it via a reverted transaction.
+  minus that requirement (negative means under-collateralized). Withdrawals may proceed on a
+  first-come-first-served basis while preserving the existing deficit, but they revert if a token's
+  outgoing debit would make that deficit worse. These views let the DAO/treasury and any external
+  integrator see a looming shortfall before it becomes operationally material.
 
 ## 3. Governance voting period is chain-dependent — don't copy `50,400` blindly
 
-`docs/TECHNICAL-DOCS.md`
-gives the voting period as `50,400 blocks`, framed as "~1 week" — which is only true on Ethereum
-L1, where blocks are ~12 seconds apart (50,400 × 12s ≈ 7 days). `docs/Architecture.md` and
-`docs/DAO-Guide.md` repeat the same `50,400 blocks (1 week)` figure without qualification. On a
+Earlier versions of the documentation gave `50,400 blocks` as "~1 week" — which is only true on
+Ethereum L1, where blocks are ~12 seconds apart (50,400 × 12s ≈ 7 days). On a
 fast L2 — Arbitrum's block time is closer to ~0.25s — `50,400` blocks is only on the order of a
 few hours, not a week, and would leave essentially no time for voters to react to a proposal.
 
 `HalalDAO`'s constructor takes `votingPeriod_` as a plain `uint32` (see
 [`contracts/src/HalalDAO.sol`](../contracts/src/HalalDAO.sol)) — the contract has no opinion
 about what a "block" means on whatever chain it's deployed to. `contracts/script/Deploy.s.sol`
-reflects this: `VOTING_PERIOD_BLOCKS` is a configurable environment variable (defaulting to
-`50_400` only because that's a reasonable default *for Ethereum L1 specifically*), with an
+reflects this: `VOTING_PERIOD_BLOCKS` is a configurable environment variable. The deployment
+script defaults to approximately one week on Arbitrum (`2_419_200` blocks) and `50_400` elsewhere,
+with an
 explicit comment warning that the value must be recomputed for the actual target chain's block
 time before deploying anywhere else.
 
@@ -173,17 +180,20 @@ hold. Since `deposit()` credits the depositor for exactly what they minted, and 
 never debit more than that credit, `sum(redeemableBalance)` always equals `totalHlcIssued`, and no
 one can redeem reserve they (or whoever transferred them PSM-minted HLC) didn't themselves deposit.
 
-**Tradeoff, stated plainly:** PSM-minted HLC loses its redemption right at that PSM the moment it's
-transferred to another address — the recipient can hold, spend, or trade it like any HLC, but
-cannot `withdraw()` it through this PSM; only the original depositor can, up to what they put in
-(CPI-rate changes between deposit and withdrawal still apply normally to that depositor's own
-redemption, exactly as before). This is a deliberate v1 safety/simplicity choice, not an
-oversight: the alternative — a transferable, composable redemption claim — is the well-known
-ERC-4626 "shares vs. assets" pattern, and would be a reasonable follow-up (a separate,
-transferable receipt token representing PSM claims) for a future iteration, but adds real
-complexity (share-price accounting, extra token, extra attack surface) that a v1 didn't need to
-take on just to close this hole. If you're extending this system with a transferable-claim PSM,
-start from ERC-4626 rather than re-deriving it.
+**Tradeoff, stated plainly:** a plain ERC20 transfer does not move the redemption right to another
+address — the recipient can hold, spend, or trade the HLC like any other HLC, but cannot
+`withdraw()` it through this PSM. To support a safe handoff without making arbitrary genesis HLC
+redeemable, the PSM also exposes `transferRedeemable(to, amount)`: after approving the PSM, a user
+can atomically transfer PSM-issued HLC and its matching credit. This is deliberately narrower than
+a fully composable ERC-4626-style claim token: a separate receipt token would add share-price
+accounting and another attack surface, so it remains a possible future extension rather than an
+implicit promise of the current HLC token.
+
+Because `HalalToken` also intentionally exposes the standard public `burn()` function, the PSM
+provides `cancelRedeemable(amount)` for users who want to surrender a PSM claim. It burns the HLC,
+retires the matching credit, and returns no reserve; using this path keeps `totalHlcIssued()` and
+`reserveRequired()` accurate. Directly burning a PSM holder's HLC remains voluntary but leaves that
+address's credit outstanding, so integrations should use the PSM-aware path when retiring a claim.
 
 This does **not** change the separate, already-documented fact that a CPI increase can make the
 PSM's aggregate `reserveRequired()` exceed its actual reserve balance even among purely legitimate

@@ -7,8 +7,11 @@ the [root README](../README.md) and [`../docs/`](../docs).
 ## Layout
 
 - `src/` — the five core contracts.
-- `test/` — Foundry test suite (82 tests at the time of writing; run `forge test` to confirm).
+- `test/` — Foundry test suite (114 tests at the time of writing: 111 unit tests plus 3 stateful
+  PSM invariants; run `forge test` to confirm).
 - `script/Deploy.s.sol` — full deployment script (token, vesting, DAO, timelock, role wiring).
+- The production deployer selects an approximately one-week voting period on Arbitrum by default;
+  review or override it for every target chain.
 - `script/Examples.s.sol` — example governance proposal templates (CPI update, source switch,
   role grants, vesting revocation).
 
@@ -29,7 +32,14 @@ forge test -vvv
 ### Format
 
 ```shell
-forge fmt
+forge fmt src test script
+```
+
+CI checks formatting for first-party code only, so local verification can avoid rewriting the
+vendored libraries:
+
+```shell
+forge fmt --check src test script
 ```
 
 ### Gas report / coverage
@@ -41,7 +51,8 @@ forge coverage
 
 ### Deploy
 
-Requires a `.env` with `PRIVATE_KEY`, `RPC_URL`, `TEAM_BENEFICIARY`, `TREASURY_BENEFICIARY` — see
+Requires a `.env` with `PRIVATE_KEY`, `RPC_URL`, `RESERVE_TOKEN`, `TEAM_BENEFICIARY`, and
+`TREASURY_BENEFICIARY` (plus optional governance parameters) — see
 [`../docs/DAO-Guide.md`](../docs/DAO-Guide.md) for the full walkthrough.
 
 ```shell

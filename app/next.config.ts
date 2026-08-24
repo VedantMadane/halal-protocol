@@ -11,7 +11,19 @@ const nextConfig: NextConfig = {
     // statically resolve the literal specifier for bundling, though, and fails the build since
     // nothing is installed at that path. We never invoke x402/Solana payment flows in this app,
     // so it's safe to tell webpack to stop trying to resolve the whole `@x402/*` scope entirely.
-    config.plugins.push(new webpack.IgnorePlugin({ resourceRegExp: /^@x402\// }));
+    // WalletConnect and MetaMask also publish optional React Native storage and pretty-printing
+    // branches. This app runs in the browser and never imports those branches.
+    config.plugins.push(
+      new webpack.IgnorePlugin({
+        resourceRegExp: /^@x402\//,
+      }),
+      new webpack.IgnorePlugin({
+        resourceRegExp: /^@react-native-async-storage\/async-storage$/,
+      }),
+      new webpack.IgnorePlugin({
+        resourceRegExp: /^pino-pretty$/,
+      }),
+    );
     return config;
   },
 };

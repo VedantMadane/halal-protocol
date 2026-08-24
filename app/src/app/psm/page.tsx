@@ -2,12 +2,15 @@
 
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Alert } from "@/components/ui/Alert";
 import { NotDeployedState } from "@/components/NotDeployedState";
 import { CpiCard } from "@/components/dashboard/CpiCard";
 import { ReserveHealthCard } from "@/components/dashboard/ReserveHealthCard";
 import { SwapForm } from "@/components/psm/SwapForm";
+import { TransferRedeemableForm } from "@/components/psm/TransferRedeemableForm";
 import { useDeployment } from "@/hooks/useDeployment";
 import { usePsmState } from "@/hooks/usePsm";
+import { getFriendlyErrorMessage } from "@/lib/errors";
 
 export default function PsmPage() {
   const { isDeployed } = useDeployment();
@@ -25,12 +28,25 @@ export default function PsmPage() {
       ) : (
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
           <div className="lg:col-span-3">
+            {psm.isError && (
+              <Alert tone="danger" title="Some PSM data could not be loaded">
+                {getFriendlyErrorMessage(psm.error)} Refresh the page or check your network.
+              </Alert>
+            )}
             <Card>
               <CardHeader>
                 <CardTitle>Swap</CardTitle>
               </CardHeader>
               <CardBody>
                 <SwapForm cpiRate={psm.cpiRate} />
+              </CardBody>
+            </Card>
+            <Card className="mt-4">
+              <CardHeader>
+                <CardTitle>Transfer redemption credit</CardTitle>
+              </CardHeader>
+              <CardBody>
+                <TransferRedeemableForm />
               </CardBody>
             </Card>
           </div>
@@ -40,6 +56,7 @@ export default function PsmPage() {
               previousCPI={psm.previousCPI}
               lastUpdated={psm.lastUpdated}
               source={psm.source}
+              reserveSymbol={psm.reserveSymbol}
               isLoading={psm.isLoading}
             />
             <ReserveHealthCard

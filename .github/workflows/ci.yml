@@ -7,6 +7,10 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -53,18 +57,77 @@ jobs:
           path: |
             contracts/cache
             contracts/out
-          key: foundry-${{ runner.os }}-${{ hashFiles('contracts/foundry.toml', 'contracts/foundry.lock') }}
+          # Include first-party sources in the key. Foundry's cache can otherwise restore an
+          # artifact set produced before a source change, which can hide newly added tests.
+          key: foundry-${{ runner.os }}-${{ hashFiles('contracts/foundry.toml', 'contracts/foundry.lock', 'contracts/src/**/*.sol', 'contracts/test/**/*.sol', 'contracts/script/**/*.sol') }}
           restore-keys: |
             foundry-${{ runner.os }}-
 
-      - name: forge fmt --check
-        run: forge fmt --check
+      - name: forge fmt --check (first-party code)
+        # Dependencies are checked out under contracts/lib and are maintained upstream. Formatting
+        # only owned code keeps this gate deterministic across Foundry formatter releases.
+        run: forge fmt --check src test script
 
       - name: forge build
         run: forge build --sizes
 
+      - name: Local deployment smoke test
+        run: |
+          ANVIL_MNEMONIC='test test test test test test test test test test test junk'
+          anvil --silent --mnemonic "$ANVIL_MNEMONIC" --port 18545 >/tmp/halal-anvil.log 2>&1 &
+          ANVIL_PID=$!
+          trap 'kill "$ANVIL_PID"' EXIT
+          until cast chain-id --rpc-url http://127.0.0.1:18545 >/dev/null 2>&1; do sleep 1; done
+          LOCAL_PRIVATE_KEY=$(cast wallet derive --insecure "$ANVIL_MNEMONIC" | awk '/Private key:/ { print $3; exit }')
+          PRIVATE_KEY="$LOCAL_PRIVATE_KEY" \
+            forge script script/DeployLocal.s.sol:DeployLocalHalalSystem \
+            --rpc-url http://127.0.0.1:18545 --broadcast
+
       - name: forge test
         run: forge test -vvv
+
+      - name: forge lint (first-party code)
+        run: forge lint src test script --severity high --severity med --severity low --severity gas
+
+  abi:
+    name: Verify generated ABIs
+    needs: changes
+    if: needs.changes.outputs.contracts == 'true' || needs.changes.outputs.app == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (with submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Build contracts
+        working-directory: contracts
+        run: forge build
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.23.0
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: app/pnpm-lock.yaml
+
+      - name: Install frontend dependencies
+        working-directory: app
+        run: pnpm install --frozen-lockfile
+
+      - name: Regenerate and compare ABIs
+        working-directory: app
+        run: |
+          pnpm gen:abis
+          git diff --exit-code -- src/abis
 
   app:
     name: Frontend (Next.js)
@@ -81,7 +144,7 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: 11.23.0
 
       - name: Install Node
         uses: actions/setup-node@v4
@@ -96,5 +159,18 @@ jobs:
       - name: pnpm lint
         run: pnpm lint
 
+      - name: pnpm audit (production dependencies)
+        run: pnpm audit --prod --audit-level=high
+
       - name: pnpm build
         run: pnpm build
+
+      - name: Production route smoke test
+        run: |
+          pnpm start --hostname 127.0.0.1 --port 3000 >/tmp/halal-next.log 2>&1 &
+          NEXT_PID=$!
+          trap 'kill "$NEXT_PID"' EXIT
+          until curl --fail --silent --show-error http://127.0.0.1:3000/ >/dev/null; do sleep 1; done
+          curl --fail --silent --show-error http://127.0.0.1:3000/governance >/dev/null
+          curl --fail --silent --show-error http://127.0.0.1:3000/psm >/dev/null
+          curl --fail --silent --show-error http://127.0.0.1:3000/vesting >/dev/null

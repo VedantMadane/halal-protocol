@@ -42,6 +42,15 @@ contract HalalVestingTest is Deployers {
         assertEq(teamVesting.releasable(), 6_000_000e18);
     }
 
+    function test_VestedAmountHandlesMaxAllocationWithoutOverflow() public {
+        uint64 start = uint64(block.timestamp);
+        HalalVesting large = new HalalVesting(
+            address(token), teamBeneficiary, address(timelock), start, 0, 2, type(uint256).max, true
+        );
+
+        assertEq(large.vestedAmount(start + 1), type(uint256).max / 2);
+    }
+
     function test_ReleaseSendsToBeneficiary() public {
         vm.warp(block.timestamp + 4 * 365 days + 1);
         teamVesting.release();
@@ -145,5 +154,10 @@ contract HalalVestingTest is Deployers {
         new HalalVesting(
             address(token), teamBeneficiary, address(timelock), uint64(block.timestamp), 100, 50, 1e18, true
         );
+    }
+
+    function test_RevertWhen_ScheduleOverflowsTimestamp() public {
+        vm.expectRevert(HalalVesting.ScheduleOverflow.selector);
+        new HalalVesting(address(token), teamBeneficiary, address(timelock), type(uint64).max, 0, 1, 1e18, true);
     }
 }

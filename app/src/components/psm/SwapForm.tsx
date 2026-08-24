@@ -9,13 +9,15 @@ import { usePsmUserState } from "@/hooks/usePsmUser";
 import { useTxState } from "@/hooks/useTxState";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { Button } from "@/components/ui/Button";
+import { Alert } from "@/components/ui/Alert";
 import { TxStatus } from "@/components/TxStatus";
 import { formatCPIRate, formatToken, formatTokenGrouped } from "@/lib/format";
+import { getFriendlyErrorMessage } from "@/lib/errors";
 
 type Mode = "deposit" | "withdraw";
 
 function safeParseUnits(value: string, decimals: number): bigint | undefined {
-  if (!value || Number.isNaN(Number(value)) || Number(value) < 0) return undefined;
+  if (!value || !/^\d*\.?\d*$/.test(value)) return undefined;
   try {
     return parseUnits(value as `${number}`, decimals);
   } catch {
@@ -81,7 +83,8 @@ function SwapFormInner({
   setAmountInput: (v: string) => void;
   debouncedInput: string;
 }) {
-  const { data: reserveDecimals } = useReadContract({
+  const [slippageBps, setSlippageBps] = useState(50);
+  const { data: reserveDecimals, isError: reserveDecimalsError, error: reserveMetadataError } = useReadContract({
     address: deploymentReserve,
     abi: erc20Abi,
     functionName: "decimals",
@@ -92,10 +95,14 @@ function SwapFormInner({
     functionName: "symbol",
   });
 
-  const decimals = mode === "deposit" ? (reserveDecimals ?? 18) : 18;
+  const reserveMetadataReady = reserveDecimals !== undefined;
+  const decimals = mode === "deposit" ? (reserveDecimals ?? 18) : reserveDecimals ?? 18;
   const symbol = reserveSymbol ?? reserveSymbolFallback;
 
-  const parsedAmount = safeParseUnits(debouncedInput, decimals);
+  const readError = user.isError || reserveDecimalsError;
+  const readErrorMessage = getFriendlyErrorMessage(user.error ?? reserveMetadataError);
+
+  const parsedAmount = reserveMetadataReady ? safeParseUnits(debouncedInput, decimals) : undefined;
 
   const { data: previewOut } = useReadContract({
     address: deploymentPsm,
@@ -144,10 +151,22 @@ function SwapFormInner({
     parsedAmount > 0n &&
     (mode === "deposit"
       ? user.reserveBalance !== undefined && parsedAmount > user.reserveBalance
-      : user.redeemableBalance !== undefined && parsedAmount > user.redeemableBalance);
+      : (user.redeemableBalance !== undefined && parsedAmount > user.redeemableBalance) ||
+        (user.hlcBalance !== undefined && parsedAmount > user.hlcBalance));
+  const insufficientHlcBalance =
+    mode === "withdraw" && user.hlcBalance !== undefined && parsedAmount !== undefined && parsedAmount > user.hlcBalance;
+
+  const zeroOutput = parsedAmount !== undefined && parsedAmount > 0n && previewOut === 0n;
+  const minOutput =
+    previewOut !== undefined && previewOut > 0n
+      ? (() => {
+          const adjusted = (previewOut * BigInt(10_000 - slippageBps)) / 10_000n;
+          return adjusted > 0n ? adjusted : 1n;
+        })()
+      : undefined;
 
   function handleMax() {
-    if (maxAmount === undefined) return;
+    if (maxAmount === undefined || !reserveMetadataReady) return;
     setAmountInput(formatUnits(maxAmount, decimals));
   }
 
@@ -171,12 +190,12 @@ function SwapFormInner({
   }
 
   function handleAction() {
-    if (parsedAmount === undefined) return;
+    if (parsedAmount === undefined || minOutput === undefined) return;
     actionTx.writeContract({
       address: deploymentPsm,
       abi: halalPsmAbi,
-      functionName: mode === "deposit" ? "deposit" : "withdraw",
-      args: [parsedAmount],
+      functionName: mode === "deposit" ? "depositWithMinHlcOut" : "withdrawWithMinReserveOut",
+      args: [parsedAmount, minOutput],
     });
   }
 
@@ -185,6 +204,11 @@ function SwapFormInner({
 
   return (
     <div className="space-y-4">
+      {readError && (
+        <Alert tone="danger" title="Wallet or reserve data could not be loaded">
+          {readErrorMessage} Refresh the page or check your network before submitting a transaction.
+        </Alert>
+      )}
       <div className="flex items-center justify-between">
         <div className="flex rounded-xl bg-background-subtle p-1">
           <button
@@ -207,15 +231,34 @@ function SwapFormInner({
           </button>
         </div>
         <span className="text-xs text-muted">
-          Rate: <span className="tabular font-medium text-foreground">{formatCPIRate(cpiRate)}</span> HLC/{symbol}
+          Rate: <span className="tabular font-medium text-foreground">{formatCPIRate(cpiRate)}</span> {symbol}/HLC
         </span>
+      </div>
+
+      <div className="flex items-center justify-between text-xs text-muted">
+        <label htmlFor="slippage-tolerance">Slippage tolerance</label>
+        <select
+          id="slippage-tolerance"
+          value={slippageBps}
+          onChange={(event) => setSlippageBps(Number(event.target.value))}
+          className="rounded-lg border border-card-border bg-background-subtle px-2 py-1 text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <option value={10}>0.1%</option>
+          <option value={50}>0.5%</option>
+          <option value={100}>1.0%</option>
+        </select>
       </div>
 
       <div className="space-y-2">
         <div className="flex items-center justify-between text-xs text-muted">
           <span>You send</span>
           {isConnected && (
-            <button type="button" onClick={handleMax} className="font-medium text-primary hover:underline">
+            <button
+              type="button"
+              onClick={handleMax}
+              disabled={!reserveMetadataReady || maxAmount === undefined}
+              className="font-medium text-primary hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+            >
               Max: {formatToken(mode === "deposit" ? user.reserveBalance : maxAmount, decimals)} {fromSymbol}
             </button>
           )}
@@ -242,7 +285,18 @@ function SwapFormInner({
           </span>
           <span className="shrink-0 text-sm font-medium text-muted">{toSymbol}</span>
         </div>
+        {minOutput !== undefined && (
+          <p className="text-right text-xs text-muted">
+            Minimum received ({(slippageBps / 100).toFixed(1)}% tolerance): {formatToken(minOutput, mode === "deposit" ? 18 : decimals)} {toSymbol}
+          </p>
+        )}
       </div>
+
+      {!reserveMetadataReady && (
+        <p className="text-xs text-muted" role="status">
+          {reserveDecimalsError ? `Unable to read ${reserveSymbolFallback} token metadata.` : `Reading ${reserveSymbolFallback} token decimals…`}
+        </p>
+      )}
 
       {mode === "withdraw" && isConnected && (
         <p className="text-xs text-muted-foreground">
@@ -253,23 +307,37 @@ function SwapFormInner({
         </p>
       )}
 
+      {zeroOutput && (
+        <p className="text-xs text-accent" role="alert">
+          This amount is too small to produce any {mode === "deposit" ? "HLC" : symbol}. Increase the amount.
+        </p>
+      )}
+
       {!isConnected ? (
         <Button className="w-full" disabled>
           Connect wallet to continue
         </Button>
+      ) : readError ? (
+        <Button className="w-full" disabled>
+          Waiting for wallet data
+        </Button>
       ) : insufficientBalance ? (
         <Button className="w-full" disabled>
-          Insufficient {mode === "withdraw" ? "redeemable balance" : `${fromSymbol} balance`}
+          Insufficient {mode === "withdraw" ? (insufficientHlcBalance ? "HLC balance" : "redeemable balance") : `${fromSymbol} balance`}
+        </Button>
+      ) : zeroOutput ? (
+        <Button className="w-full" disabled>
+          Amount too small
         </Button>
       ) : needsApproval ? (
         <Button className="w-full" onClick={handleApprove} loading={approveTx.isPending || approveTx.isConfirming}>
           Approve {fromSymbol}
         </Button>
       ) : (
-        <Button
-          className="w-full"
-          onClick={handleAction}
-          disabled={parsedAmount === undefined || parsedAmount === 0n}
+          <Button
+            className="w-full"
+            onClick={handleAction}
+          disabled={!reserveMetadataReady || parsedAmount === undefined || parsedAmount === 0n || minOutput === undefined || zeroOutput}
           loading={actionTx.isPending || actionTx.isConfirming}
         >
           {mode === "deposit" ? "Deposit" : "Withdraw"}

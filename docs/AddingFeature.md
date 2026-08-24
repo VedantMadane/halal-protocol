@@ -1,4 +1,4 @@
-Yes, you are following best practices! By deploying modular, single-purpose contracts and transferring ownership to a DAO, you have created a system that is **secure, immutable, and trustless**.
+Yes, you are following a modular pattern. By deploying single-purpose contracts and handing privileged roles to the DAO timelock, you create an **immutable, governance-controlled** system. That is not a guarantee of security or trustlessness; every new module still needs review and an explicit risk assessment.
 
 However, "immutable" doesn't mean "stuck." You can absolutely add features like loans later. In DeFi, we do this through **modular extensions**, not by changing old contracts.
 
@@ -62,7 +62,8 @@ The `HalalToken` contract now recognizes `HalalLending` as a valid minter. The n
 ### Why This is the Best Practice
 
 1.  **Safety**: If the lending contract has a bug, the DAO can vote to **revoke** the `MINTER_ROLE` from just that contract, without affecting the PSM or the Token.
-2.  **Trust**: Users know you can't just "add code" secretly. Every new feature requires a public 1-week vote.
+2.  **Trust**: Users know you can't just "add code" secretly. Every new feature requires a public
+    governance vote whose duration is configured in target-chain blocks.
 3.  **Modularity**: You can have multiple modules active at once (PSM, Lending, Staking) without them interfering with each other.
 
 ### Summary of How to Extend

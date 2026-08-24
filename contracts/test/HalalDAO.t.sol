@@ -3,9 +3,12 @@ pragma solidity 0.8.24;
 
 import { Deployers } from "./utils/Deployers.sol";
 import { IGovernor } from "@openzeppelin/contracts/governance/IGovernor.sol";
+import { IVotes } from "@openzeppelin/contracts/governance/utils/IVotes.sol";
 import { Governor } from "@openzeppelin/contracts/governance/Governor.sol";
 import { HalalVesting } from "../src/HalalVesting.sol";
 import { HalalPSM } from "../src/HalalPSM.sol";
+import { HalalDAO } from "../src/HalalDAO.sol";
+import { HalalTimelock } from "../src/HalalTimelock.sol";
 
 contract HalalDAOTest is Deployers {
     address internal voter = makeAddr("voter");
@@ -17,13 +20,13 @@ contract HalalDAOTest is Deployers {
         giveVotingPower(voter, 550_000e18);
     }
 
-    // ── Setup & ownership ────────────────────────────────────────────────
+    // ── Setup & role wiring ──────────────────────────────────────────────
 
     function test_InitialState() public view {
         assertEq(token.balanceOf(address(teamVesting)) + token.balanceOf(address(treasuryVesting)), 10_000_000e18);
     }
 
-    function test_TransferOwnershipToDAO() public view {
+    function test_RolesTransferredToDAO() public view {
         assertTrue(token.hasRole(token.DEFAULT_ADMIN_ROLE(), address(timelock)));
         assertTrue(psm.hasRole(psm.DEFAULT_ADMIN_ROLE(), address(timelock)));
         assertTrue(timelock.hasRole(timelock.PROPOSER_ROLE(), address(dao)));
@@ -51,6 +54,40 @@ contract HalalDAOTest is Deployers {
 
     function test_TimelockDelay() public view {
         assertEq(timelock.getMinDelay(), TIMELOCK_DELAY);
+    }
+
+    function test_RevertWhen_DAOHasZeroToken() public {
+        vm.expectRevert();
+        new HalalDAO(IVotes(address(0)), timelock, 1, VOTING_PERIOD, PROPOSAL_THRESHOLD, QUORUM_PERCENT);
+    }
+
+    function test_RevertWhen_DAOHasZeroTimelock() public {
+        vm.expectRevert(HalalDAO.ZeroAddress.selector);
+        new HalalDAO(token, HalalTimelock(payable(address(0))), 1, VOTING_PERIOD, PROPOSAL_THRESHOLD, QUORUM_PERCENT);
+    }
+
+    function test_RevertWhen_DAOVotingPeriodIsZero() public {
+        vm.expectRevert();
+        new HalalDAO(token, timelock, 1, 0, PROPOSAL_THRESHOLD, QUORUM_PERCENT);
+    }
+
+    function test_RevertWhen_DAOQuorumIsZero() public {
+        vm.expectRevert(HalalDAO.InvalidQuorum.selector);
+        new HalalDAO(token, timelock, 1, VOTING_PERIOD, PROPOSAL_THRESHOLD, 0);
+    }
+
+    function test_RevertWhen_DAOProposalThresholdIsZero() public {
+        vm.expectRevert(HalalDAO.InvalidProposalThreshold.selector);
+        new HalalDAO(token, timelock, 1, VOTING_PERIOD, 0, QUORUM_PERCENT);
+    }
+
+    function test_RevertWhen_TimelockDelayIsZero() public {
+        address[] memory proposers = new address[](0);
+        address[] memory executors = new address[](1);
+        executors[0] = address(0);
+
+        vm.expectRevert(HalalTimelock.ZeroDelay.selector);
+        new HalalTimelock(0, proposers, executors, address(this));
     }
 
     // ── Proposal creation ────────────────────────────────────────────────

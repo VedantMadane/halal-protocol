@@ -11,9 +11,10 @@ interface Instance {
   address: Address | undefined;
   schedule: VestingSchedule | undefined;
   isLoading: boolean;
+  isError: boolean;
 }
 
-export function VestingLookup({ instances }: { instances: Instance[] }) {
+export function VestingLookup({ instances, canRelease }: { instances: Instance[]; canRelease: boolean }) {
   const [input, setInput] = useState("");
 
   const query = input.trim();
@@ -33,6 +34,11 @@ export function VestingLookup({ instances }: { instances: Instance[] }) {
           placeholder="0x…"
           className="w-full rounded-xl border border-card-border bg-background-subtle px-4 py-2.5 font-mono text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
         />
+        {canRelease && (
+          <p className="mt-1.5 text-xs text-muted">
+            You can trigger a release for a schedule; vested tokens always go to its beneficiary.
+          </p>
+        )}
         {!valid && <p className="mt-1.5 text-xs text-danger">Not a valid address.</p>}
       </div>
 
@@ -46,7 +52,8 @@ export function VestingLookup({ instances }: { instances: Instance[] }) {
                 vestingAddress={m.address}
                 schedule={m.schedule}
                 isLoading={m.isLoading}
-                canRelease={false}
+                isError={m.isError}
+                canRelease={canRelease}
               />
             ))}
           </div>

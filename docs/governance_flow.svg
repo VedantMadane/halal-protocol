@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1500" viewBox="0 0 1200 1500" role="img" aria-labelledby="title desc">
+  <title id="title">Halal DAO governance workflow</title>
+  <desc id="desc">A proposal needs delegated voting power, passes through a chain-dependent voting period, is checked for quorum and majority, queued in the timelock, waits two days by default, and can then be executed by anyone.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#176b72"/>
+    </marker>
+    <style>
+      .title { font: 700 42px system-ui, sans-serif; fill: #12343b; }
+      .step { font: 700 24px system-ui, sans-serif; fill: #12343b; }
+      .body { font: 400 20px system-ui, sans-serif; fill: #31545a; }
+      .small { font: 400 17px system-ui, sans-serif; fill: #527177; }
+      .box { fill: #d8f2f0; stroke: #176b72; stroke-width: 3; }
+      .decision { fill: #fff4bf; stroke: #b18500; stroke-width: 3; }
+      .fail { fill: #ffe0e0; stroke: #bd3b3b; stroke-width: 3; }
+      .line { stroke: #176b72; stroke-width: 4; fill: none; marker-end: url(#arrow); }
+      .fail-line { stroke: #bd3b3b; stroke-width: 4; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect width="1200" height="1500" fill="#fbfaf6"/>
+  <text x="600" y="72" text-anchor="middle" class="title">Halal DAO Governance Workflow</text>
+  <text x="600" y="108" text-anchor="middle" class="small">OpenZeppelin Governor + HalalTimelock</text>
+
+  <rect x="260" y="150" width="680" height="130" rx="18" class="box"/>
+  <text x="600" y="195" text-anchor="middle" class="step">1. PROPOSE</text>
+  <text x="600" y="232" text-anchor="middle" class="body">A wallet with the proposal threshold submits actions.</text>
+  <text x="600" y="260" text-anchor="middle" class="small">Default threshold: 100 HLC of delegated voting power</text>
+
+  <path d="M600 280V340" class="line"/>
+  <rect x="260" y="340" width="680" height="145" rx="18" class="box"/>
+  <text x="600" y="385" text-anchor="middle" class="step">2. VOTING</text>
+  <text x="600" y="422" text-anchor="middle" class="body">Voting delay: 1 block by default</text>
+  <text x="600" y="452" text-anchor="middle" class="body">Voting period: configured in blocks per target chain</text>
+  <text x="600" y="476" text-anchor="middle" class="small">Arbitrum default: 2,419,200 blocks (~1 week); verify every target chain</text>
+
+  <path d="M600 485V555" class="line"/>
+  <polygon points="600,555 790,660 600,765 410,660" class="decision"/>
+  <text x="600" y="632" text-anchor="middle" class="step">3. CHECK RESULT</text>
+  <text x="600" y="665" text-anchor="middle" class="body">Quorum reached (default 4%)</text>
+  <text x="600" y="695" text-anchor="middle" class="body">and FOR votes exceed AGAINST votes?</text>
+
+  <path d="M410 660H210V805" class="fail-line"/>
+  <text x="305" y="645" text-anchor="middle" class="small" fill="#bd3b3b">No</text>
+  <rect x="55" y="805" width="310" height="105" rx="18" class="fail"/>
+  <text x="210" y="850" text-anchor="middle" class="step">DEFEATED / EXPIRED</text>
+  <text x="210" y="880" text-anchor="middle" class="body">No protocol change</text>
+
+  <path d="M600 765V835" class="line"/>
+  <text x="630" y="805" class="small" fill="#176b72">Yes</text>
+  <rect x="260" y="835" width="680" height="120" rx="18" class="box"/>
+  <text x="600" y="880" text-anchor="middle" class="step">4. QUEUE</text>
+  <text x="600" y="918" text-anchor="middle" class="body">Governor schedules the proposal in HalalTimelock</text>
+  <text x="600" y="942" text-anchor="middle" class="small">Anyone may execute after the timelock delay</text>
+
+  <path d="M600 955V1025" class="line"/>
+  <rect x="260" y="1025" width="680" height="130" rx="18" class="box"/>
+  <text x="600" y="1070" text-anchor="middle" class="step">5. TIMELOCK REVIEW</text>
+  <text x="600" y="1108" text-anchor="middle" class="body">Default delay: 2 days before execution</text>
+  <text x="600" y="1136" text-anchor="middle" class="small">Community and integrators can review the queued actions</text>
+
+  <path d="M600 1155V1225" class="line"/>
+  <rect x="260" y="1225" width="680" height="130" rx="18" class="box"/>
+  <text x="600" y="1270" text-anchor="middle" class="step">6. EXECUTE</text>
+  <text x="600" y="1308" text-anchor="middle" class="body">Anyone executes the queued proposal</text>
+  <text x="600" y="1336" text-anchor="middle" class="small">The approved protocol update takes effect on-chain</text>
+
+  <text x="600" y="1435" text-anchor="middle" class="small">All values are deployment defaults unless the documentation says they are chain-dependent.</text>
+</svg>

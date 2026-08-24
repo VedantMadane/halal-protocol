@@ -35,11 +35,12 @@ authorization, bypass governance/access control, or otherwise break the PSM's co
 or the DAO's control over the system — please do not open a public GitHub issue or PR.** Public
 disclosure before a fix ships gives potential attackers a head start.
 
-Instead, report it privately to:
+Instead, use the repository's private vulnerability report form:
 
-**security@halal-dao.example** *(placeholder — the project maintainer should replace this with a
-real monitored address, or a GitHub Security Advisory / private vulnerability-reporting channel,
-before this project is treated as live)*
+**[Open a private GitHub Security Advisory](https://github.com/fredrikblau/halal-protocol/security/advisories/new)**
+
+If GitHub does not show the form, contact the maintainer through the repository profile before
+sharing exploit details publicly. Do not put sensitive reproduction steps in a public issue.
 
 Please include:
 

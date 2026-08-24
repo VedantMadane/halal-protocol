@@ -30,7 +30,7 @@ export default function VestingPage() {
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
       <PageHeader
         title="Vesting"
-        description="Team and treasury allocations vest linearly on-chain. Beneficiaries can release vested tokens at any time; anyone can look up a schedule."
+        description="Team and treasury allocations vest linearly on-chain. Anyone can trigger a release at any time; vested tokens always go to the beneficiary."
       />
 
       {!isDeployed ? (
@@ -49,6 +49,7 @@ export default function VestingPage() {
                     vestingAddress={deployment?.teamVesting}
                     schedule={team.schedule}
                     isLoading={team.isLoading}
+                    isError={team.isError}
                     canRelease
                     onReleased={team.refetch}
                   />
@@ -59,6 +60,7 @@ export default function VestingPage() {
                     vestingAddress={deployment?.treasuryVesting}
                     schedule={treasury.schedule}
                     isLoading={treasury.isLoading}
+                    isError={treasury.isError}
                     canRelease
                     onReleased={treasury.refetch}
                   />
@@ -79,13 +81,15 @@ export default function VestingPage() {
               </CardHeader>
               <CardBody>
                 <VestingLookup
+                  canRelease={isConnected}
                   instances={[
-                    { label: "Team", address: deployment?.teamVesting, schedule: team.schedule, isLoading: team.isLoading },
+                    { label: "Team", address: deployment?.teamVesting, schedule: team.schedule, isLoading: team.isLoading, isError: team.isError },
                     {
                       label: "Treasury",
                       address: deployment?.treasuryVesting,
                       schedule: treasury.schedule,
                       isLoading: treasury.isLoading,
+                      isError: treasury.isError,
                     },
                   ]}
                 />

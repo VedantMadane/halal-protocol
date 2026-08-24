@@ -1,0 +1,48 @@
+name: Slither
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "41 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    name: Slither static analysis
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout (with submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Build contracts for Slither
+        working-directory: contracts
+        run: forge build --build-info --deny never --skip ./test/** ./script/** --force
+
+      - name: Run Slither
+        id: slither
+        uses: crytic/slither-action@v0.4.2
+        with:
+          target: contracts
+          ignore-compile: true
+          slither-args: --exclude-dependencies --filter-paths "contracts/src"
+          fail-on: high
+          sarif: slither-results.sarif
+
+      - name: Upload Slither results
+        if: always() && steps.slither.outputs.sarif != ''
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: slither-results.sarif

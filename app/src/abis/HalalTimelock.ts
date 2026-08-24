@@ -998,5 +998,10 @@ export const halalTimelockAbi = [
         "internalType": "bytes32"
       }
     ]
+  },
+  {
+    "type": "error",
+    "name": "ZeroDelay",
+    "inputs": []
   }
 ] as const;

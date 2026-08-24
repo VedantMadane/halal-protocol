@@ -1,16 +1,17 @@
 # Halal (HLC)
 
 [![CI](https://github.com/fredrikblau/halal-protocol/actions/workflows/ci.yml/badge.svg)](https://github.com/fredrikblau/halal-protocol/actions/workflows/ci.yml)
+[![Security](https://github.com/fredrikblau/halal-protocol/actions/workflows/security.yml/badge.svg)](https://github.com/fredrikblau/halal-protocol/actions/workflows/security.yml)
+[![Slither](https://github.com/fredrikblau/halal-protocol/actions/workflows/slither.yml/badge.svg)](https://github.com/fredrikblau/halal-protocol/actions/workflows/slither.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Halal is a DAO-governed, CPI-indexed stablecoin protocol. **HLC**, its token, is backed 1:1 by a
-reserve asset (e.g. DAI or USDC) held in a Peg Stability Module (PSM), with the exchange rate
-between HLC and the reserve adjusted over time to track a CPI (inflation) feed — the goal is for
-HLC's *purchasing power*, not just its nominal reserve-asset price, to stay roughly stable. A
-fixed genesis allocation (6,000,000 HLC to the team, 4,000,000 HLC to the treasury, both
-time-vested) seeds the token; from there, all further minting, PSM parameters, and treasury
-spending are controlled by an on-chain DAO (OpenZeppelin `Governor` + `TimelockController`) —
-there is no admin key with unilateral control once the system is fully deployed and handed off.
+Halal is a DAO-governed, CPI-indexed stablecoin protocol. **HLC** minted through its Peg Stability
+Module (PSM) is redeemable against a reserve asset such as DAI or USDC at a CPI-adjusted rate;
+the goal is for HLC's *purchasing power*, not just its nominal reserve-asset price, to stay roughly
+stable. The separate fixed genesis allocation (6,000,000 HLC to the team and 4,000,000 HLC to the
+treasury, both time-vested) is not reserve-backed. PSM issuance, protocol parameters, and treasury
+spending are controlled by an on-chain DAO (OpenZeppelin `Governor` + `TimelockController`) once
+the system is fully deployed and handed off — there is no unilateral admin key in that final state.
 
 This is a genuine, from-scratch implementation, not a fork or a wrapper — five contracts
 (`HalalToken`, `HalalVesting`, `HalalPSM`, `HalalDAO`, `HalalTimelock`), a Foundry test suite, and
@@ -19,7 +20,8 @@ a Next.js frontend, all in this monorepo.
 ## Status & risk
 
 **This protocol has not undergone a professional security audit, and there is no bug bounty
-program yet.** The contracts pass their own test suite (82/82 at the time of writing — see
+program yet.** The contracts pass their own test suite (114/114 at the time of writing — 111 unit
+tests plus 3 stateful invariants; see
 `contracts/test/`), but a passing test suite is not a substitute for an audit, and this repo
 should not be treated as safe to use with real, meaningful funds. If you deploy or interact with
 any instance of these contracts, you do so at your own risk. See [`SECURITY.md`](SECURITY.md) for
@@ -35,7 +37,7 @@ active, unaudited, open-source project, and honesty about that is a design goal 
   case-by-case vote).
 - **`HalalVesting`** — one instance per beneficiary (team, treasury), linear vesting with an
   optional cliff; the team schedule is DAO-revocable, the treasury schedule is not.
-- **`HalalPSM`** — mints/burns HLC 1:1 against a reserve asset at a CPI-adjusted rate; CPI is
+- **`HalalPSM`** — mints/burns HLC against a reserve asset at a CPI-adjusted rate; CPI is
   submitted by a rate-limited `UPDATER_ROLE` (intended to be a Chainlink Functions consumer or
   similar in production) with a DAO-gated manual override for emergencies.
 - **`HalalDAO`** — an OpenZeppelin `Governor` (settings + simple counting + votes + quorum
@@ -60,6 +62,8 @@ walkthrough, and the exact API surface — see:
 - [`docs/DESIGN-DECISIONS.md`](docs/DESIGN-DECISIONS.md) — where the actual implementation
   deliberately deviates from those planning docs, and why. Worth reading before assuming a
   number or behavior described in the docs above is exactly what the code does.
+- [`docs/INVARIANTS.md`](docs/INVARIANTS.md) — the stateful PSM properties exercised by Foundry
+  and the exact scope of those guarantees.
 
 Those docs describe design intent and were written to guide the implementation; a few figures in
 them are approximate/aspirational rather than exact. `contracts/src/` is the ground truth for
@@ -77,6 +81,9 @@ docs/        Design and governance documentation (see above).
 
 ## Quickstart
 
+From the repository root, `make verify` runs the full contract and frontend verification suite.
+The individual commands below are useful when working on one subtree.
+
 ### Contracts
 
 ```bash
@@ -84,6 +91,17 @@ cd contracts
 forge install     # fetch git-submodule dependencies (forge-std, OpenZeppelin Contracts)
 forge test        # run the full test suite
 ```
+
+To run the complete dApp locally against Anvil with one command:
+
+```bash
+./scripts/local-demo.sh
+```
+
+The wrapper starts a disposable Anvil chain, deploys the system, writes `app/.env.local`, and starts
+the frontend. The local deployment uses a faucet reserve token intentionally named `mDAI`; it must
+never be used as a real reserve asset on a public network. For manual deployment or a custom local
+beneficiary, see `contracts/script/DeployLocal.s.sol`.
 
 See [`contracts/script/Deploy.s.sol`](contracts/script/Deploy.s.sol) for the deployment script
 and [`contracts/script/Examples.s.sol`](contracts/script/Examples.s.sol) for example governance

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAccount } from "wagmi";
-import { encodeFunctionData, isAddress, parseUnits, type Address, type Hex } from "viem";
+import { encodeFunctionData, isAddress, parseUnits, zeroAddress, type Address, type Hex } from "viem";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -15,7 +15,7 @@ import { useDeployment } from "@/hooks/useDeployment";
 import { useVotingPower } from "@/hooks/useVotingPower";
 import { useTxState } from "@/hooks/useTxState";
 import { halalDaoAbi, halalPsmAbi } from "@/abis";
-import { formatTokenGrouped, CPI_PRECISION } from "@/lib/format";
+import { formatTokenGrouped } from "@/lib/format";
 
 type Template = "cpi" | "advanced";
 
@@ -53,15 +53,25 @@ function buildProposalPayload(
   if (!deployment) return EMPTY_PAYLOAD("");
 
   if (template === "cpi") {
-    const num = Number(cpiRateInput);
-    if (!cpiRateInput || Number.isNaN(num) || num <= 0) {
+    if (!cpiRateInput.trim()) {
       return EMPTY_PAYLOAD(cpiDescription, "Enter a valid rate.");
     }
-    const scaled = BigInt(Math.round(num * Number(CPI_PRECISION)));
+
+    let scaled: bigint;
+    try {
+      // CPI_PRECISION is 1e6, so parse the user input directly as a six-decimal fixed-point value.
+      scaled = parseUnits(cpiRateInput, 6);
+    } catch {
+      return EMPTY_PAYLOAD(cpiDescription, "Enter a valid rate with at most 6 decimal places.");
+    }
+
     const MIN_CPI = 100_000n;
     const MAX_CPI = 2_000_000n;
     if (scaled < MIN_CPI || scaled > MAX_CPI) {
       return EMPTY_PAYLOAD(cpiDescription, "Rate must be between 0.1 and 2.0.");
+    }
+    if (!cpiDescription.trim()) {
+      return EMPTY_PAYLOAD(cpiDescription, "Description is required.");
     }
     const calldata = encodeFunctionData({ abi: halalPsmAbi, functionName: "mockCPI", args: [scaled] });
     return {
@@ -79,11 +89,12 @@ function buildProposalPayload(
   const parsedCalldatas: Hex[] = [];
   for (const row of rows) {
     if (!row.target && !row.value && (!row.calldata || row.calldata === "0x")) continue; // skip fully-empty rows
-    if (!isAddress(row.target)) {
+    if (!isAddress(row.target) || row.target.toLowerCase() === zeroAddress) {
       return EMPTY_PAYLOAD(advancedDescription, `Invalid target address: "${row.target}"`);
     }
     let value: bigint;
     try {
+      if (row.value && !/^\d*\.?\d*$/.test(row.value)) throw new Error("invalid value");
       value = row.value ? parseUnits(row.value as `${number}`, 18) : 0n;
     } catch {
       return EMPTY_PAYLOAD(advancedDescription, `Invalid ETH value: "${row.value}"`);
@@ -132,6 +143,7 @@ export default function NewProposalPage() {
 
   const belowThreshold =
     power.votes !== undefined && power.proposalThreshold !== undefined && power.votes < power.proposalThreshold;
+  const votingPowerUnavailable = power.isError || power.votes === undefined || power.proposalThreshold === undefined;
 
   const { targets, values, calldatas, description, buildError } = useMemo(
     () => buildProposalPayload(deployment, template, cpiRateInput, cpiDescription, rows, advancedDescription),
@@ -178,6 +190,11 @@ export default function NewProposalPage() {
 
       {!isConnected ? (
         <Alert tone="info">Connect your wallet to create a proposal.</Alert>
+      ) : votingPowerUnavailable ? (
+        <Alert tone="danger" title="Voting power could not be verified">
+          Refresh the page before submitting. The proposal threshold and your delegated voting power must be read
+          completely first.
+        </Alert>
       ) : belowThreshold ? (
         <Alert tone="warning" title="Voting power below proposal threshold">
           You have {formatTokenGrouped(power.votes, 18)} HLC of voting power; {formatTokenGrouped(power.proposalThreshold, 18)}{" "}
@@ -308,7 +325,7 @@ export default function NewProposalPage() {
         <Button
           className="w-full"
           onClick={handleSubmit}
-          disabled={!isConnected || !!buildError || targets.length === 0}
+          disabled={!isConnected || votingPowerUnavailable || belowThreshold || !!buildError || targets.length === 0}
           loading={proposeTx.isPending || proposeTx.isConfirming}
         >
           Submit proposal

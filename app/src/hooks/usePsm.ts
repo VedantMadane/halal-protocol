@@ -3,6 +3,7 @@
 import { useReadContracts } from "wagmi";
 import { halalPsmAbi, erc20Abi } from "@/abis";
 import { useDeployment } from "./useDeployment";
+import { hasReadFailure, partialReadError } from "@/lib/readResults";
 
 /** Aggregate HalalPSM state: CPI rate, reserve health, and reserve token metadata. */
 export function usePsmState() {
@@ -26,6 +27,7 @@ export function usePsmState() {
       : [],
     query: { enabled: isDeployed, refetchInterval: 20_000 },
   });
+  const readFailed = hasReadFailure(data);
 
   const get = <T>(i: number): T | undefined => (data?.[i]?.status === "success" ? (data[i].result as T) : undefined);
 
@@ -42,8 +44,8 @@ export function usePsmState() {
     reserveDecimals: get<number>(9),
     reserveSymbol: get<string>(10),
     isLoading,
-    isError,
-    error,
+    isError: isError || readFailed,
+    error: error ?? (readFailed ? partialReadError() : undefined),
     refetch,
   };
 }

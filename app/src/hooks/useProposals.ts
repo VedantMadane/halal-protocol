@@ -7,6 +7,7 @@ import { decodeEventLog, getAbiItem, type Address, type Hex } from "viem";
 import { halalDaoAbi } from "@/abis";
 import { useDeployment } from "./useDeployment";
 import { getLogsChunked } from "@/lib/logs";
+import { hasReadFailure, partialReadError } from "@/lib/readResults";
 
 const proposalCreatedEvent = getAbiItem({ abi: halalDaoAbi, name: "ProposalCreated" });
 
@@ -126,11 +127,13 @@ export function useProposals() {
     });
   }, [events, stateQuery.data]);
 
+  const readFailed = hasReadFailure(stateQuery.data);
+
   return {
     proposals,
     isLoading: eventsQuery.isLoading || (contracts.length > 0 && stateQuery.isLoading),
-    isError: eventsQuery.isError || stateQuery.isError,
-    error: eventsQuery.error ?? stateQuery.error,
+    isError: eventsQuery.isError || stateQuery.isError || readFailed,
+    error: eventsQuery.error ?? stateQuery.error ?? (readFailed ? partialReadError() : undefined),
     refetch: () => {
       void eventsQuery.refetch();
       void stateQuery.refetch();

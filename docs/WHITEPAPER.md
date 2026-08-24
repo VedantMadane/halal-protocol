@@ -12,9 +12,9 @@
 Most "stablecoins" stabilize the wrong thing. They peg to a unit of account — the US dollar —
 that itself loses purchasing power to inflation year over year. A token that reliably trades for
 $1 is not the same thing as a token that reliably buys the same basket of goods. Halal (HLC) is
-an attempt to close that gap: a token backed 1:1 by a reserve asset, redeemable through a Peg
-Stability Module (PSM) at a rate that is periodically adjusted to track a Consumer Price Index
-(CPI) feed, so that HLC's *purchasing power* — not just its nominal price against the reserve —
+an attempt to close that gap: a token collateralized by a reserve asset at the applicable
+CPI-adjusted rate, redeemable through a Peg Stability Module (PSM) whose rate is periodically
+adjusted to track a Consumer Price Index (CPI) feed, so that HLC's *purchasing power* — not just its nominal price against the reserve —
 stays roughly constant over time. The protocol is governed entirely on-chain by HLC holders
 through an OpenZeppelin `Governor` + `TimelockController` pair; there is no admin key, upgrade
 proxy, or centralized off-switch once the system is fully deployed and handed off.
@@ -81,7 +81,8 @@ backed by PSM reserves), the contract tracks how much HLC each address has actua
 through the PSM and not yet redeemed. Only that amount is redeemable by that address. This closes
 an entire class of exploit where genesis tokens, or PSM-minted HLC that changed hands, could be
 used to drain the reserve out from under legitimate depositors — at the cost of PSM-minted HLC
-losing its redemption right if transferred to another address. That trade-off is documented in
+losing its redemption right if transferred through a plain ERC20 transfer; users can instead call
+the PSM's atomic `transferRedeemable` path after approving it. That trade-off is documented in
 detail, with the reasoning behind it, in [`DESIGN-DECISIONS.md`](DESIGN-DECISIONS.md).
 
 ## 4. Token and allocation
@@ -96,9 +97,10 @@ HLC has a fixed genesis supply of 10,000,000 tokens, split:
   [`Treasury.md`](Treasury.md) for worked examples (bootstrapping liquidity, paying for an
   audit).
 
-Beyond genesis, the only way new HLC enters circulation is (a) through the PSM, backed 1:1 by
-deposited reserve assets, or (b) through a future contract that the DAO has explicitly voted to
-grant `MINTER_ROLE`. There is no discretionary inflation.
+Beyond genesis, the only way new HLC enters circulation is (a) through the PSM, collateralized by
+deposited reserve assets at the applicable CPI-adjusted redemption rate, or (b) through a future
+contract that the DAO has explicitly voted to grant `MINTER_ROLE`. There is no discretionary
+inflation.
 
 ## 5. Governance
 
@@ -180,9 +182,11 @@ the rest of the technical documentation:
 - **CPI-indexed redemption has an inherent reserve-adequacy tension.** If CPI rises after a
   deposit, the PSM's redemption obligation for that deposit can exceed what it holds in reserve
   for a period, and `withdraw()` will correctly revert rather than pay out more than the reserve
-  can cover, until the treasury tops up the shortfall. This is not a bug to be patched away; it
-  is the direct consequence of promising purchasing-power stability without infinite reserves,
-  and it is a real operational responsibility for the treasury and DAO, not a solved problem.
+  can cover. The PSM can still process redemptions that preserve the existing deficit, but the
+  treasury must top up the shortfall before full redemption is available. This is not a bug to be
+  patched away; it is the direct consequence of promising purchasing-power stability without
+  infinite reserves, and it is a real operational responsibility for the treasury and DAO, not a
+  solved problem.
 - **No admin emergency brake.** Removing any privileged canceller/pause role was a deliberate
   choice in favor of credible neutrality over convenience. It also means there is genuinely no
   way to stop a maliciously-passed proposal once it clears the timelock, beyond the 2-day window

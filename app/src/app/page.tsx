@@ -6,11 +6,13 @@ import { NotDeployedState } from "@/components/NotDeployedState";
 import { CpiCard } from "@/components/dashboard/CpiCard";
 import { ReserveHealthCard } from "@/components/dashboard/ReserveHealthCard";
 import { VestingSummaryCard } from "@/components/dashboard/VestingSummaryCard";
+import { Alert } from "@/components/ui/Alert";
 import { useDeployment } from "@/hooks/useDeployment";
 import { useTokenInfo } from "@/hooks/useTokenInfo";
 import { usePsmState } from "@/hooks/usePsm";
 import { useVestingSchedule } from "@/hooks/useVesting";
 import { formatTokenGrouped } from "@/lib/format";
+import { getFriendlyErrorMessage } from "@/lib/errors";
 
 export default function DashboardPage() {
   const { deployment, isDeployed } = useDeployment();
@@ -30,6 +32,11 @@ export default function DashboardPage() {
         <NotDeployedState />
       ) : (
         <div className="space-y-6">
+          {(token.isError || psm.isError || team.isError || treasury.isError) && (
+            <Alert tone="danger" title="Some protocol data could not be loaded">
+              {getFriendlyErrorMessage(token.error ?? psm.error ?? team.error ?? treasury.error)} Refresh the page or check your network.
+            </Alert>
+          )}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <StatTile
               label="HLC Total Supply"
@@ -59,6 +66,7 @@ export default function DashboardPage() {
               previousCPI={psm.previousCPI}
               lastUpdated={psm.lastUpdated}
               source={psm.source}
+              reserveSymbol={psm.reserveSymbol}
               isLoading={psm.isLoading}
             />
             <ReserveHealthCard

@@ -1,0 +1,26 @@
+name: Feature request
+description: Suggest a focused improvement to the protocol, dApp, or developer experience.
+title: "feat: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What user or protocol problem would this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Explain the behavior you would like and any alternatives considered.
+    validations:
+      required: true
+  - type: checkboxes
+    id: risk
+    attributes:
+      label: Scope awareness
+      options:
+        - label: I understand contract changes require additional design review and security analysis.
+          required: true

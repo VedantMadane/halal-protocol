@@ -1,0 +1,37 @@
+name: Deep contract tests
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  fuzz-and-invariants:
+    name: Extended fuzzing and invariants
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: contracts
+    env:
+      FOUNDRY_FUZZ_RUNS: 10000
+      FOUNDRY_INVARIANT_RUNS: 128
+      FOUNDRY_INVARIANT_DEPTH: 64
+    steps:
+      - name: Checkout (with submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Extended PSM fuzz test
+        run: forge test --match-test testFuzz_RoundTripNeverOverpays
+
+      - name: Extended PSM invariant suite
+        run: forge test --match-path test/HalalPSMInvariant.t.sol

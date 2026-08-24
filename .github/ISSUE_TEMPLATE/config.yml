@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/fredrikblau/halal-protocol/security/advisories/new
+    about: Privately report fund-risking or access-control vulnerabilities; do not disclose them publicly.
+  - name: Project discussions
+    url: https://github.com/fredrikblau/halal-protocol/discussions
+    about: Ask questions or explore design ideas before opening a focused issue.

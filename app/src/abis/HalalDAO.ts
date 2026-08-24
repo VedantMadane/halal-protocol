@@ -1662,6 +1662,11 @@ export const halalDaoAbi = [
   },
   {
     "type": "error",
+    "name": "InvalidQuorum",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "InvalidShortString",
     "inputs": []
   },
@@ -1691,5 +1696,10 @@ export const halalDaoAbi = [
         "internalType": "string"
       }
     ]
+  },
+  {
+    "type": "error",
+    "name": "ZeroAddress",
+    "inputs": []
   }
 ] as const;
