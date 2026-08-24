@@ -1662,6 +1662,11 @@ export const halalDaoAbi = [
   },
   {
     "type": "error",
+    "name": "InvalidProposalThreshold",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "InvalidQuorum",
     "inputs": []
   },
