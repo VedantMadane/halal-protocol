@@ -58,6 +58,8 @@ export default function PsmPage() {
                 cpiRate={psm.cpiRate}
                 previousCPI={psm.previousCPI}
                 lastUpdated={psm.lastUpdated}
+                lastReportTimestamp={psm.lastReportTimestamp}
+                maxReportAge={psm.maxReportAge}
                 minUpdateInterval={psm.minUpdateInterval}
                 source={psm.source}
                 reserveSymbol={psm.reserveSymbol}

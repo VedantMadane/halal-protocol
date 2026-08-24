@@ -10,6 +10,8 @@ export function CpiCard({
   cpiRate,
   previousCPI,
   lastUpdated,
+  lastReportTimestamp,
+  maxReportAge,
   minUpdateInterval,
   source,
   reserveSymbol,
@@ -18,6 +20,8 @@ export function CpiCard({
   cpiRate: bigint | undefined;
   previousCPI: bigint | undefined;
   lastUpdated: bigint | undefined;
+  lastReportTimestamp: bigint | undefined;
+  maxReportAge: bigint | undefined;
   minUpdateInterval: bigint | undefined;
   source: string | undefined;
   reserveSymbol: string | undefined;
@@ -40,12 +44,26 @@ export function CpiCard({
     now !== undefined && lastUpdated !== undefined && minUpdateInterval !== undefined
       ? now > lastUpdated + minUpdateInterval
       : false;
+  const reportTimestampMissing = lastReportTimestamp === 0n;
+  const reportStale =
+    !reportTimestampMissing &&
+    now !== undefined &&
+    lastReportTimestamp !== undefined &&
+    maxReportAge !== undefined
+      ? now > lastReportTimestamp + maxReportAge
+      : false;
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>CPI Rate</CardTitle>
-        {!isLoading && updateOverdue && <Badge tone="danger">Update overdue</Badge>}
+        {!isLoading && reportTimestampMissing ? (
+          <Badge tone="danger">Source timestamp missing</Badge>
+        ) : !isLoading && reportStale ? (
+          <Badge tone="danger">Source report stale</Badge>
+        ) : !isLoading && updateOverdue ? (
+          <Badge tone="danger">Update overdue</Badge>
+        ) : null}
       </CardHeader>
       <CardBody className="space-y-3">
         {isLoading ? (
@@ -70,6 +88,12 @@ export function CpiCard({
           <div>
             <dt className="text-muted">Last updated</dt>
             <dd className="font-medium">{formatDate(lastUpdated)}</dd>
+          </div>
+          <div>
+            <dt className="text-muted">Source report</dt>
+            <dd className="font-medium">
+              {lastReportTimestamp === undefined ? "Unavailable on this deployment" : formatDate(lastReportTimestamp)}
+            </dd>
           </div>
           <div className="col-span-2">
             <dt className="text-muted">Source</dt>

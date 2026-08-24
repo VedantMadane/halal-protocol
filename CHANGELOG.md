@@ -6,6 +6,8 @@ All notable changes to this project are documented here.
 
 - Made deployment verification fail closed when the RPC chain ID does not match the operator's
   declared target network, and wired the check into the local demo and CI smoke test.
+- Exposed CPI source-report timestamps and the on-chain freshness bound in the dApp, while keeping
+  the new metadata reads optional for older immutable deployments.
 - Fixed first-report bootstrap so a fresh timestamped CPI report published immediately before
   deployment is accepted.
 - Added timestamped CPI reports with monotonic replay protection and a 90-day freshness bound;

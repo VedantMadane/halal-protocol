@@ -27,9 +27,23 @@ export function usePsmState() {
       : [],
     query: { enabled: isDeployed, refetchInterval: 20_000 },
   });
+  // These getters were added after the initial immutable deployments. Keep them in a separate,
+  // optional read batch so an older deployment still exposes its core PSM data and simply shows
+  // source-report metadata as unavailable.
+  const { data: reportData } = useReadContracts({
+    contracts: deployment
+      ? ([
+          { address: deployment.psm, abi: halalPsmAbi, functionName: "lastReportTimestamp" },
+          { address: deployment.psm, abi: halalPsmAbi, functionName: "MAX_REPORT_AGE" },
+        ] as const)
+      : [],
+    query: { enabled: isDeployed, refetchInterval: 20_000 },
+  });
   const readFailed = hasReadFailure(data);
 
   const get = <T>(i: number): T | undefined => (data?.[i]?.status === "success" ? (data[i].result as T) : undefined);
+  const getReport = <T>(i: number): T | undefined =>
+    reportData?.[i]?.status === "success" ? (reportData[i].result as T) : undefined;
 
   return {
     cpiRate: get<bigint>(0),
@@ -43,6 +57,8 @@ export function usePsmState() {
     reserveBalance: get<bigint>(8),
     reserveDecimals: get<number>(9),
     reserveSymbol: get<string>(10),
+    lastReportTimestamp: getReport<bigint>(0),
+    maxReportAge: getReport<bigint>(1),
     isLoading,
     isError: isError || readFailed,
     error: error ?? (readFailed ? partialReadError() : undefined),
