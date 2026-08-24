@@ -103,6 +103,12 @@ function SwapFormInner({
 
   const readError = user.isError || reserveDecimalsError;
   const readErrorMessage = getFriendlyErrorMessage(user.error ?? reserveMetadataError);
+  const walletDataReady =
+    !user.isLoading &&
+    !user.isError &&
+    (mode === "deposit"
+      ? user.reserveBalance !== undefined && user.reserveAllowance !== undefined
+      : user.hlcBalance !== undefined && user.hlcAllowance !== undefined && user.redeemableBalance !== undefined);
 
   const parsedAmount = reserveMetadataReady ? safeParseUnits(debouncedInput, inputDecimals) : undefined;
 
@@ -146,7 +152,12 @@ function SwapFormInner({
 
   const currentAllowance = mode === "deposit" ? user.reserveAllowance : user.hlcAllowance;
   const needsApproval =
-    parsedAmount !== undefined && parsedAmount > 0n && currentAllowance !== undefined && currentAllowance < parsedAmount;
+    walletDataReady &&
+    reserveMetadataReady &&
+    parsedAmount !== undefined &&
+    parsedAmount > 0n &&
+    currentAllowance !== undefined &&
+    currentAllowance < parsedAmount;
 
   const insufficientBalance =
     parsedAmount !== undefined &&
@@ -322,6 +333,10 @@ function SwapFormInner({
       ) : readError ? (
         <Button className="w-full" disabled>
           Waiting for wallet data
+        </Button>
+      ) : !walletDataReady || !reserveMetadataReady ? (
+        <Button className="w-full" disabled>
+          Reading wallet and reserve data
         </Button>
       ) : insufficientBalance ? (
         <Button className="w-full" disabled>
