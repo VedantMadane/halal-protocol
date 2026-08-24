@@ -9,6 +9,8 @@ All notable changes to this project are documented here.
 - Added a visible dashboard warning when the on-chain CPI updater cadence is overdue.
 - Kept vesting and reserve progress indicators precise for arbitrarily large on-chain amounts by
   using bounded bigint ratios instead of JavaScript `Number` conversion.
+- Made the local demo build its contracts before deployment and restore any pre-existing
+  `app/.env.local` when it exits.
 - Hardened the PSM against quote drift, unsupported decimals, fee-on-transfer reserves, reserve
   shortfalls, outgoing-transfer floor breaches, zero-receipt top-ups, zero-output withdrawals, and
   unauthorized redemption.

@@ -9,10 +9,18 @@ LOCAL_MNEMONIC="${ANVIL_MNEMONIC:-test test test test test test test test test t
 DEPLOY_LOG="$(mktemp)"
 ANVIL_PID=""
 APP_PID=""
+APP_ENV_FILE="$ROOT_DIR/app/.env.local"
+APP_ENV_BACKUP=""
+APP_ENV_CREATED="false"
 
 cleanup() {
   if [[ -n "$APP_PID" ]]; then kill "$APP_PID" 2>/dev/null || true; fi
   if [[ -n "$ANVIL_PID" ]]; then kill "$ANVIL_PID" 2>/dev/null || true; fi
+  if [[ -n "$APP_ENV_BACKUP" && -f "$APP_ENV_BACKUP" ]]; then
+    mv -f "$APP_ENV_BACKUP" "$APP_ENV_FILE"
+  elif [[ "$APP_ENV_CREATED" == "true" ]]; then
+    rm -f "$APP_ENV_FILE"
+  fi
   rm -f "$DEPLOY_LOG"
 }
 trap cleanup EXIT INT TERM
@@ -40,6 +48,7 @@ fi
 echo "Deploying Halal locally..."
 (
   cd "$ROOT_DIR/contracts"
+  forge build --force
   PRIVATE_KEY="$LOCAL_PRIVATE_KEY" forge script script/DeployLocal.s.sol:DeployLocalHalalSystem \
     --rpc-url "$LOCAL_RPC_URL" --broadcast --non-interactive
 ) | tee "$DEPLOY_LOG"
@@ -64,12 +73,19 @@ RPC_URL="$LOCAL_RPC_URL" \
   DEPLOYER_ADDRESS="$(cast wallet address --private-key "$LOCAL_PRIVATE_KEY")" \
   "$ROOT_DIR/scripts/verify-deployment.sh"
 
+if [[ -e "$APP_ENV_FILE" ]]; then
+  APP_ENV_BACKUP="$(mktemp)"
+  cp -p "$APP_ENV_FILE" "$APP_ENV_BACKUP"
+else
+  APP_ENV_CREATED="true"
+fi
+
 {
   echo "NEXT_PUBLIC_RPC_URL_31337=$LOCAL_RPC_URL"
   grep 'NEXT_PUBLIC_HLC_' "$DEPLOY_LOG" | sed -e 's/^ *//' -e 's/= /=/'
-} > "$ROOT_DIR/app/.env.local"
+} > "$APP_ENV_FILE"
 
-echo "Frontend configuration written to app/.env.local"
+echo "Temporary frontend configuration written to app/.env.local (restored on exit)"
 echo "Starting the dApp at http://localhost:3000 (Ctrl-C to stop both processes)..."
 (
   cd "$ROOT_DIR/app"
