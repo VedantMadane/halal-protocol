@@ -96,13 +96,15 @@ function SwapFormInner({
   });
 
   const reserveMetadataReady = reserveDecimals !== undefined;
-  const decimals = mode === "deposit" ? (reserveDecimals ?? 18) : reserveDecimals ?? 18;
+  // Reserve amounts use the reserve token's native precision; HLC is always 18 decimals.
+  const inputDecimals = mode === "deposit" ? (reserveDecimals ?? 18) : 18;
+  const outputDecimals = mode === "deposit" ? 18 : (reserveDecimals ?? 18);
   const symbol = reserveSymbol ?? reserveSymbolFallback;
 
   const readError = user.isError || reserveDecimalsError;
   const readErrorMessage = getFriendlyErrorMessage(user.error ?? reserveMetadataError);
 
-  const parsedAmount = reserveMetadataReady ? safeParseUnits(debouncedInput, decimals) : undefined;
+  const parsedAmount = reserveMetadataReady ? safeParseUnits(debouncedInput, inputDecimals) : undefined;
 
   const { data: previewOut } = useReadContract({
     address: deploymentPsm,
@@ -167,7 +169,7 @@ function SwapFormInner({
 
   function handleMax() {
     if (maxAmount === undefined || !reserveMetadataReady) return;
-    setAmountInput(formatUnits(maxAmount, decimals));
+    setAmountInput(formatUnits(maxAmount, inputDecimals));
   }
 
   function handleApprove() {
@@ -259,7 +261,7 @@ function SwapFormInner({
               disabled={!reserveMetadataReady || maxAmount === undefined}
               className="font-medium text-primary hover:underline disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Max: {formatToken(mode === "deposit" ? user.reserveBalance : maxAmount, decimals)} {fromSymbol}
+              Max: {formatToken(mode === "deposit" ? user.reserveBalance : maxAmount, inputDecimals)} {fromSymbol}
             </button>
           )}
         </div>
@@ -281,13 +283,13 @@ function SwapFormInner({
 
         <div className="flex items-center gap-3 rounded-xl border border-card-border px-4 py-3">
           <span className="tabular w-full text-lg font-medium">
-            {previewOut !== undefined ? formatToken(previewOut as bigint, mode === "deposit" ? 18 : decimals) : "0.0"}
+            {previewOut !== undefined ? formatToken(previewOut as bigint, outputDecimals) : "0.0"}
           </span>
           <span className="shrink-0 text-sm font-medium text-muted">{toSymbol}</span>
         </div>
         {minOutput !== undefined && (
           <p className="text-right text-xs text-muted">
-            Minimum received ({(slippageBps / 100).toFixed(1)}% tolerance): {formatToken(minOutput, mode === "deposit" ? 18 : decimals)} {toSymbol}
+            Minimum received ({(slippageBps / 100).toFixed(1)}% tolerance): {formatToken(minOutput, outputDecimals)} {toSymbol}
           </p>
         )}
       </div>
