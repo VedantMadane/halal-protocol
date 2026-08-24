@@ -95,7 +95,9 @@ contract HalalPSM is AccessControl, ReentrancyGuard {
     /// @param hlc_ HalalToken address. This contract must be granted `HalalToken.MINTER_ROLE` for
     /// deposits to work.
     /// @param dao DAO timelock; receives `DEFAULT_ADMIN_ROLE` and `PARAM_ROLE`.
-    constructor(address reserve_, address hlc_, address dao) {
+    /// @param updater_ Optional initial CPI updater. If nonzero, it receives `UPDATER_ROLE` at
+    /// deployment; the DAO timelock remains the role admin and can revoke or replace it later.
+    constructor(address reserve_, address hlc_, address dao, address updater_) {
         if (reserve_ == address(0) || hlc_ == address(0) || dao == address(0)) revert ZeroAddress();
 
         reserve = IERC20(reserve_);
@@ -107,6 +109,7 @@ contract HalalPSM is AccessControl, ReentrancyGuard {
 
         _grantRole(DEFAULT_ADMIN_ROLE, dao);
         _grantRole(PARAM_ROLE, dao);
+        if (updater_ != address(0)) _grantRole(UPDATER_ROLE, updater_);
     }
 
     // ── User-facing ──────────────────────────────────────────────────────

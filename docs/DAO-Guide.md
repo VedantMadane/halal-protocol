@@ -61,7 +61,7 @@ effect: DAO-approved manual override, bounded to 0.1–2.0 but not subject to th
 ```
 
 Routine oracle reports use `psm.updateCPI(reportedCPI)` from a separately granted `UPDATER_ROLE`
-account; the DAO does not submit those reports in the default deployment.
+account; the account may be bootstrapped with `CPI_UPDATER` or granted later by governance.
 
 ### 2. **Switch CPI Source**
 ```solidity
@@ -147,8 +147,9 @@ HalalDAO:            0xMNO...345
 HalalPSM:            0xPQR...678
 
 All roles transferred to the DAO. Deployer retains zero privileged access.
-PSM has PARAM_ROLE granted to the DAO only -- grant UPDATER_ROLE to an oracle
-relayer via governance proposal before relying on updateCPI().
+PSM has PARAM_ROLE granted to the DAO only. A reviewed oracle relayer may be bootstrapped with the
+deployment script's optional `CPI_UPDATER` variable; otherwise grant `UPDATER_ROLE` via governance
+before relying on `updateCPI()`.
 ```
 
 ### Step 2: Run Full Test Suite

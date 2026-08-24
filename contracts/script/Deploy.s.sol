@@ -16,7 +16,7 @@ import { HalalTimelock } from "../src/HalalTimelock.sol";
 ///   TREASURY_BENEFICIARY   treasury vesting beneficiary (should be a multisig)
 /// Optional env vars (defaults match docs/TECHNICAL-DOCS.md):
 ///   VOTING_DELAY_BLOCKS (1), VOTING_PERIOD_BLOCKS (chain-aware), PROPOSAL_THRESHOLD_WHOLE_HLC (100),
-///   QUORUM_PERCENT (4), TIMELOCK_DELAY_SECONDS (172800)
+///   QUORUM_PERCENT (4), TIMELOCK_DELAY_SECONDS (172800), CPI_UPDATER (unset)
 ///
 /// IMPORTANT: VOTING_PERIOD_BLOCKS is denominated in the target chain's blocks. The script uses
 /// 2,419,200 blocks (about one week) on Arbitrum and 50,400 blocks elsewhere by default. Always
@@ -40,6 +40,7 @@ contract DeployHalalSystem is Script {
         uint256 proposalThreshold;
         uint256 quorumPercent;
         uint256 timelockDelay;
+        address cpiUpdater;
     }
 
     function run()
@@ -62,7 +63,7 @@ contract DeployHalalSystem is Script {
 
         vm.stopBroadcast();
 
-        _logSummary(timelock, token, teamVesting, treasuryVesting, dao, psm);
+        _logSummary(timelock, token, teamVesting, treasuryVesting, dao, psm, cfg.cpiUpdater);
     }
 
     /// @dev Shared deployment path used by the production deployment and the local demo script.
@@ -83,9 +84,9 @@ contract DeployHalalSystem is Script {
         (teamVesting, treasuryVesting) = _deployVesting(cfg, token, timelock);
         token.initialMint(address(teamVesting), address(treasuryVesting));
         dao = _deployGovernance(cfg, token, timelock);
-        psm = new HalalPSM(cfg.reserveToken, address(token), address(timelock));
+        psm = new HalalPSM(cfg.reserveToken, address(token), address(timelock), cfg.cpiUpdater);
         _wireRoles(cfg.deployer, token, timelock, dao, psm);
-        _assertWiring(cfg.deployer, token, teamVesting, treasuryVesting, dao, timelock, psm);
+        _assertWiring(cfg.deployer, cfg.cpiUpdater, token, teamVesting, treasuryVesting, dao, timelock, psm);
     }
 
     function _loadConfig() internal view returns (DeployConfig memory cfg) {
@@ -100,12 +101,14 @@ contract DeployHalalSystem is Script {
         uint256 thresholdWholeHlc = vm.envOr("PROPOSAL_THRESHOLD_WHOLE_HLC", uint256(100));
         cfg.quorumPercent = vm.envOr("QUORUM_PERCENT", uint256(4));
         cfg.timelockDelay = vm.envOr("TIMELOCK_DELAY_SECONDS", uint256(2 days));
+        cfg.cpiUpdater = vm.envOr("CPI_UPDATER", address(0));
 
         if (
             votingDelay > type(uint48).max || votingPeriod == 0 || votingPeriod > type(uint32).max
                 || thresholdWholeHlc == 0 || thresholdWholeHlc > type(uint256).max / 1e18 || cfg.quorumPercent == 0
                 || cfg.quorumPercent > 100 || cfg.timelockDelay == 0 || cfg.reserveToken == address(0)
                 || cfg.teamBeneficiary == address(0) || cfg.treasuryBeneficiary == address(0)
+                || cfg.cpiUpdater == cfg.deployer
         ) revert InvalidConfig();
 
         // forge-lint: disable-next-line(unsafe-typecast)
@@ -186,6 +189,7 @@ contract DeployHalalSystem is Script {
 
     function _assertWiring(
         address deployer,
+        address cpiUpdater,
         HalalToken token,
         HalalVesting teamVesting,
         HalalVesting treasuryVesting,
@@ -203,6 +207,8 @@ contract DeployHalalSystem is Script {
                 || timelock.hasRole(timelock.DEFAULT_ADMIN_ROLE(), deployer)
                 || !psm.hasRole(psm.DEFAULT_ADMIN_ROLE(), address(timelock))
                 || !psm.hasRole(psm.PARAM_ROLE(), address(timelock))
+                || (cpiUpdater != address(0) && !psm.hasRole(psm.UPDATER_ROLE(), cpiUpdater))
+                || psm.hasRole(psm.UPDATER_ROLE(), deployer)
         ) revert InvalidWiring();
     }
 
@@ -212,7 +218,8 @@ contract DeployHalalSystem is Script {
         HalalVesting teamVesting,
         HalalVesting treasuryVesting,
         HalalDAO dao,
-        HalalPSM psm
+        HalalPSM psm,
+        address cpiUpdater
     ) internal view {
         console.log("HalalTimelock:      ", address(timelock));
         console.log("HalalToken (HLC):   ", address(token));
@@ -223,7 +230,11 @@ contract DeployHalalSystem is Script {
         console.log("Reserve token:      ", address(psm.reserve()));
         console.log("");
         console.log("All roles transferred to the DAO. Deployer retains zero privileged access.");
-        console.log("PSM has PARAM_ROLE granted to the DAO only -- grant UPDATER_ROLE to an oracle");
-        console.log("relayer via governance proposal before relying on updateCPI().");
+        if (cpiUpdater != address(0)) {
+            console.log("CPI updater bootstrapped: ", cpiUpdater);
+        } else {
+            console.log("No CPI updater bootstrapped -- grant UPDATER_ROLE to an oracle relayer via governance");
+            console.log("before relying on updateCPI().");
+        }
     }
 }

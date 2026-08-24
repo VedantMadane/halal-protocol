@@ -93,7 +93,8 @@ contract DeployLocalHalalSystem is DeployHalalSystem {
             votingPeriod: 50_400,
             proposalThreshold: 100e18,
             quorumPercent: 4,
-            timelockDelay: 2 days
+            timelockDelay: 2 days,
+            cpiUpdater: address(0)
         });
 
         (

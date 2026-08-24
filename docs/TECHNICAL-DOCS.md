@@ -169,6 +169,8 @@ RPC_URL=https://sepolia.arbitrum.io/rpc
 RESERVE_TOKEN=0x<existing_reserve_token_address>
 TEAM_BENEFICIARY=0x<team_multisig_address>
 TREASURY_BENEFICIARY=0x<treasury_multisig_address>
+# Optional: a reviewed oracle relayer to receive UPDATER_ROLE at deployment
+CPI_UPDATER=0x<oracle_relayer_or_consumer_address>
 EOF
 ```
 
@@ -204,8 +206,9 @@ HalalDAO:            0xMNO...345
 HalalPSM:            0xPQR...678
 
 All roles transferred to the DAO. Deployer retains zero privileged access.
-PSM has PARAM_ROLE granted to the DAO only -- grant UPDATER_ROLE to an oracle
-relayer via governance proposal before relying on updateCPI().
+PSM has PARAM_ROLE granted to the DAO only. Set `CPI_UPDATER` during deployment to bootstrap a
+reviewed oracle relayer directly; otherwise grant `UPDATER_ROLE` via governance before relying on
+`updateCPI()`.
 ```
 
 ### Mainnet Deployment

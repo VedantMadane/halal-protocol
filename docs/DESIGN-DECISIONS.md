@@ -74,6 +74,10 @@ Chainlink Functions subscription. Concretely:
 - `setMinUpdateInterval(uint256)` rejects zero. Governance can choose a shorter positive interval
   when operating a faster oracle, while the manual override remains the explicit path for bypassing
   the normal updater cadence.
+- The deployment script accepts an optional `CPI_UPDATER` address. When supplied, the PSM grants
+  that address `UPDATER_ROLE` in its constructor while the timelock remains the role admin; the
+  deployer is explicitly rejected as the updater so the handoff still leaves it with no privileged
+  access. Leaving the variable unset preserves a governance-only role bootstrap.
 
 The intended production topology is: the DAO grants `UPDATER_ROLE` to a Chainlink Functions
 consumer contract (or a Chainlink Automation-triggered relayer) that fetches CPI off-chain and

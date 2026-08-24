@@ -69,7 +69,7 @@ abstract contract Deployers is Test {
         dao = new HalalDAO(token, timelock, uint48(VOTING_DELAY), VOTING_PERIOD, PROPOSAL_THRESHOLD, QUORUM_PERCENT);
 
         reserve = new MockERC20("Mock DAI", "mDAI", 18);
-        psm = new HalalPSM(address(reserve), address(token), address(timelock));
+        psm = new HalalPSM(address(reserve), address(token), address(timelock), address(0));
 
         // Wire roles: PSM can mint HLC; timelock becomes token admin; deployer gives up all roles.
         token.grantRole(token.MINTER_ROLE(), address(psm));

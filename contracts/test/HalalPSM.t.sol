@@ -96,7 +96,7 @@ contract HalalPSMTest is Deployers {
 
     function test_RevertWhen_DepositRoundsDownToZeroHLC() public {
         MockERC20 highDecimal = new MockERC20("High Decimal", "mHD", 24);
-        HalalPSM highDecimalPsm = new HalalPSM(address(highDecimal), address(token), address(timelock));
+        HalalPSM highDecimalPsm = new HalalPSM(address(highDecimal), address(token), address(timelock), address(0));
 
         highDecimal.mint(alice, 1);
         vm.startPrank(alice);
@@ -112,7 +112,7 @@ contract HalalPSMTest is Deployers {
     function test_RevertWhen_ReserveDecimalsAreUnsupported() public {
         MockERC20 unsupported = new MockERC20("Unsupported", "mUN", 78);
         vm.expectRevert(HalalPSM.UnsupportedDecimals.selector);
-        new HalalPSM(address(unsupported), address(token), address(timelock));
+        new HalalPSM(address(unsupported), address(token), address(timelock), address(0));
     }
 
     function test_RevertWhen_DAOWithdrawsRequiredReserve() public {
@@ -221,6 +221,24 @@ contract HalalPSMTest is Deployers {
         psm.updateCPI(1_300_000); // >20% jump from 1.0
     }
 
+    function test_ConstructorCanBootstrapUpdaterAndDAOCanRevokeIt() public {
+        MockERC20 updaterReserve = new MockERC20("Updater DAI", "uDAI", 18);
+        address updater = makeAddr("bootstrappedUpdater");
+        HalalPSM bootstrappedPsm = new HalalPSM(address(updaterReserve), address(token), address(timelock), updater);
+
+        assertTrue(bootstrappedPsm.hasRole(bootstrappedPsm.UPDATER_ROLE(), updater));
+
+        vm.warp(block.timestamp + bootstrappedPsm.minUpdateInterval() + 1);
+        vm.prank(updater);
+        bootstrappedPsm.updateCPI(1_050_000);
+        assertEq(bootstrappedPsm.cpiRate(), 1_050_000);
+
+        bytes32 updaterRole = bootstrappedPsm.UPDATER_ROLE();
+        vm.prank(address(timelock));
+        bootstrappedPsm.revokeRole(updaterRole, updater);
+        assertFalse(bootstrappedPsm.hasRole(updaterRole, updater));
+    }
+
     function test_UpdaterRoleEnforcesMinInterval() public {
         bytes32 updaterRole = psm.UPDATER_ROLE();
         vm.prank(address(timelock));
@@ -266,7 +284,7 @@ contract HalalPSMTest is Deployers {
 
     function test_RevertWhen_DAOReserveTopUpReceivesNothing() public {
         MockFeeOnTransferERC20 feeReserve = new MockFeeOnTransferERC20(10_000);
-        HalalPSM feePsm = new HalalPSM(address(feeReserve), address(token), address(timelock));
+        HalalPSM feePsm = new HalalPSM(address(feeReserve), address(token), address(timelock), address(0));
         feeReserve.mint(address(timelock), 1e18);
 
         vm.startPrank(address(timelock));
@@ -300,7 +318,7 @@ contract HalalPSMTest is Deployers {
 
     function test_BoundedWithdrawalAccountsForFeeOnTransferReserve() public {
         MockFeeOnTransferERC20 feeReserve = new MockFeeOnTransferERC20(100); // 1% per transfer
-        HalalPSM feePsm = new HalalPSM(address(feeReserve), address(token), address(timelock));
+        HalalPSM feePsm = new HalalPSM(address(feeReserve), address(token), address(timelock), address(0));
         bytes32 minterRole = token.MINTER_ROLE();
         vm.prank(address(timelock));
         token.grantRole(minterRole, address(feePsm));
@@ -321,7 +339,8 @@ contract HalalPSMTest is Deployers {
 
     function test_RevertWhen_OutgoingReserveTransferWouldBreachFloor() public {
         MockOutgoingFeeERC20 outgoingFeeReserve = new MockOutgoingFeeERC20(100); // 1% extra debit
-        HalalPSM outgoingFeePsm = new HalalPSM(address(outgoingFeeReserve), address(token), address(timelock));
+        HalalPSM outgoingFeePsm =
+            new HalalPSM(address(outgoingFeeReserve), address(token), address(timelock), address(0));
         bytes32 minterRole = token.MINTER_ROLE();
         vm.prank(address(timelock));
         token.grantRole(minterRole, address(outgoingFeePsm));
@@ -345,7 +364,8 @@ contract HalalPSMTest is Deployers {
 
     function test_RevertWhen_DAOReserveTransferWouldBreachFloor() public {
         MockOutgoingFeeERC20 outgoingFeeReserve = new MockOutgoingFeeERC20(100); // 1% extra debit
-        HalalPSM outgoingFeePsm = new HalalPSM(address(outgoingFeeReserve), address(token), address(timelock));
+        HalalPSM outgoingFeePsm =
+            new HalalPSM(address(outgoingFeeReserve), address(token), address(timelock), address(0));
         bytes32 minterRole = token.MINTER_ROLE();
         vm.prank(address(timelock));
         token.grantRole(minterRole, address(outgoingFeePsm));
@@ -377,7 +397,7 @@ contract HalalPSMTest is Deployers {
 
     function test_DecimalNormalization_SixDecimalReserve() public {
         MockERC20 usdc = new MockERC20("Mock USDC", "mUSDC", 6);
-        HalalPSM usdcPsm = new HalalPSM(address(usdc), address(token), address(timelock));
+        HalalPSM usdcPsm = new HalalPSM(address(usdc), address(token), address(timelock), address(0));
         bytes32 minterRole = token.MINTER_ROLE();
         vm.prank(address(timelock));
         token.grantRole(minterRole, address(usdcPsm));
@@ -399,7 +419,7 @@ contract HalalPSMTest is Deployers {
 
     function test_RevertWhen_WithdrawalRoundsDownToZeroReserve() public {
         MockERC20 usdc = new MockERC20("Mock USDC", "mUSDC", 6);
-        HalalPSM usdcPsm = new HalalPSM(address(usdc), address(token), address(timelock));
+        HalalPSM usdcPsm = new HalalPSM(address(usdc), address(token), address(timelock), address(0));
         bytes32 minterRole = token.MINTER_ROLE();
         vm.prank(address(timelock));
         token.grantRole(minterRole, address(usdcPsm));
@@ -445,7 +465,7 @@ contract HalalPSMTest is Deployers {
         // exercises the decimals > HLC_DECIMALS branch of the scaling helpers (e.g. a hypothetical
         // 24-decimal reserve token)
         MockERC20 highDecimal = new MockERC20("High Decimal", "mHD", 24);
-        HalalPSM hdPsm = new HalalPSM(address(highDecimal), address(token), address(timelock));
+        HalalPSM hdPsm = new HalalPSM(address(highDecimal), address(token), address(timelock), address(0));
         bytes32 minterRole = token.MINTER_ROLE();
         vm.prank(address(timelock));
         token.grantRole(minterRole, address(hdPsm));
@@ -467,7 +487,7 @@ contract HalalPSMTest is Deployers {
 
     function test_HighDecimalReserveRetainsPrecisionAtNonGenesisCPI() public {
         MockERC20 highDecimal = new MockERC20("High Decimal", "mHD", 24);
-        HalalPSM hdPsm = new HalalPSM(address(highDecimal), address(token), address(timelock));
+        HalalPSM hdPsm = new HalalPSM(address(highDecimal), address(token), address(timelock), address(0));
         bytes32 minterRole = token.MINTER_ROLE();
         vm.prank(address(timelock));
         token.grantRole(minterRole, address(hdPsm));
@@ -489,7 +509,7 @@ contract HalalPSMTest is Deployers {
 
     function test_PreviewDepositUsesFullPrecisionForLargeLowDecimalAmount() public {
         MockERC20 zeroDecimal = new MockERC20("Zero Decimal", "mZERO", 0);
-        HalalPSM zeroDecimalPsm = new HalalPSM(address(zeroDecimal), address(token), address(timelock));
+        HalalPSM zeroDecimalPsm = new HalalPSM(address(zeroDecimal), address(token), address(timelock), address(0));
 
         uint256 maxCpi = zeroDecimalPsm.MAX_CPI();
         vm.prank(address(timelock));

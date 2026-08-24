@@ -20,6 +20,11 @@ export const halalPsmAbi = [
         "name": "dao",
         "type": "address",
         "internalType": "address"
+      },
+      {
+        "name": "updater_",
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "stateMutability": "nonpayable"
