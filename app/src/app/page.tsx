@@ -13,6 +13,7 @@ import { usePsmState } from "@/hooks/usePsm";
 import { useVestingSchedule } from "@/hooks/useVesting";
 import { formatTokenGrouped } from "@/lib/format";
 import { getFriendlyErrorMessage } from "@/lib/errors";
+import { DeploymentIntegrityBanner } from "@/components/DeploymentIntegrityBanner";
 
 export default function DashboardPage() {
   const { deployment, isDeployed } = useDeployment();
@@ -32,6 +33,7 @@ export default function DashboardPage() {
         <NotDeployedState />
       ) : (
         <div className="space-y-6">
+          <DeploymentIntegrityBanner />
           {(token.isError || psm.isError || team.isError || treasury.isError) && (
             <Alert tone="danger" title="Some protocol data could not be loaded">
               {getFriendlyErrorMessage(token.error ?? psm.error ?? team.error ?? treasury.error)} Refresh the page or check your network.

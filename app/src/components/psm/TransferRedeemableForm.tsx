@@ -5,6 +5,7 @@ import { isAddress, parseUnits, zeroAddress } from "viem";
 import { useAccount } from "wagmi";
 import { halalPsmAbi, halalTokenAbi } from "@/abis";
 import { useDeployment } from "@/hooks/useDeployment";
+import { useDeploymentIntegrity } from "@/hooks/useDeploymentIntegrity";
 import { usePsmUserState } from "@/hooks/usePsmUser";
 import { useTxState } from "@/hooks/useTxState";
 import { Button } from "@/components/ui/Button";
@@ -24,6 +25,7 @@ function safeParseHlc(value: string): bigint | undefined {
 
 export function TransferRedeemableForm() {
   const { deployment } = useDeployment();
+  const deploymentIntegrity = useDeploymentIntegrity();
   const { isConnected } = useAccount();
   const user = usePsmUserState();
   const [recipient, setRecipient] = useState("");
@@ -161,6 +163,10 @@ export function TransferRedeemableForm() {
 
       {!isConnected ? (
         <Button className="w-full" disabled>Connect wallet to continue</Button>
+      ) : !deploymentIntegrity.isVerified ? (
+        <Button className="w-full" disabled>
+          {deploymentIntegrity.isChecking ? "Verifying deployment" : "Deployment not verified"}
+        </Button>
       ) : !walletDataReady ? (
         <Button className="w-full" disabled>Waiting for wallet data</Button>
       ) : !hasBalance ? (

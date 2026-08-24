@@ -5,6 +5,7 @@ import { formatUnits, parseUnits } from "viem";
 import { useAccount, useReadContract } from "wagmi";
 import { erc20Abi, halalPsmAbi, halalTokenAbi } from "@/abis";
 import { useDeployment } from "@/hooks/useDeployment";
+import { useDeploymentIntegrity } from "@/hooks/useDeploymentIntegrity";
 import { usePsmUserState } from "@/hooks/usePsmUser";
 import { useTxState } from "@/hooks/useTxState";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
@@ -27,6 +28,7 @@ function safeParseUnits(value: string, decimals: number): bigint | undefined {
 
 export function SwapForm({ cpiRate }: { cpiRate: bigint | undefined }) {
   const { deployment } = useDeployment();
+  const deploymentIntegrity = useDeploymentIntegrity();
   const { address, isConnected } = useAccount();
   const user = usePsmUserState();
 
@@ -51,6 +53,8 @@ export function SwapForm({ cpiRate }: { cpiRate: bigint | undefined }) {
       amountInput={amountInput}
       setAmountInput={setAmountInput}
       debouncedInput={debouncedInput}
+      deploymentVerified={deploymentIntegrity.isVerified}
+      verificationChecking={deploymentIntegrity.isChecking}
     />
   );
 }
@@ -68,6 +72,8 @@ function SwapFormInner({
   amountInput,
   setAmountInput,
   debouncedInput,
+  deploymentVerified,
+  verificationChecking,
 }: {
   deploymentPsm: `0x${string}`;
   deploymentToken: `0x${string}`;
@@ -82,6 +88,8 @@ function SwapFormInner({
   amountInput: string;
   setAmountInput: (v: string) => void;
   debouncedInput: string;
+  deploymentVerified: boolean;
+  verificationChecking: boolean;
 }) {
   const [slippageBps, setSlippageBps] = useState(50);
   const { data: reserveDecimals, isError: reserveDecimalsError, error: reserveMetadataError } = useReadContract({
@@ -333,6 +341,10 @@ function SwapFormInner({
       ) : readError ? (
         <Button className="w-full" disabled>
           Waiting for wallet data
+        </Button>
+      ) : !deploymentVerified ? (
+        <Button className="w-full" disabled>
+          {verificationChecking ? "Verifying deployment" : "Deployment not verified"}
         </Button>
       ) : !walletDataReady || !reserveMetadataReady ? (
         <Button className="w-full" disabled>

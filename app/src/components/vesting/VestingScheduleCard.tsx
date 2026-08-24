@@ -12,6 +12,7 @@ import { TxStatus } from "@/components/TxStatus";
 import { VestingProgress } from "./VestingProgress";
 import type { VestingSchedule } from "@/hooks/useVesting";
 import { useVestingRelease } from "@/hooks/useVestingRelease";
+import { useDeploymentIntegrity } from "@/hooks/useDeploymentIntegrity";
 import { useTxState } from "@/hooks/useTxState";
 import { halalVestingAbi } from "@/abis";
 import { formatDate, formatDurationSeconds, shortAddress } from "@/lib/format";
@@ -35,6 +36,7 @@ export function VestingScheduleCard({
   onReleased?: () => void;
 }) {
   const releaseTx = useVestingRelease(vestingAddress);
+  const deploymentIntegrity = useDeploymentIntegrity();
   const beneficiaryTx = useTxState();
   const acceptTx = useTxState();
   const { address: connectedAddress } = useAccount();
@@ -124,7 +126,13 @@ export function VestingScheduleCard({
               </p>
             )}
 
-            {isBeneficiary && (
+            {!deploymentIntegrity.isVerified && (
+              <Alert tone="danger" title="Deployment configuration could not be verified">
+                Refresh the page before signing a vesting transaction.
+              </Alert>
+            )}
+
+            {isBeneficiary && deploymentIntegrity.isVerified && (
               <div className="space-y-3 border-t border-card-border pt-4">
                 <p className="text-xs text-muted">
                   Propose a new beneficiary address. The new address must accept before future releases are redirected.
@@ -154,7 +162,7 @@ export function VestingScheduleCard({
               </div>
             )}
 
-            {isPendingBeneficiary && (
+            {isPendingBeneficiary && deploymentIntegrity.isVerified && (
               <div className="space-y-3 border-t border-card-border pt-4">
                 <p className="text-xs text-muted">This address is the pending beneficiary. Accept to complete the transfer.</p>
                 <Button
@@ -172,7 +180,7 @@ export function VestingScheduleCard({
               </div>
             )}
 
-            {canRelease && (
+            {canRelease && deploymentIntegrity.isVerified && (
               <div className="space-y-3 border-t border-card-border pt-4">
                 <Button
                   onClick={releaseTx.release}

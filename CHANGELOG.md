@@ -15,6 +15,8 @@ All notable changes to this project are documented here.
   the DAO's token/timelock links plus a nonzero timelock delay.
 - Made incomplete PSM wallet and reserve reads produce an explicit waiting state instead of a
   silently disabled deposit/withdraw button.
+- Added a client-side on-chain deployment-integrity check and blocked governance, PSM, and vesting
+  signing actions until the configured contract graph is verified.
 - Hardened the PSM against quote drift, unsupported decimals, fee-on-transfer reserves, reserve
   shortfalls, outgoing-transfer floor breaches, zero-receipt top-ups, zero-output withdrawals, and
   unauthorized redemption.

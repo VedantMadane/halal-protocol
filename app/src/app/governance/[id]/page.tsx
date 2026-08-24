@@ -13,6 +13,7 @@ import { VoteBar } from "@/components/governance/VoteBar";
 import { ActionsList } from "@/components/governance/ActionsList";
 import { ProposalActionsCard } from "@/components/governance/ProposalActionsCard";
 import { useDeployment } from "@/hooks/useDeployment";
+import { useDeploymentIntegrity } from "@/hooks/useDeploymentIntegrity";
 import { useProposalEvent } from "@/hooks/useProposals";
 import { useProposalDetail } from "@/hooks/useProposalDetail";
 import { proposalStateBadgeClasses, proposalStateLabel } from "@/lib/proposalState";
@@ -32,6 +33,7 @@ export default function ProposalDetailPage() {
   const proposalId = parseProposalId(params?.id);
 
   const { deployment, isDeployed } = useDeployment();
+  const deploymentIntegrity = useDeploymentIntegrity();
   const { isConnected } = useAccount();
 
   const { event, isLoading: isEventLoading } = useProposalEvent(proposalId);
@@ -149,6 +151,8 @@ export default function ProposalDetailPage() {
                 isConnected={isConnected}
                 votingPower={detail.votingPowerAtSnapshot}
                 readError={detail.isError}
+                deploymentVerified={deploymentIntegrity.isVerified}
+                verificationChecking={deploymentIntegrity.isChecking}
                 onChanged={detail.refetch}
               />
             </div>

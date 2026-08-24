@@ -12,6 +12,7 @@ import { Alert } from "@/components/ui/Alert";
 import { TxStatus } from "@/components/TxStatus";
 import { NotDeployedState } from "@/components/NotDeployedState";
 import { useDeployment } from "@/hooks/useDeployment";
+import { useDeploymentIntegrity } from "@/hooks/useDeploymentIntegrity";
 import { useVotingPower } from "@/hooks/useVotingPower";
 import { useTxState } from "@/hooks/useTxState";
 import { halalDaoAbi, halalPsmAbi } from "@/abis";
@@ -125,6 +126,7 @@ function buildProposalPayload(
 export default function NewProposalPage() {
   const router = useRouter();
   const { deployment, isDeployed } = useDeployment();
+  const deploymentIntegrity = useDeploymentIntegrity();
   const { isConnected } = useAccount();
   const power = useVotingPower();
   const proposeTx = useTxState();
@@ -159,7 +161,7 @@ export default function NewProposalPage() {
   }, [proposeTx.isConfirmed]);
 
   function handleSubmit() {
-    if (!deployment || buildError || targets.length === 0) return;
+    if (!deployment || !deploymentIntegrity.isVerified || buildError || targets.length === 0) return;
     proposeTx.writeContract({
       address: deployment.dao,
       abi: halalDaoAbi,
@@ -188,7 +190,11 @@ export default function NewProposalPage() {
       </Link>
       <PageHeader title="New Proposal" description="Requires at least the proposal threshold in delegated voting power." />
 
-      {!isConnected ? (
+      {!deploymentIntegrity.isVerified ? (
+        <Alert tone="danger" title="Deployment configuration could not be verified">
+          Refresh the page or correct the configured contract addresses before signing a governance transaction.
+        </Alert>
+      ) : !isConnected ? (
         <Alert tone="info">Connect your wallet to create a proposal.</Alert>
       ) : votingPowerUnavailable ? (
         <Alert tone="danger" title="Voting power could not be verified">
@@ -325,7 +331,7 @@ export default function NewProposalPage() {
         <Button
           className="w-full"
           onClick={handleSubmit}
-          disabled={!isConnected || votingPowerUnavailable || belowThreshold || !!buildError || targets.length === 0}
+          disabled={!isConnected || !deploymentIntegrity.isVerified || votingPowerUnavailable || belowThreshold || !!buildError || targets.length === 0}
           loading={proposeTx.isPending || proposeTx.isConfirming}
         >
           Submit proposal

@@ -22,6 +22,8 @@ interface Props {
   isConnected: boolean;
   votingPower: bigint | undefined;
   readError: boolean;
+  deploymentVerified: boolean;
+  verificationChecking: boolean;
   onChanged: () => void;
 }
 
@@ -39,6 +41,8 @@ export function ProposalActionsCard({
   isConnected,
   votingPower,
   readError,
+  deploymentVerified,
+  verificationChecking,
   onChanged,
 }: Props) {
   const voteTx = useTxState();
@@ -67,7 +71,15 @@ export function ProposalActionsCard({
         <CardTitle>Actions</CardTitle>
       </CardHeader>
       <CardBody className="space-y-4">
-        {state === 1 && (
+        {!deploymentVerified && (
+          <Alert tone="danger" title="Deployment configuration could not be verified">
+            {verificationChecking
+              ? "Checking the configured contracts on this network before enabling governance actions."
+              : "Refresh the page or correct the contract addresses before signing a governance transaction."}
+          </Alert>
+        )}
+
+        {deploymentVerified && state === 1 && (
           <>
             {!isConnected ? (
               <Alert tone="info">Connect your wallet to vote.</Alert>
@@ -98,7 +110,7 @@ export function ProposalActionsCard({
           </>
         )}
 
-        {state === 4 && (
+        {deploymentVerified && state === 4 && (
           <>
             {!isConnected ? (
               <Alert tone="info">Connect your wallet to queue this proposal.</Alert>
@@ -121,7 +133,7 @@ export function ProposalActionsCard({
           </>
         )}
 
-        {state === 5 && (
+        {deploymentVerified && state === 5 && (
           <>
             {!isConnected ? (
               <Alert tone="info">Connect your wallet to execute this proposal.</Alert>

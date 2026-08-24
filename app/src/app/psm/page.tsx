@@ -11,6 +11,7 @@ import { TransferRedeemableForm } from "@/components/psm/TransferRedeemableForm"
 import { useDeployment } from "@/hooks/useDeployment";
 import { usePsmState } from "@/hooks/usePsm";
 import { getFriendlyErrorMessage } from "@/lib/errors";
+import { DeploymentIntegrityBanner } from "@/components/DeploymentIntegrityBanner";
 
 export default function PsmPage() {
   const { isDeployed } = useDeployment();
@@ -26,48 +27,51 @@ export default function PsmPage() {
       {!isDeployed ? (
         <NotDeployedState />
       ) : (
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
-          <div className="lg:col-span-3">
-            {psm.isError && (
-              <Alert tone="danger" title="Some PSM data could not be loaded">
-                {getFriendlyErrorMessage(psm.error)} Refresh the page or check your network.
-              </Alert>
-            )}
-            <Card>
-              <CardHeader>
-                <CardTitle>Swap</CardTitle>
-              </CardHeader>
-              <CardBody>
-                <SwapForm cpiRate={psm.cpiRate} />
-              </CardBody>
-            </Card>
-            <Card className="mt-4">
-              <CardHeader>
-                <CardTitle>Transfer redemption credit</CardTitle>
-              </CardHeader>
-              <CardBody>
-                <TransferRedeemableForm />
-              </CardBody>
-            </Card>
-          </div>
-          <div className="space-y-4 lg:col-span-2">
-            <CpiCard
-              cpiRate={psm.cpiRate}
-              previousCPI={psm.previousCPI}
-              lastUpdated={psm.lastUpdated}
-              minUpdateInterval={psm.minUpdateInterval}
-              source={psm.source}
-              reserveSymbol={psm.reserveSymbol}
-              isLoading={psm.isLoading}
-            />
-            <ReserveHealthCard
-              reserveBalance={psm.reserveBalance}
-              reserveRequired={psm.reserveRequired}
-              reserveSurplus={psm.reserveSurplus}
-              reserveDecimals={psm.reserveDecimals}
-              reserveSymbol={psm.reserveSymbol}
-              isLoading={psm.isLoading}
-            />
+        <div className="space-y-4">
+          <DeploymentIntegrityBanner />
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
+            <div className="lg:col-span-3">
+              {psm.isError && (
+                <Alert tone="danger" title="Some PSM data could not be loaded">
+                  {getFriendlyErrorMessage(psm.error)} Refresh the page or check your network.
+                </Alert>
+              )}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Swap</CardTitle>
+                </CardHeader>
+                <CardBody>
+                  <SwapForm cpiRate={psm.cpiRate} />
+                </CardBody>
+              </Card>
+              <Card className="mt-4">
+                <CardHeader>
+                  <CardTitle>Transfer redemption credit</CardTitle>
+                </CardHeader>
+                <CardBody>
+                  <TransferRedeemableForm />
+                </CardBody>
+              </Card>
+            </div>
+            <div className="space-y-4 lg:col-span-2">
+              <CpiCard
+                cpiRate={psm.cpiRate}
+                previousCPI={psm.previousCPI}
+                lastUpdated={psm.lastUpdated}
+                minUpdateInterval={psm.minUpdateInterval}
+                source={psm.source}
+                reserveSymbol={psm.reserveSymbol}
+                isLoading={psm.isLoading}
+              />
+              <ReserveHealthCard
+                reserveBalance={psm.reserveBalance}
+                reserveRequired={psm.reserveRequired}
+                reserveSurplus={psm.reserveSurplus}
+                reserveDecimals={psm.reserveDecimals}
+                reserveSymbol={psm.reserveSymbol}
+                isLoading={psm.isLoading}
+              />
+            </div>
           </div>
         </div>
       )}

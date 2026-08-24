@@ -12,6 +12,7 @@ import { ProposalCard } from "@/components/governance/ProposalCard";
 import { useDeployment } from "@/hooks/useDeployment";
 import { useProposals } from "@/hooks/useProposals";
 import { getFriendlyErrorMessage } from "@/lib/errors";
+import { DeploymentIntegrityBanner } from "@/components/DeploymentIntegrityBanner";
 
 export default function GovernancePage() {
   const { isDeployed } = useDeployment();
@@ -35,6 +36,7 @@ export default function GovernancePage() {
         <NotDeployedState />
       ) : (
         <div className="space-y-6">
+          <DeploymentIntegrityBanner />
           <VotingPowerCard />
 
           {isError && <Alert tone="danger" title="Couldn't load proposals">{getFriendlyErrorMessage(error)}</Alert>}

@@ -34,6 +34,10 @@ the seven contract addresses, `RESERVE_SYMBOL`, and `DEPLOYMENT_BLOCK`. The acce
 remain disabled. The deployment block bounds the governance event scan, so set it to the block where
 the DAO deployment was mined.
 
+Before enabling signing actions, the dApp also verifies the configured PSM, DAO, vesting, token, and
+timelock links against the selected chain. A mismatched or unreadable contract graph is shown as a
+blocking warning; do not override that warning by signing transactions manually.
+
 Never put private keys or signing secrets in this file. Every `NEXT_PUBLIC_*` value ships to the
 browser.
 

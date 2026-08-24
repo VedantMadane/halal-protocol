@@ -9,6 +9,7 @@ import { VestingScheduleCard } from "@/components/vesting/VestingScheduleCard";
 import { VestingLookup } from "@/components/vesting/VestingLookup";
 import { useDeployment } from "@/hooks/useDeployment";
 import { useVestingSchedule } from "@/hooks/useVesting";
+import { DeploymentIntegrityBanner } from "@/components/DeploymentIntegrityBanner";
 
 export default function VestingPage() {
   const { deployment, isDeployed } = useDeployment();
@@ -37,6 +38,7 @@ export default function VestingPage() {
         <NotDeployedState />
       ) : (
         <div className="space-y-6">
+          <DeploymentIntegrityBanner />
           <section>
             <h2 className="mb-3 text-sm font-semibold text-muted">Your vesting</h2>
             {!isConnected ? (

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { TxStatus } from "@/components/TxStatus";
 import { useVotingPower } from "@/hooks/useVotingPower";
 import { useDeployment } from "@/hooks/useDeployment";
+import { useDeploymentIntegrity } from "@/hooks/useDeploymentIntegrity";
 import { useTxState } from "@/hooks/useTxState";
 import { halalTokenAbi } from "@/abis";
 import { formatTokenGrouped, shortAddress } from "@/lib/format";
@@ -15,6 +16,7 @@ import { formatTokenGrouped, shortAddress } from "@/lib/format";
 export function VotingPowerCard() {
   const { isConnected, address } = useAccount();
   const { deployment } = useDeployment();
+  const deploymentIntegrity = useDeploymentIntegrity();
   const power = useVotingPower();
   const delegateTx = useTxState();
 
@@ -70,7 +72,7 @@ export function VotingPowerCard() {
             </div>
           </div>
 
-          {!power.isError && !power.isSelfDelegated && (
+          {!power.isError && deploymentIntegrity.isVerified && !power.isSelfDelegated && (
             <div className="space-y-2">
               <Button size="sm" onClick={handleSelfDelegate} loading={delegateTx.isPending || delegateTx.isConfirming}>
                 Self-delegate to activate voting power
