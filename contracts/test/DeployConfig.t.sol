@@ -7,6 +7,10 @@ contract DeployHalalSystemHarness is DeployHalalSystem {
     function defaultVotingPeriod(uint256 chainId) external pure returns (uint256) {
         return _defaultVotingPeriod(chainId);
     }
+
+    function expectedChainIdMatches(uint256 expectedChainId, uint256 actualChainId) external pure returns (bool) {
+        return _isExpectedChainId(expectedChainId, actualChainId);
+    }
 }
 
 contract DeployConfigTest {
@@ -20,5 +24,11 @@ contract DeployConfigTest {
     function test_NonArbitrumKeepsEthereumOrLocalDefault() public view {
         require(deployer.defaultVotingPeriod(1) == 50_400);
         require(deployer.defaultVotingPeriod(31_337) == 50_400);
+    }
+
+    function test_ExpectedChainIdMustMatchAndBeNonzero() public view {
+        require(deployer.expectedChainIdMatches(31_337, 31_337));
+        require(!deployer.expectedChainIdMatches(31_337, 42_161));
+        require(!deployer.expectedChainIdMatches(0, 31_337));
     }
 }

@@ -7,7 +7,7 @@ the [root README](../README.md) and [`../docs/`](../docs).
 ## Layout
 
 - `src/` — the five core contracts.
-- `test/` — Foundry test suite (125 tests at the time of writing: 122 unit/configuration tests plus 3 stateful
+- `test/` — Foundry test suite (126 tests at the time of writing: 123 unit/configuration tests plus 3 stateful
   PSM invariants; run `forge test` to confirm).
 - `script/Deploy.s.sol` — full deployment script (token, vesting, DAO, timelock, role wiring).
 - `../scripts/verify-deployment.sh` — read-only post-deployment wiring and role verifier.
@@ -52,13 +52,16 @@ forge coverage
 
 ### Deploy
 
-Requires a `.env` with `PRIVATE_KEY`, `RPC_URL`, `RESERVE_TOKEN`, `TEAM_BENEFICIARY`, and
+Requires a `.env` with `PRIVATE_KEY`, `RPC_URL`, `EXPECTED_CHAIN_ID`, `RESERVE_TOKEN`, `TEAM_BENEFICIARY`, and
 `TREASURY_BENEFICIARY` (plus optional governance parameters) — see
 [`../docs/DAO-Guide.md`](../docs/DAO-Guide.md) for the full walkthrough.
 
 ```shell
 forge script script/Deploy.s.sol:DeployHalalSystem --rpc-url $RPC_URL --private-key $PRIVATE_KEY --broadcast
 ```
+
+`EXPECTED_CHAIN_ID` is mandatory for the production deploy script. It must equal the chain ID
+returned by `RPC_URL`; the script refuses to broadcast when it is missing or mismatched.
 
 After deployment, independently verify the on-chain wiring before accepting funds:
 

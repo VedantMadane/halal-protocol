@@ -11,6 +11,7 @@ import { HalalTimelock } from "../src/HalalTimelock.sol";
 /// @notice Deploys the full Halal system and wires every role to the DAO, leaving the deployer with
 /// zero privileged access on any contract. Requires env vars:
 ///   PRIVATE_KEY            deployer key (broadcaster)
+///   EXPECTED_CHAIN_ID      exact chain id returned by the selected RPC; deployment fails closed on mismatch
 ///   RESERVE_TOKEN          reserve asset for the PSM (e.g. DAI address on the target network)
 ///   TEAM_BENEFICIARY       team vesting beneficiary (should be a multisig)
 ///   TREASURY_BENEFICIARY   treasury vesting beneficiary (should be a multisig)
@@ -92,6 +93,8 @@ contract DeployHalalSystem is Script {
     function _loadConfig() internal view returns (DeployConfig memory cfg) {
         uint256 privateKey = vm.envUint("PRIVATE_KEY");
         if (privateKey == 0) revert InvalidConfig();
+        uint256 expectedChainId = vm.envOr("EXPECTED_CHAIN_ID", uint256(0));
+        if (!_isExpectedChainId(expectedChainId, block.chainid)) revert InvalidConfig();
         cfg.deployer = vm.addr(privateKey);
         cfg.reserveToken = vm.envAddress("RESERVE_TOKEN");
         cfg.teamBeneficiary = vm.envAddress("TEAM_BENEFICIARY");
@@ -116,6 +119,11 @@ contract DeployHalalSystem is Script {
         // forge-lint: disable-next-line(unsafe-typecast)
         cfg.votingPeriod = uint32(votingPeriod);
         cfg.proposalThreshold = thresholdWholeHlc * 1e18;
+    }
+
+    /// @dev Kept separate so the chain-identity guard can be tested without reading process env vars.
+    function _isExpectedChainId(uint256 expectedChainId, uint256 actualChainId) internal pure returns (bool) {
+        return expectedChainId != 0 && expectedChainId == actualChainId;
     }
 
     function _defaultVotingPeriod(uint256 chainId) internal pure returns (uint256) {
