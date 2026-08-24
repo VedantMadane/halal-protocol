@@ -22,6 +22,7 @@ reserve. This reserve is for local testing only and is not a real stablecoin or 
 
 | Variable | Purpose |
 | --- | --- |
+| `NEXT_PUBLIC_APP_URL` | Optional canonical public URL used for Open Graph/Twitter preview metadata |
 | `NEXT_PUBLIC_RPC_URL_31337` | Optional Anvil RPC URL; defaults to `http://127.0.0.1:8545` |
 | `NEXT_PUBLIC_RPC_URL_421614` | Optional Arbitrum Sepolia RPC URL; falls back to the public chain endpoint |
 | `NEXT_PUBLIC_RPC_URL_42161` | Optional Arbitrum One RPC URL; falls back to the public chain endpoint |

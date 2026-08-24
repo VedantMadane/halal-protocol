@@ -17,6 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"),
   title: "Halal (HLC) — CPI-Indexed Stablecoin DAO",
   description:
     "Dashboard, governance, PSM swaps, and vesting for the Halal protocol — a CPI-indexed stablecoin governed by an on-chain DAO.",
@@ -25,11 +26,13 @@ export const metadata: Metadata = {
     title: "Halal (HLC) — CPI-Indexed Stablecoin DAO",
     description: "Explore Halal’s CPI-indexed stablecoin protocol, PSM, vesting, and on-chain governance.",
     type: "website",
+    images: [{ url: "/opengraph-image" }],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "Halal (HLC) — CPI-Indexed Stablecoin DAO",
     description: "Explore Halal’s CPI-indexed stablecoin protocol, PSM, vesting, and on-chain governance.",
+    images: ["/opengraph-image"],
   },
 };
 

@@ -3,6 +3,7 @@
 [![CI](https://github.com/fredrikblau/halal-protocol/actions/workflows/ci.yml/badge.svg)](https://github.com/fredrikblau/halal-protocol/actions/workflows/ci.yml)
 [![Security](https://github.com/fredrikblau/halal-protocol/actions/workflows/security.yml/badge.svg)](https://github.com/fredrikblau/halal-protocol/actions/workflows/security.yml)
 [![Slither](https://github.com/fredrikblau/halal-protocol/actions/workflows/slither.yml/badge.svg)](https://github.com/fredrikblau/halal-protocol/actions/workflows/slither.yml)
+[![Deep contract tests](https://github.com/fredrikblau/halal-protocol/actions/workflows/deep-tests.yml/badge.svg)](https://github.com/fredrikblau/halal-protocol/actions/workflows/deep-tests.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Halal is a DAO-governed, CPI-indexed stablecoin protocol. **HLC** minted through its Peg Stability
@@ -16,6 +17,10 @@ the system is fully deployed and handed off — there is no unilateral admin key
 This is a genuine, from-scratch implementation, not a fork or a wrapper — five contracts
 (`HalalToken`, `HalalVesting`, `HalalPSM`, `HalalDAO`, `HalalTimelock`), a Foundry test suite, and
 a Next.js frontend, all in this monorepo.
+
+The fastest way to see the complete system is `./scripts/local-demo.sh`: it starts a disposable
+Anvil chain, deploys the wired contracts, and opens the frontend with a faucet-backed local reserve.
+No external RPC key or real funds are needed for the demo.
 
 ## Status & risk
 
