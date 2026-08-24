@@ -4,6 +4,9 @@
 [![Security](https://github.com/fredrikblau/halal-protocol/actions/workflows/security.yml/badge.svg)](https://github.com/fredrikblau/halal-protocol/actions/workflows/security.yml)
 [![Slither](https://github.com/fredrikblau/halal-protocol/actions/workflows/slither.yml/badge.svg)](https://github.com/fredrikblau/halal-protocol/actions/workflows/slither.yml)
 [![Deep contract tests](https://github.com/fredrikblau/halal-protocol/actions/workflows/deep-tests.yml/badge.svg)](https://github.com/fredrikblau/halal-protocol/actions/workflows/deep-tests.yml)
+[![Latest release](https://img.shields.io/github/v/release/fredrikblau/halal-protocol?include_prereleases&label=latest%20release)](https://github.com/fredrikblau/halal-protocol/releases)
+[![GitHub stars](https://img.shields.io/github/stars/fredrikblau/halal-protocol?style=social)](https://github.com/fredrikblau/halal-protocol/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/fredrikblau/halal-protocol?style=social)](https://github.com/fredrikblau/halal-protocol/network/members)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Halal is a DAO-governed, CPI-indexed stablecoin protocol. **HLC** minted through its Peg Stability
