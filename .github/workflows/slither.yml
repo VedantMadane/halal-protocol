@@ -31,18 +31,38 @@ jobs:
         working-directory: contracts
         run: forge build --build-info --deny never --skip ./test/** ./script/** --force
 
-      - name: Run Slither
-        id: slither
-        uses: crytic/slither-action@v0.4.2
+      - name: Install Python
+        uses: actions/setup-python@v5
         with:
-          target: contracts
-          ignore-compile: true
-          slither-args: --exclude-dependencies --filter-paths "contracts/src"
-          fail-on: high
-          sarif: slither-results.sarif
+          python-version: "3.12"
+
+      - name: Install Slither
+        run: python -m pip install --disable-pip-version-check slither-analyzer==0.11.6
+
+      - name: Run Slither
+        working-directory: contracts
+        run: |
+          slither . \
+            --exclude-dependencies \
+            --filter-paths "src" \
+            --sarif ../slither-results.sarif
+
+      - name: Enforce high-severity findings policy
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          results = json.loads(Path("slither-results.sarif").read_text())["runs"][0]["results"]
+          high = [result for result in results if result.get("level") == "error"]
+          if high:
+              print(f"Slither reported {len(high)} high-severity finding(s).")
+              raise SystemExit(1)
+          print(f"Slither reported {len(results)} finding(s); no high-severity findings.")
+          PY
 
       - name: Upload Slither results
-        if: always() && steps.slither.outputs.sarif != ''
-        uses: github/codeql-action/upload-sarif@v3
+        if: always() && hashFiles('slither-results.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: slither-results.sarif
