@@ -68,4 +68,6 @@ After deployment, independently verify the on-chain wiring before accepting fund
 
 Set `RPC_URL`, `TIMELOCK`, `TOKEN`, `TEAM_VESTING`, `TREASURY_VESTING`, `DAO`, `PSM`, and `RESERVE_TOKEN`;
 optionally set `DEPLOYER_ADDRESS` and `CPI_UPDATER` to check those role assignments too. The
-verifier is read-only and does not require a private key or `--broadcast`.
+verifier checks that every supplied address has contract bytecode, the DAO's token/timelock links,
+the PSM and vesting links, genesis balances, role wiring, and a nonzero timelock delay. It is
+read-only and does not require a private key or `--broadcast`.

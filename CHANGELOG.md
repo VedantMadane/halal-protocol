@@ -11,6 +11,8 @@ All notable changes to this project are documented here.
   using bounded bigint ratios instead of JavaScript `Number` conversion.
 - Made the local demo build its contracts before deployment and restore any pre-existing
   `app/.env.local` when it exits.
+- Strengthened the read-only deployment verifier to reject EOAs/wrong-chain addresses and verify
+  the DAO's token/timelock links plus a nonzero timelock delay.
 - Hardened the PSM against quote drift, unsupported decimals, fee-on-transfer reserves, reserve
   shortfalls, outgoing-transfer floor breaches, zero-receipt top-ups, zero-output withdrawals, and
   unauthorized redemption.

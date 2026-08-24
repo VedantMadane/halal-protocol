@@ -41,6 +41,27 @@ expect_true() {
   fi
 }
 
+expect_positive() {
+  local label="$1"
+  local actual="$2"
+  # `cast` may render large uints as `[1.728e5]` rather than plain decimal.
+  if [[ -z "$actual" || "$actual" =~ ^\[?0+(\.0+)?([eE][+-]?0+)?\]?$ ]]; then
+    echo "FAILED: $label (expected a positive integer, got $actual)" >&2
+    exit 1
+  fi
+}
+
+expect_contract() {
+  local label="$1"
+  local address="$2"
+  local code
+  code="$(cast code "$address" --rpc-url "$RPC_URL")"
+  if [[ -z "$code" || "$code" == "0x" ]]; then
+    echo "FAILED: $label has no deployed contract bytecode at $address" >&2
+    exit 1
+  fi
+}
+
 TIMELOCK="${TIMELOCK,,}"
 TOKEN="${TOKEN,,}"
 TEAM_VESTING="${TEAM_VESTING,,}"
@@ -49,12 +70,23 @@ DAO="${DAO,,}"
 PSM="${PSM,,}"
 RESERVE_TOKEN="${RESERVE_TOKEN,,}"
 
+expect_contract "timelock" "$TIMELOCK"
+expect_contract "token" "$TOKEN"
+expect_contract "team vesting" "$TEAM_VESTING"
+expect_contract "treasury vesting" "$TREASURY_VESTING"
+expect_contract "DAO" "$DAO"
+expect_contract "PSM" "$PSM"
+expect_contract "reserve token" "$RESERVE_TOKEN"
+
 expect_equal "PSM reserve" "$(address_call "$PSM" 'reserve()(address)')" "$RESERVE_TOKEN"
 expect_equal "PSM HLC token" "$(address_call "$PSM" 'hlc()(address)')" "$TOKEN"
 expect_equal "team vesting token" "$(address_call "$TEAM_VESTING" 'token()(address)')" "$TOKEN"
 expect_equal "treasury vesting token" "$(address_call "$TREASURY_VESTING" 'token()(address)')" "$TOKEN"
 expect_equal "team vesting DAO" "$(address_call "$TEAM_VESTING" 'dao()(address)')" "$TIMELOCK"
 expect_equal "treasury vesting DAO" "$(address_call "$TREASURY_VESTING" 'dao()(address)')" "$TIMELOCK"
+expect_equal "DAO HLC token" "$(address_call "$DAO" 'token()(address)')" "$TOKEN"
+expect_equal "DAO timelock" "$(address_call "$DAO" 'timelock()(address)')" "$TIMELOCK"
+expect_positive "timelock delay" "$(call "$TIMELOCK" 'getMinDelay()(uint256)')"
 
 expect_true "genesis allocation minted" "$(call "$TOKEN" 'genesisMinted()(bool)')"
 team_allocation="$(call "$TOKEN" 'TEAM_ALLOCATION()(uint256)')"
