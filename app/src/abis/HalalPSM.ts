@@ -918,6 +918,11 @@ export const halalPsmAbi = [
   },
   {
     "type": "error",
+    "name": "RateWouldUnderCollateralize",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "ReentrancyGuardReentrantCall",
     "inputs": []
   },
