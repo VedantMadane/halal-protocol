@@ -47,6 +47,7 @@ contract HalalPSM is AccessControl, ReentrancyGuard {
     uint256 public constant MIN_CPI = 100_000; // 0.1
     uint256 public constant MAX_CPI = 2_000_000; // 2.0
     uint256 public constant MAX_CPI_STEP_BPS = 2_000; // 20% max move per updateCPI() call
+    uint256 public constant MAX_REPORT_AGE = 90 days;
     uint8 public constant MAX_RESERVE_DECIMALS = 77;
 
     IERC20 public immutable reserve;
@@ -57,6 +58,8 @@ contract HalalPSM is AccessControl, ReentrancyGuard {
     uint256 public cpiRate = CPI_PRECISION;
     uint256 public previousCPI = CPI_PRECISION;
     uint256 public lastUpdated;
+    /// @notice Timestamp supplied by the most recently accepted CPI report or governance override.
+    uint256 public lastReportTimestamp;
     uint256 public minUpdateInterval = 25 days;
     uint256 public totalHlcIssued;
     string public source;
@@ -69,6 +72,7 @@ contract HalalPSM is AccessControl, ReentrancyGuard {
     event Deposited(address indexed user, uint256 reserveIn, uint256 hlcOut);
     event Withdrawn(address indexed user, uint256 hlcIn, uint256 reserveOut);
     event CPIUpdated(uint256 previousCPI, uint256 newCPI, bool viaUpdater);
+    event CPIReportAccepted(uint256 reportTimestamp);
     event SourceUpdated(string newSource);
     event MinUpdateIntervalUpdated(uint256 newInterval);
     event ReserveDeposited(address indexed from, uint256 amount);
@@ -90,6 +94,8 @@ contract HalalPSM is AccessControl, ReentrancyGuard {
     error TransferFailed();
     error InsufficientRedeemableBalance();
     error SlippageExceeded();
+    error InvalidReportTimestamp();
+    error ReportTooOld();
 
     /// @param reserve_ Reserve asset (e.g. DAI). Any ERC20Metadata-compliant token works; decimals
     /// are normalized against HLC's 18 decimals.
@@ -107,6 +113,7 @@ contract HalalPSM is AccessControl, ReentrancyGuard {
         if (reserveDecimals > MAX_RESERVE_DECIMALS) revert UnsupportedDecimals();
         _reserveDecimals = reserveDecimals;
         lastUpdated = block.timestamp;
+        lastReportTimestamp = block.timestamp;
 
         _grantRole(DEFAULT_ADMIN_ROLE, dao);
         _grantRole(PARAM_ROLE, dao);
@@ -257,18 +264,38 @@ contract HalalPSM is AccessControl, ReentrancyGuard {
 
     // ── Oracle / rate management ─────────────────────────────────────────
 
-    /// @notice Submits a new CPI reading. Rate-, step-, cadence-, and reserve-limited so a
+    /// @notice Submits a new CPI reading using the block timestamp as the report timestamp. Rate-,
+    /// step-, cadence-, and reserve-limited so a
     /// malfunctioning or compromised updater cannot move the peg further than `MAX_CPI_STEP_BPS`,
     /// more often than `minUpdateInterval`, or above the reserve currently held for all outstanding
     /// PSM-issued HLC. Governance can use `mockCPI` for an explicitly approved emergency override.
     function updateCPI(uint256 reportedCPI) external onlyRole(UPDATER_ROLE) {
+        _updateCPI(reportedCPI, block.timestamp);
+    }
+
+    /// @notice Submits a CPI reading together with its source publication timestamp. In addition
+    /// to the normal rate, step, cadence, and reserve checks, the timestamp must be in the past,
+    /// newer than the last accepted report, and no more than `MAX_REPORT_AGE` old. Production
+    /// oracle relayers should prefer this entrypoint so delayed or replayed source data fails
+    /// closed on-chain.
+    function updateCPIWithTimestamp(uint256 reportedCPI, uint256 reportedAt) external onlyRole(UPDATER_ROLE) {
+        _updateCPI(reportedCPI, reportedAt);
+    }
+
+    function _updateCPI(uint256 reportedCPI, uint256 reportedAt) internal {
         // validator timestamp manipulation is bounded to seconds, negligible against a multi-day interval
         // forge-lint: disable-next-line(block-timestamp)
         if (block.timestamp < lastUpdated || block.timestamp - lastUpdated < minUpdateInterval) {
             revert UpdateTooSoon();
         }
+        // forge-lint: disable-next-line(block-timestamp)
+        if (reportedAt > block.timestamp || reportedAt <= lastReportTimestamp) revert InvalidReportTimestamp();
+        // forge-lint: disable-next-line(block-timestamp)
+        if (block.timestamp - reportedAt > MAX_REPORT_AGE) revert ReportTooOld();
         _setCPI(reportedCPI, true);
         if (reserve.balanceOf(address(this)) < reserveRequired()) revert RateWouldUnderCollateralize();
+        lastReportTimestamp = reportedAt;
+        emit CPIReportAccepted(reportedAt);
         emit CPIUpdated(previousCPI, cpiRate, true);
     }
 
@@ -277,6 +304,7 @@ contract HalalPSM is AccessControl, ReentrancyGuard {
     /// failure or a disputed reading.
     function mockCPI(uint256 newCPI) external onlyRole(PARAM_ROLE) {
         _setCPI(newCPI, false);
+        lastReportTimestamp = block.timestamp;
         emit CPIUpdated(previousCPI, cpiRate, false);
     }
 

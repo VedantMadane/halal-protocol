@@ -67,6 +67,10 @@ Chainlink Functions subscription. Concretely:
   default) has elapsed since the last update. It also reverts with `RateWouldUnderCollateralize` if
   the new rate would require more reserve than the PSM currently holds. It's a *report submission*
   function, not an oracle call.
+- `updateCPIWithTimestamp(uint256 reportedCPI, uint256 reportedAt)` is the preferred production
+  relayer entrypoint. It rejects future, replayed, and more-than-90-day-old source reports using
+  the on-chain `lastReportTimestamp` watermark. The original `updateCPI(uint256)` remains as a
+  compatibility path for integrations that only provide a current submission.
 - `mockCPI(uint256 newCPI)` is a **separate**, DAO-gated (`PARAM_ROLE`) manual override that
   bypasses the step and interval limits entirely (it still respects `[MIN_CPI, MAX_CPI]`).
   It's meant for governance-approved emergency corrections — e.g. the updater misbehaves, the
@@ -82,7 +86,7 @@ Chainlink Functions subscription. Concretely:
 
 The intended production topology is: the DAO grants `UPDATER_ROLE` to a Chainlink Functions
 consumer contract (or a Chainlink Automation-triggered relayer) that fetches CPI off-chain and
-submits it via `updateCPI`. That keeps routine monthly-ish updates from requiring a full
+submits it via `updateCPIWithTimestamp`. That keeps routine monthly-ish updates from requiring a full
 governance vote each time, while governance still controls *who* can submit (`UPDATER_ROLE`
   grant/revoke), the bounds those submissions are checked against (`MIN_CPI`/`MAX_CPI`/
   `MAX_CPI_STEP_BPS`), current reserve adequacy, and the emergency override (`mockCPI`,

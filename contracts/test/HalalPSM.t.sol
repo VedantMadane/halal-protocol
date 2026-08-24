@@ -250,6 +250,66 @@ contract HalalPSMTest is Deployers {
         psm.updateCPI(1_060_000);
     }
 
+    function test_UpdaterAcceptsFreshTimestampedReport() public {
+        bytes32 updaterRole = psm.UPDATER_ROLE();
+        vm.prank(address(timelock));
+        psm.grantRole(updaterRole, address(this));
+
+        vm.warp(block.timestamp + psm.minUpdateInterval() + 1);
+        uint256 reportTimestamp = block.timestamp - 1;
+        psm.updateCPIWithTimestamp(1_050_000, reportTimestamp);
+
+        assertEq(psm.cpiRate(), 1_050_000);
+        assertEq(psm.lastReportTimestamp(), reportTimestamp);
+    }
+
+    function test_UpdaterRejectsReplayedTimestampedReport() public {
+        bytes32 updaterRole = psm.UPDATER_ROLE();
+        vm.prank(address(timelock));
+        psm.grantRole(updaterRole, address(this));
+
+        vm.warp(block.timestamp + psm.minUpdateInterval() + 1);
+        uint256 reportTimestamp = block.timestamp - 1;
+        psm.updateCPIWithTimestamp(1_050_000, reportTimestamp);
+
+        vm.warp(block.timestamp + psm.minUpdateInterval() + 1);
+        vm.expectRevert(HalalPSM.InvalidReportTimestamp.selector);
+        psm.updateCPIWithTimestamp(1_060_000, reportTimestamp);
+    }
+
+    function test_UpdaterRejectsFutureOrTooOldReport() public {
+        bytes32 updaterRole = psm.UPDATER_ROLE();
+        vm.prank(address(timelock));
+        psm.grantRole(updaterRole, address(this));
+
+        vm.warp(block.timestamp + psm.minUpdateInterval() + 1);
+        vm.expectRevert(HalalPSM.InvalidReportTimestamp.selector);
+        psm.updateCPIWithTimestamp(1_050_000, block.timestamp + 1);
+
+        uint256 oldReportTimestamp = psm.lastReportTimestamp() + 1;
+        vm.warp(oldReportTimestamp + psm.MAX_REPORT_AGE() + 1);
+        vm.expectRevert(HalalPSM.ReportTooOld.selector);
+        psm.updateCPIWithTimestamp(1_050_000, oldReportTimestamp);
+    }
+
+    function test_GovernanceOverrideAdvancesReportWatermark() public {
+        bytes32 updaterRole = psm.UPDATER_ROLE();
+        vm.prank(address(timelock));
+        psm.grantRole(updaterRole, address(this));
+
+        vm.warp(block.timestamp + psm.minUpdateInterval() + 1);
+        uint256 reportTimestamp = block.timestamp - 1;
+        psm.updateCPIWithTimestamp(1_050_000, reportTimestamp);
+
+        vm.warp(block.timestamp + psm.minUpdateInterval() + 1);
+        vm.prank(address(timelock));
+        psm.mockCPI(1_040_000);
+
+        vm.warp(block.timestamp + psm.minUpdateInterval() + 1);
+        vm.expectRevert(HalalPSM.InvalidReportTimestamp.selector);
+        psm.updateCPIWithTimestamp(1_060_000, reportTimestamp);
+    }
+
     function test_UpdaterCannotRaiseRateAboveHeldReserve() public {
         vm.prank(alice);
         psm.deposit(1_000e18);

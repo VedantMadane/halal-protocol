@@ -83,6 +83,19 @@ export const halalPsmAbi = [
   },
   {
     "type": "function",
+    "name": "MAX_REPORT_AGE",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "MAX_RESERVE_DECIMALS",
     "inputs": [],
     "outputs": [
@@ -273,6 +286,19 @@ export const halalPsmAbi = [
         "name": "",
         "type": "address",
         "internalType": "contract HalalToken"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "lastReportTimestamp",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
@@ -565,6 +591,24 @@ export const halalPsmAbi = [
   },
   {
     "type": "function",
+    "name": "updateCPIWithTimestamp",
+    "inputs": [
+      {
+        "name": "reportedCPI",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "reportedAt",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "withdraw",
     "inputs": [
       {
@@ -611,6 +655,19 @@ export const halalPsmAbi = [
     ],
     "outputs": [],
     "stateMutability": "nonpayable"
+  },
+  {
+    "type": "event",
+    "name": "CPIReportAccepted",
+    "inputs": [
+      {
+        "name": "reportTimestamp",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
   },
   {
     "type": "event",
@@ -908,6 +965,11 @@ export const halalPsmAbi = [
   },
   {
     "type": "error",
+    "name": "InvalidReportTimestamp",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "InvalidUpdateInterval",
     "inputs": []
   },
@@ -924,6 +986,11 @@ export const halalPsmAbi = [
   {
     "type": "error",
     "name": "ReentrancyGuardReentrantCall",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ReportTooOld",
     "inputs": []
   },
   {

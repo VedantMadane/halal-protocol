@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## Unreleased
 
+- Added timestamped CPI reports with monotonic replay protection and a 90-day freshness bound;
+  governance overrides now advance the report watermark.
 - Fixed the PSM swap form to parse withdrawals in HLC's fixed 18-decimal units while preserving
   the reserve token's native decimals for deposit and output formatting.
 - Added a visible dashboard warning when the on-chain CPI updater cadence is overdue.

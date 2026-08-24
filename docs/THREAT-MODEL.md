@@ -61,7 +61,7 @@ The system is intended to preserve these properties:
 | --- | --- | --- |
 | Caller tries to redeem genesis or transferred-away HLC against PSM reserves | Per-address `redeemableBalance`; only `transferRedeemable` moves credit | Users must use the credit-aware transfer path; ordinary ERC20 tooling can leave credit behind |
 | CPI rises after deposits | `reserveRequired()` exposes the current obligation; withdrawals cannot worsen an existing deficit; DAO can top up | The system can still become under-reserved and withdrawals are first-come-first-served until topped up |
-| CPI updater submits an extreme, rapid, or reserve-inadequate value | Absolute bounds, step limit, minimum interval, and a guard against routine updates exceeding held reserve; DAO can revoke the role or use `mockCPI` | A compromised updater can still move the rate within reserve-backed limits over time; the emergency override is intentionally more powerful |
+| CPI updater submits an extreme, rapid, stale, replayed, or reserve-inadequate value | Absolute bounds, step limit, minimum interval, timestamp freshness/replay checks, and a guard against routine updates exceeding held reserve; DAO can revoke the role or use `mockCPI` | A compromised updater can still move the rate within reserve-backed limits over time; the emergency override is intentionally more powerful |
 | Deployer keeps a privileged role | Deployment script revokes deployer token/timelock roles and asserts the final wiring | Verify deployment output and on-chain roles before accepting deposits |
 | DAO proposal drains reserves or grants minting | Governor snapshot voting plus timelock delay; PSM reserve floor blocks ordinary reserve withdrawals | Governance capture remains a protocol-level risk; use multisig-controlled beneficiaries and monitor proposals |
 | Reentrancy or unusual ERC20 transfer behavior | `ReentrancyGuard`, `SafeERC20`, balance-delta accounting, and post-transfer checks | Unsupported token semantics or malicious tokens can still make a deployment unusable; select reserve assets carefully |
@@ -70,8 +70,9 @@ The system is intended to preserve these properties:
 
 ## Explicit non-goals and unresolved risks
 
-- The current `updateCPI` path is a bounded report submission, not a live Chainlink Functions
-  consumer. Production deployments must supply and govern the oracle/relayer infrastructure.
+- The current CPI paths are bounded report submissions, not a live Chainlink Functions consumer.
+  Production deployments must supply and govern the oracle/relayer infrastructure; timestamped
+  reports should use `updateCPIWithTimestamp`.
 - There is no instant guardian pause or upgrade admin. This avoids a hidden centralized backdoor,
   but means incident response is constrained by the configured governance path.
 - The public `HalalToken.burn()` function allows a holder to burn its own HLC without informing the

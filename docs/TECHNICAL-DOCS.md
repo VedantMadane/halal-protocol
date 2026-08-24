@@ -3,7 +3,7 @@
 **Version**: 1.1.0
 **Date**: August 24, 2026
 **Network**: Arbitrum (Sepolia & Mainnet)
-**Status**: Unaudited reference implementation | 117 tests passing (114 unit/configuration + 3 invariants) | Not production-ready
+**Status**: Unaudited reference implementation | 121 tests passing (118 unit/configuration + 3 invariants) | Not production-ready
 
 ---
 
@@ -179,7 +179,7 @@ EOF
 ```bash
 # 1. Test locally
 forge test -vvv
-# Expected: 117/117 tests passing ✓
+# Expected: 121/121 tests passing ✓
 
 # 2. Fund wallet with testnet ETH on Arbitrum Sepolia
 # Visit: https://sepoliafaucet.com
@@ -281,8 +281,9 @@ dao.propose(
 )
 ```
 **Effect**: Applies a DAO-approved manual override within the 0.1–2.0 bounds. Routine reports use
-`updateCPI(reportedCPI)` from a separately granted `UPDATER_ROLE` account and are rate, cadence, and
-reserve-adequacy limited.
+`updateCPIWithTimestamp(reportedCPI, reportedAt)` from a separately granted `UPDATER_ROLE` account
+and are rate, cadence, reserve-adequacy, freshness, and replay limited. The original
+`updateCPI(reportedCPI)` remains available for compatibility.
 
 #### 2. Switch CPI Source
 ```solidity
@@ -341,7 +342,8 @@ delay, voting period, proposal threshold, or quorum requires deploying and wirin
 | HalalToken | `mint()` | PSM / DAO | MINTER_ROLE |
 | HalalToken | `burn()` | Anyone | Own tokens |
 | HalalToken | `transfer()` | Anyone | ERC20 balance ownership |
-| HalalPSM | `updateCPI(uint256)` | UPDATER_ROLE relayer | Role granted by governance |
+| HalalPSM | `updateCPI(uint256)` | UPDATER_ROLE relayer | Compatibility path; role granted by governance |
+| HalalPSM | `updateCPIWithTimestamp(uint256,uint256)` | UPDATER_ROLE relayer | Preferred freshness/replay-protected path |
 | HalalPSM | `setSource()` | DAO | Proposal |
 | HalalPSM | `depositWithMinHlcOut(uint256,uint256)` | Anyone | Public, slippage-bounded |
 | HalalPSM | `withdrawWithMinReserveOut(uint256,uint256)` | Anyone | Public, slippage-bounded |
@@ -445,6 +447,8 @@ function cancelRedeemable(uint256 hlcAmount) external // Burns HLC; returns no r
 function depositReserve(uint256 amount) external onlyRole(PARAM_ROLE)
 function withdrawReserve(address to, uint256 amount) external onlyRole(PARAM_ROLE)
 function updateCPI(uint256 reportedCPI) external onlyRole(UPDATER_ROLE)
+function updateCPIWithTimestamp(uint256 reportedCPI, uint256 reportedAt) external onlyRole(UPDATER_ROLE)
+// Rejects future, replayed, and reports older than MAX_REPORT_AGE (90 days).
 function setSource(string calldata newSource) external onlyRole(PARAM_ROLE)
 function setMinUpdateInterval(uint256 newInterval) external onlyRole(PARAM_ROLE) // Must be > 0
 function mockCPI(uint256 newCPI) external onlyRole(PARAM_ROLE)  // Manual emergency override
@@ -507,9 +511,9 @@ forge coverage
 ✓ test_TimelockPreventsImmediateExecution
 ✓ test_TeamVestingRevocable
 ✓ test_TreasuryVestingNonRevocable
-✓ 114 unit/configuration tests plus 3 stateful PSM invariants covering the core contracts and governance flows
+✓ 118 unit/configuration tests plus 3 stateful PSM invariants covering the core contracts and governance flows
 
-Total: 117 tests passing ✓
+Total: 121 tests passing ✓
 ```
 
 ### Verify on Arbiscan
@@ -527,7 +531,7 @@ Total: 117 tests passing ✓
 
 ### Before Deployment
 
-- [ ] All 117 tests passing locally, including the stateful invariants
+- [ ] All 121 tests passing locally, including the stateful invariants
 - [ ] Gas estimates reviewed & acceptable
 - [ ] No compiler warnings
 - [ ] Code review completed

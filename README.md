@@ -28,7 +28,7 @@ No external RPC key or real funds are needed for the demo.
 ## Status & risk
 
 **This protocol has not undergone a professional security audit, and there is no bug bounty
-program yet.** The contracts pass their own test suite (117/117 at the time of writing — 114 unit
+program yet.** The contracts pass their own test suite (121/121 at the time of writing — 118 unit
 and configuration tests plus 3 stateful invariants; see
 `contracts/test/`), but a passing test suite is not a substitute for an audit, and this repo
 should not be treated as safe to use with real, meaningful funds. If you deploy or interact with
