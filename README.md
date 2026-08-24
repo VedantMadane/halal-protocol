@@ -67,6 +67,8 @@ walkthrough, and the exact API surface — see:
 - [`docs/DESIGN-DECISIONS.md`](docs/DESIGN-DECISIONS.md) — where the actual implementation
   deliberately deviates from those planning docs, and why. Worth reading before assuming a
   number or behavior described in the docs above is exactly what the code does.
+- [`docs/THREAT-MODEL.md`](docs/THREAT-MODEL.md) — assets, trust boundaries, attack scenarios,
+  mitigations, and unresolved risks for reviewers and deployment operators.
 - [`docs/INVARIANTS.md`](docs/INVARIANTS.md) — the stateful PSM properties exercised by Foundry
   and the exact scope of those guarantees.
 
