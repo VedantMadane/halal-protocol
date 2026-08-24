@@ -72,7 +72,8 @@ The system is intended to preserve these properties:
 
 - The current CPI paths are bounded report submissions, not a live Chainlink Functions consumer.
   Production deployments must supply and govern the oracle/relayer infrastructure; timestamped
-  reports should use `updateCPIWithTimestamp`.
+  reports should use `updateCPIWithTimestamp`. Its report watermark starts empty at deployment so
+  a fresh source report published immediately before deployment can bootstrap the feed.
 - There is no instant guardian pause or upgrade admin. This avoids a hidden centralized backdoor,
   but means incident response is constrained by the configured governance path.
 - The public `HalalToken.burn()` function allows a holder to burn its own HLC without informing the

@@ -59,6 +59,7 @@ contract HalalPSM is AccessControl, ReentrancyGuard {
     uint256 public previousCPI = CPI_PRECISION;
     uint256 public lastUpdated;
     /// @notice Timestamp supplied by the most recently accepted CPI report or governance override.
+    /// Zero means no report has been accepted since deployment.
     uint256 public lastReportTimestamp;
     uint256 public minUpdateInterval = 25 days;
     uint256 public totalHlcIssued;
@@ -113,7 +114,6 @@ contract HalalPSM is AccessControl, ReentrancyGuard {
         if (reserveDecimals > MAX_RESERVE_DECIMALS) revert UnsupportedDecimals();
         _reserveDecimals = reserveDecimals;
         lastUpdated = block.timestamp;
-        lastReportTimestamp = block.timestamp;
 
         _grantRole(DEFAULT_ADMIN_ROLE, dao);
         _grantRole(PARAM_ROLE, dao);
@@ -289,7 +289,9 @@ contract HalalPSM is AccessControl, ReentrancyGuard {
             revert UpdateTooSoon();
         }
         // forge-lint: disable-next-line(block-timestamp)
-        if (reportedAt > block.timestamp || reportedAt <= lastReportTimestamp) revert InvalidReportTimestamp();
+        if (reportedAt > block.timestamp || (lastReportTimestamp != 0 && reportedAt <= lastReportTimestamp)) {
+            revert InvalidReportTimestamp();
+        }
         // forge-lint: disable-next-line(block-timestamp)
         if (block.timestamp - reportedAt > MAX_REPORT_AGE) revert ReportTooOld();
         _setCPI(reportedCPI, true);

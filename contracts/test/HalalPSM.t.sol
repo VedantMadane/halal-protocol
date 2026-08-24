@@ -263,6 +263,18 @@ contract HalalPSMTest is Deployers {
         assertEq(psm.lastReportTimestamp(), reportTimestamp);
     }
 
+    function test_FirstTimestampedReportCanPrecedeDeployment() public {
+        bytes32 updaterRole = psm.UPDATER_ROLE();
+        vm.prank(address(timelock));
+        psm.grantRole(updaterRole, address(this));
+
+        uint256 reportTimestamp = psm.lastUpdated() - 1;
+        vm.warp(block.timestamp + psm.minUpdateInterval() + 1);
+        psm.updateCPIWithTimestamp(1_050_000, reportTimestamp);
+
+        assertEq(psm.lastReportTimestamp(), reportTimestamp);
+    }
+
     function test_UpdaterRejectsReplayedTimestampedReport() public {
         bytes32 updaterRole = psm.UPDATER_ROLE();
         vm.prank(address(timelock));

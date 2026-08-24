@@ -69,7 +69,8 @@ Chainlink Functions subscription. Concretely:
   function, not an oracle call.
 - `updateCPIWithTimestamp(uint256 reportedCPI, uint256 reportedAt)` is the preferred production
   relayer entrypoint. It rejects future, replayed, and more-than-90-day-old source reports using
-  the on-chain `lastReportTimestamp` watermark. The original `updateCPI(uint256)` remains as a
+  the on-chain `lastReportTimestamp` watermark (which starts at zero so the first fresh report may
+  have been published just before deployment). The original `updateCPI(uint256)` remains as a
   compatibility path for integrations that only provide a current submission.
 - `mockCPI(uint256 newCPI)` is a **separate**, DAO-gated (`PARAM_ROLE`) manual override that
   bypasses the step and interval limits entirely (it still respects `[MIN_CPI, MAX_CPI]`).

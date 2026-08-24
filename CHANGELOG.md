@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## Unreleased
 
+- Fixed first-report bootstrap so a fresh timestamped CPI report published immediately before
+  deployment is accepted.
 - Added timestamped CPI reports with monotonic replay protection and a 90-day freshness bound;
   governance overrides now advance the report watermark.
 - Fixed the PSM swap form to parse withdrawals in HLC's fixed 18-decimal units while preserving
