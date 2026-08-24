@@ -65,6 +65,7 @@ export default function DashboardPage() {
               cpiRate={psm.cpiRate}
               previousCPI={psm.previousCPI}
               lastUpdated={psm.lastUpdated}
+              minUpdateInterval={psm.minUpdateInterval}
               source={psm.source}
               reserveSymbol={psm.reserveSymbol}
               isLoading={psm.isLoading}

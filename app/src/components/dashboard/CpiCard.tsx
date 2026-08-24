@@ -1,4 +1,8 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { formatCPIRate, formatDate } from "@/lib/format";
 
@@ -6,6 +10,7 @@ export function CpiCard({
   cpiRate,
   previousCPI,
   lastUpdated,
+  minUpdateInterval,
   source,
   reserveSymbol,
   isLoading,
@@ -13,19 +18,34 @@ export function CpiCard({
   cpiRate: bigint | undefined;
   previousCPI: bigint | undefined;
   lastUpdated: bigint | undefined;
+  minUpdateInterval: bigint | undefined;
   source: string | undefined;
   reserveSymbol: string | undefined;
   isLoading: boolean;
 }) {
+  const [now, setNow] = useState<bigint>();
+
+  useEffect(() => {
+    const refreshNow = () => setNow(BigInt(Math.floor(Date.now() / 1000)));
+    refreshNow();
+    const interval = window.setInterval(refreshNow, 20_000);
+    return () => window.clearInterval(interval);
+  }, []);
+
   const delta =
     cpiRate !== undefined && previousCPI !== undefined && previousCPI > 0n
       ? ((Number(cpiRate) - Number(previousCPI)) / Number(previousCPI)) * 100
       : undefined;
+  const updateOverdue =
+    now !== undefined && lastUpdated !== undefined && minUpdateInterval !== undefined
+      ? now > lastUpdated + minUpdateInterval
+      : false;
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>CPI Rate</CardTitle>
+        {!isLoading && updateOverdue && <Badge tone="danger">Update overdue</Badge>}
       </CardHeader>
       <CardBody className="space-y-3">
         {isLoading ? (
