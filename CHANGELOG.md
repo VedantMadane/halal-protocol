@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## Unreleased
 
+- Added reentrancy protection to DAO reserve deposits and withdrawals, with callback-based regression
+  coverage for malicious reserve-token behavior.
 - Made deployment verification fail closed when the RPC chain ID does not match the operator's
   declared target network, and wired the check into the local demo and CI smoke test.
 - Exposed CPI source-report timestamps and the on-chain freshness bound in the dApp, while keeping

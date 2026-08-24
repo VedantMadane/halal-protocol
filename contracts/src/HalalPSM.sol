@@ -324,7 +324,7 @@ contract HalalPSM is AccessControl, ReentrancyGuard {
     }
 
     /// @notice DAO-approved top-up of reserves (e.g. bootstrapping liquidity from the treasury).
-    function depositReserve(uint256 amount) external onlyRole(PARAM_ROLE) {
+    function depositReserve(uint256 amount) external onlyRole(PARAM_ROLE) nonReentrant {
         if (amount == 0) revert ZeroAmount();
         uint256 balanceBefore = reserve.balanceOf(address(this));
         reserve.safeTransferFrom(msg.sender, address(this), amount);
@@ -335,7 +335,7 @@ contract HalalPSM is AccessControl, ReentrancyGuard {
 
     /// @notice DAO-approved withdrawal of reserve surplus. The PSM never lets this path remove the
     /// reserve required to redeem outstanding PSM-issued HLC at the current CPI rate.
-    function withdrawReserve(address to, uint256 amount) external onlyRole(PARAM_ROLE) {
+    function withdrawReserve(address to, uint256 amount) external onlyRole(PARAM_ROLE) nonReentrant {
         if (to == address(0)) revert ZeroAddress();
         uint256 balance = reserve.balanceOf(address(this));
         uint256 required = reserveRequired();

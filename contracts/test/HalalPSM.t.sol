@@ -6,6 +6,7 @@ import { HalalPSM } from "../src/HalalPSM.sol";
 import { MockERC20 } from "./mocks/MockERC20.sol";
 import { MockFeeOnTransferERC20 } from "./mocks/MockFeeOnTransferERC20.sol";
 import { MockOutgoingFeeERC20 } from "./mocks/MockOutgoingFeeERC20.sol";
+import { MockReentrantERC20 } from "./mocks/MockReentrantERC20.sol";
 import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 
 contract HalalPSMTest is Deployers {
@@ -487,6 +488,24 @@ contract HalalPSMTest is Deployers {
         outgoingFeePsm.withdrawReserve(address(this), 5e18);
 
         assertEq(outgoingFeeReserve.balanceOf(address(outgoingFeePsm)), 2_005e18);
+    }
+
+    function test_AdminReserveTransferIsReentrancyGuarded() public {
+        MockReentrantERC20 reentrantReserve = new MockReentrantERC20();
+        HalalPSM reentrantPsm = new HalalPSM(address(reentrantReserve), address(token), address(timelock), address(0));
+
+        vm.startPrank(address(timelock));
+        reentrantPsm.grantRole(reentrantPsm.PARAM_ROLE(), address(reentrantReserve));
+        vm.stopPrank();
+        reentrantReserve.mint(address(reentrantPsm), 100e18);
+        reentrantReserve.configureReentry(address(reentrantPsm), address(this), 100e18);
+
+        vm.startPrank(address(timelock));
+        vm.expectRevert();
+        reentrantPsm.withdrawReserve(address(this), 100e18);
+        vm.stopPrank();
+
+        assertEq(reentrantReserve.balanceOf(address(reentrantPsm)), 100e18);
     }
 
     function test_RevertWhen_UnauthorizedDepositReserve() public {
