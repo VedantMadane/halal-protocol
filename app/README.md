@@ -44,6 +44,8 @@ pnpm lint
 pnpm build
 ```
 
+The project currently targets Node.js 22 or newer because pnpm 11 requires the Node 22 runtime.
+
 Regenerate contract ABIs after changing Solidity interfaces:
 
 ```bash
