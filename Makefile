@@ -1,9 +1,12 @@
-.PHONY: verify contracts-build contracts-test contracts-lint contracts-coverage app-lint app-build abis psm-health economic-model registry-check
+.PHONY: verify contracts-build contracts-test contracts-lint contracts-coverage app-lint app-build abis psm-health deployment-health economic-model registry-check shell-check
 
-verify: registry-check contracts-build contracts-test contracts-lint app-lint app-build
+verify: registry-check shell-check contracts-build contracts-test contracts-lint app-lint app-build
 
 registry-check:
 	node scripts/validate-deployment-registry.mjs
+
+shell-check:
+	bash -n scripts/*.sh
 
 contracts-build:
 	cd contracts && forge build
@@ -28,6 +31,9 @@ abis:
 
 psm-health:
 	./scripts/check-psm-health.sh
+
+deployment-health:
+	./scripts/check-deployment-health.sh
 
 economic-model:
 	node scripts/model-psm.mjs

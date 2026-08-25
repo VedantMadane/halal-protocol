@@ -8,6 +8,7 @@ All notable changes to this project are documented here.
   `MAX_REPORT_AGE`, so the safety gate applies to direct contract callers as well as the dApp.
 - Made public deployment manifests carry a deployment transaction and HTTPS explorer/source links.
 - Opened a bounded public security-review challenge for the PSM, CPI boundaries, and reserve accounting.
+- Added a one-command read-only deployment audit that checks wiring before recurring PSM health.
 - Added a verifier-backed deployment manifest recorder and strict string handling for deployment block heights.
 - Added a checked-in deployment registry with strict validation and per-field environment overrides,
   so public dApp addresses can ship with chain, release, commit, and deployment-block evidence.

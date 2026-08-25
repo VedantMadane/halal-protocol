@@ -95,7 +95,18 @@ Require `status=healthy`. Save the output and transaction hash in the journal.
 
 ## 2. Recurring monitoring
 
-Run the read-only check from a host that can reach the RPC. It needs no private key:
+Run the combined deployment audit from a host that can reach the RPC. It needs no private key and
+checks contract wiring before it checks live PSM health:
+
+```shell
+RPC_URL=https://... EXPECTED_CHAIN_ID=421614 \
+TIMELOCK=0x... TOKEN=0x... TEAM_VESTING=0x... TREASURY_VESTING=0x... \
+DAO=0x... PSM=0x... RESERVE_TOKEN=0x... \
+TEAM_BENEFICIARY=0x... TREASURY_BENEFICIARY=0x... DEPLOYER_ADDRESS=0x... \
+./scripts/check-deployment-health.sh
+```
+
+For a health-only check, run:
 
 ```shell
 RPC_URL=https://... PSM=0x... ./scripts/check-psm-health.sh

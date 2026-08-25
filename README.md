@@ -49,7 +49,7 @@ conservative accounting model:
 | Can a deployment be checked without a private key? | [`scripts/verify-deployment.sh`](scripts/verify-deployment.sh) |
 | Can I inspect the full system locally? | [`./scripts/local-demo.sh`](scripts/local-demo.sh) on a disposable Anvil chain |
 | Does the PSM fail closed on missing or stale CPI data? | `HalalPSM` rejects deposits until `isCPIReportFresh()` is true; the dApp mirrors the gate |
-| Can an operator monitor PSM health without a wallet? | [`scripts/check-psm-health.sh`](scripts/check-psm-health.sh) exits nonzero for stale CPI or reserve deficits |
+| Can an operator audit a deployment without a wallet? | [`scripts/check-deployment-health.sh`](scripts/check-deployment-health.sh) combines wiring and PSM health checks |
 | Can I model CPI-driven reserve needs reproducibly? | [`docs/ECONOMIC-MODEL.md`](docs/ECONOMIC-MODEL.md) and `make economic-model` |
 | Are public deployment addresses reviewable? | [`docs/DEPLOYMENT-REGISTRY.md`](docs/DEPLOYMENT-REGISTRY.md) and the checked-in registry |
 | Are generated frontend interfaces kept in sync? | ABI regeneration is a required CI check |
