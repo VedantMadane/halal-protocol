@@ -33,6 +33,10 @@ export function parseBlsResponse(payload) {
   if (typeof point.year !== "string" || !/^\d{4}$/.test(point.year) || !/^M(?:0[1-9]|1[0-2])$/.test(point.period)) {
     throw new Error("BLS data point must identify a monthly period");
   }
+  if (point.latest !== "true") throw new Error("BLS data point must be marked latest");
+  if (Array.isArray(point.footnotes) && point.footnotes.some((footnote) => footnote?.code === "P")) {
+    throw new Error("BLS data point is preliminary");
+  }
   const rawIndex = parseDecimal(point.value, "BLS value");
   return { ...point, rawIndex };
 }

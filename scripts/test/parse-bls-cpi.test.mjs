@@ -8,7 +8,7 @@ const payload = {
     series: [
       {
         seriesID: BLS_SERIES_ID,
-        data: [{ year: "2026", period: "M07", periodName: "July", value: "333.952" }],
+        data: [{ year: "2026", period: "M07", periodName: "July", latest: "true", value: "333.952" }],
       },
     ],
   },
@@ -49,6 +49,14 @@ test("rejects a different series, missing point, or invalid period", () => {
   assert.throws(
     () => parseBlsResponse({ ...payload, Results: { series: [{ ...payload.Results.series[0], data: [{ ...payload.Results.series[0].data[0], period: "A01" }] }] } }),
     /monthly period/,
+  );
+  assert.throws(
+    () => parseBlsResponse({ ...payload, Results: { series: [{ ...payload.Results.series[0], data: [{ ...payload.Results.series[0].data[0], latest: "false" }] }] } }),
+    /marked latest/,
+  );
+  assert.throws(
+    () => parseBlsResponse({ ...payload, Results: { series: [{ ...payload.Results.series[0], data: [{ ...payload.Results.series[0].data[0], footnotes: [{ code: "P" }] }] }] } }),
+    /preliminary/,
   );
 });
 

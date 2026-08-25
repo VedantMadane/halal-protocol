@@ -242,7 +242,8 @@ node scripts/parse-bls-cpi.mjs \
   --reported-at "$BLS_RELEASE_TIMESTAMP"
 ```
 
-The parser accepts one monthly point for the exact series, computes
+The parser accepts one point marked `latest=true` for the exact series, rejects preliminary
+footnotes, computes
 `rawIndex / baseIndex * 1_000_000` with integer half-up rounding, and then applies the PSM's
 `[0.1, 2.0]` range. Include the series ID, base index, rounding rule, and parser version in the
 source ID and deployment journal. The base index becomes part of the protocol's economic policy;
