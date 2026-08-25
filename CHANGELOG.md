@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.138 - 2026-08-26
+
+- Added reproducible local monitoring examples for the healthy adapter path and fail-closed missing
+  configuration path.
+- Documented the exact exit-code and output expectations for cron, systemd, CI, and metric wrappers.
+
 ## 0.1.0-alpha.137 - 2026-08-26
 
 - Added browser coverage for a supported network with no configured deployment, asserting the

@@ -221,6 +221,35 @@ private keys in this wrapper: `check-deployment-health.sh` is read-only. Alert o
 include the emitted `reason` in the incident record. At minimum, exercise the wrapper against a
 stale CPI report and a reserve deficit before enabling automatic alerts.
 
+### Reproduce the exit contract locally
+
+The disposable adapter rehearsal provides a healthy success case without a public RPC or real
+funds:
+
+```shell
+make adapter-demo
+# expect: status=healthy and exit status 0
+```
+
+To exercise the fail-closed configuration path without starting a chain, omit a required input and
+assert the command is nonzero. This is useful for testing a cron, systemd, or CI wrapper before it
+is given production credentials:
+
+```shell
+set +e
+RPC_URL=http://127.0.0.1:18545 PSM= \
+  ./scripts/check-psm-health.sh >/tmp/halal-health-failure.log 2>&1
+health_exit=$?
+set -e
+test "$health_exit" -ne 0
+grep -F 'Missing required environment variable: PSM' /tmp/halal-health-failure.log
+```
+
+The first command proves the healthy output path on disposable Anvil state; the second proves that
+missing monitoring configuration cannot be mistaken for a healthy deployment. For an on-chain
+failure rehearsal, use a disposable deployment with a stale report or reserve deficit and retain
+the emitted `reason=...` record in the journal.
+
 For a Prometheus textfile collector or another pull-based monitor, the same records can be mapped
 without `jq` or a network service. This example intentionally preserves the health command's exit
 code; the collector can publish the metrics while the scheduler still treats an unhealthy check as
