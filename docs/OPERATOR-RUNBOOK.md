@@ -164,6 +164,8 @@ code and retain the emitted values:
 | `reason=cpi_adapter_owner_mismatch` | The adapter owner differs from the expected timelock | Stop updates and review ownership transfer events |
 | `reason=cpi_adapter_source_id_mismatch` | The adapter's signed-report source ID differs from the deployment record | Rotate to the reviewed adapter for the documented source series |
 | `reason=cpi_adapter_quorum_invalid` | The adapter threshold cannot be met by its configured signers | Stop updates and repair the adapter through governance |
+| `reason=cpi_adapter_signer_owner_overlap` | The adapter owner is also configured as a report signer | Stop updates and separate ownership from signer custody through governance |
+| `reason=cpi_adapter_signer_duplicate` | The live signer enumeration contains the same address more than once | Stop updates and repair or replace the adapter through governance |
 | `reason=cpi_adapter_watermark_mismatch` | The adapter and PSM accepted-report timestamps differ | Stop updates and inspect for an unintended updater, incomplete handoff, or inconsistent deployment state |
 | `warning=normal_cpi_update_overdue` | `lastUpdated + minUpdateInterval` has passed | Check the updater queue and source publication schedule |
 

@@ -246,6 +246,8 @@ Alert on these conditions:
 - `cpi_adapter_psm_mismatch`;
 - `cpi_adapter_source_id_mismatch`;
 - `cpi_adapter_quorum_invalid`;
+- `cpi_adapter_signer_owner_overlap`;
+- `cpi_adapter_signer_duplicate`;
 - `cpi_adapter_watermark_mismatch`;
 - overdue normal CPI cadence;
 - unexpected `RoleGranted`, `RoleRevoked`, or `SourceUpdated` events.

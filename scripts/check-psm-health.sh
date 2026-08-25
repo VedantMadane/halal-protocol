@@ -82,9 +82,11 @@ if [[ -n "${CPI_ADAPTER:-}" ]]; then
   echo "cpi_adapter_threshold=$adapter_threshold"
   echo "cpi_adapter_signer_count=$adapter_signer_count"
   echo "cpi_adapter_last_submitted_timestamp=$adapter_last_submitted"
+  signer_addresses=()
   if [[ "$adapter_signer_count" =~ ^[0-9]+$ ]]; then
     for (( signer_index = 0; signer_index < adapter_signer_count; signer_index++ )); do
       signer_address="$(call_at "$CPI_ADAPTER" 'signerAt(uint256)(address)' "$signer_index" | tr '[:upper:]' '[:lower:]')"
+      signer_addresses+=("$signer_address")
       echo "cpi_adapter_signer_${signer_index}=$signer_address"
     done
   fi
@@ -109,6 +111,20 @@ if [[ -n "${CPI_ADAPTER:-}" ]]; then
     echo "reason=cpi_adapter_quorum_invalid"
     failure=1
   fi
+  for (( signer_index = 0; signer_index < ${#signer_addresses[@]}; signer_index++ )); do
+    if [[ "${signer_addresses[$signer_index]}" == "$adapter_owner" ]]; then
+      echo "status=unhealthy"
+      echo "reason=cpi_adapter_signer_owner_overlap"
+      failure=1
+    fi
+    for (( previous_index = 0; previous_index < signer_index; previous_index++ )); do
+      if [[ "${signer_addresses[$signer_index]}" == "${signer_addresses[$previous_index]}" ]]; then
+        echo "status=unhealthy"
+        echo "reason=cpi_adapter_signer_duplicate"
+        failure=1
+      fi
+    done
+  done
   if [[ "$adapter_last_submitted" != "$last_report" ]]; then
     echo "status=unhealthy"
     echo "reason=cpi_adapter_watermark_mismatch"
