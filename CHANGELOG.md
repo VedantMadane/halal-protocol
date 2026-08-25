@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.92 - 2026-08-25
+
+- Added a deployment-proposal issue form that requires chain, reserve, role, CPI, verification, and
+  post-bootstrap health evidence before a public deployment enters the registry.
+
 ## 0.1.0-alpha.91 - 2026-08-25
 
 - Added a CPI adapter submission sequence and evidence map so reviewers can trace source, signer,

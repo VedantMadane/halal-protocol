@@ -1,0 +1,68 @@
+name: Deployment proposal
+description: Propose a reviewed testnet or public deployment for the Halal reference system.
+title: "deploy: "
+labels: [deployment]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form for a deployment that has not yet entered the checked-in registry.
+        Never include private keys, seed phrases, RPC credentials, or other secrets.
+        A deployment proposal does not authorize a mainnet launch or acceptance of meaningful funds.
+  - type: input
+    id: network
+    attributes:
+      label: Network and chain ID
+      placeholder: Arbitrum Sepolia (421614)
+    validations:
+      required: true
+  - type: textarea
+    id: addresses
+    attributes:
+      label: Contract addresses
+      description: List token, vesting, DAO, timelock, PSM, reserve token, and optional CPI adapter addresses.
+      placeholder: |
+        Token: 0x...
+        Team vesting: 0x...
+        Treasury vesting: 0x...
+        DAO: 0x...
+        Timelock: 0x...
+        PSM: 0x...
+        Reserve token: 0x...
+        CPI adapter: 0x... (optional)
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Verification evidence
+      description: Link the release, commit, deployment transaction, explorer source verification, deployment journal, and read-only verifier output.
+    validations:
+      required: true
+  - type: textarea
+    id: reserve
+    attributes:
+      label: Reserve-token review
+      description: Record decimals, transfer or fee behavior, pause/blacklist controls, upgradeability, issuer powers, and why the asset is suitable for this network.
+    validations:
+      required: true
+  - type: textarea
+    id: cpi
+    attributes:
+      label: CPI source and operations
+      description: Identify the source series, units, publication timestamp policy, parser, heartbeat, signer or relayer custody, fallback, and rotation procedure.
+    validations:
+      required: true
+  - type: checkboxes
+    id: launch-gates
+    attributes:
+      label: Launch gates
+      options:
+        - label: I ran `scripts/verify-deployment.sh` against the target chain and saved the output.
+          required: true
+        - label: I ran `scripts/check-deployment-health.sh` after the first timestamped CPI report and received `status=healthy`.
+          required: true
+        - label: I verified the source, constructor arguments, beneficiaries, and reserve-token policy independently.
+          required: true
+        - label: I understand this proposal still requires maintainer review and independent security review before meaningful funds.
+          required: true
