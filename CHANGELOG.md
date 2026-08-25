@@ -4,6 +4,10 @@ All notable changes to this project are documented here.
 
 ## Unreleased
 
+- Added an adversarial reserve-token test for ERC20 calls that return `false`, confirming the PSM
+  fails closed through `SafeERC20`; the documented suite now has 133 tests.
+- Added the differential arithmetic suite to the scheduled deep workflow at 10,000 fuzz runs per
+  conversion direction.
 - Corrected the differential arithmetic fuzz bounds so cases whose mathematically correct output
   exceeds `uint256` are excluded without reducing coverage of representable boundary values.
 - Added independent differential PSM arithmetic fuzzing across every supported reserve-decimal

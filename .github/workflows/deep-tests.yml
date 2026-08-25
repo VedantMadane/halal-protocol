@@ -33,5 +33,8 @@ jobs:
       - name: Extended PSM fuzz test
         run: forge test --match-test testFuzz_RoundTripNeverOverpays
 
+      - name: Extended PSM arithmetic differential tests
+        run: forge test --match-path test/HalalPSMArithmetic.t.sol
+
       - name: Extended PSM invariant suite
         run: forge test --match-path test/HalalPSMInvariant.t.sol

@@ -7,6 +7,7 @@ import { MockERC20 } from "./mocks/MockERC20.sol";
 import { MockFeeOnTransferERC20 } from "./mocks/MockFeeOnTransferERC20.sol";
 import { MockOutgoingFeeERC20 } from "./mocks/MockOutgoingFeeERC20.sol";
 import { MockReentrantERC20 } from "./mocks/MockReentrantERC20.sol";
+import { MockFalseReturnERC20 } from "./mocks/MockFalseReturnERC20.sol";
 import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 
 contract HalalPSMTest is Deployers {
@@ -441,6 +442,27 @@ contract HalalPSMTest is Deployers {
         vm.stopPrank();
 
         assertEq(feeReserve.balanceOf(address(feePsm)), 0);
+    }
+
+    function test_RevertWhen_ReserveTransferReturnsFalse() public {
+        MockFalseReturnERC20 falseReserve = new MockFalseReturnERC20();
+        HalalPSM falsePsm = new HalalPSM(address(falseReserve), address(token), address(timelock), address(0));
+        falseReserve.mint(alice, 1e18);
+
+        vm.startPrank(alice);
+        falseReserve.approve(address(falsePsm), 1e18);
+        vm.expectRevert();
+        falsePsm.deposit(1e18);
+        vm.stopPrank();
+
+        falseReserve.mint(address(timelock), 1e18);
+        vm.startPrank(address(timelock));
+        falseReserve.approve(address(falsePsm), 1e18);
+        vm.expectRevert();
+        falsePsm.depositReserve(1e18);
+        vm.stopPrank();
+
+        assertEq(falseReserve.balanceOf(address(falsePsm)), 0);
     }
 
     function test_DAOCanWithdrawOnlyReserveSurplus() public {
