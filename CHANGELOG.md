@@ -2,6 +2,10 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.72 - 2026-08-25
+
+- Corrected the Scorecard action pin to the immutable commit behind its annotated release tag.
+
 ## 0.1.0-alpha.71 - 2026-08-25
 
 - Pinned every third-party GitHub Action to an immutable commit so workflow changes cannot silently
