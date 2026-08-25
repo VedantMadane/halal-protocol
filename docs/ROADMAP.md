@@ -30,8 +30,9 @@ narrow roles by governance.
   governance proposals, with documented alert thresholds.
 - Run a public testnet program that records deposits, withdrawals, CPI changes, governance actions,
   and any discovered issues in a reproducible deployment journal.
-- Improve the dApp's deployment registry and transaction history so a new participant can verify the
-  active deployment without copying undocumented addresses from a chat message.
+- [x] Improve the dApp's deployment registry so a new participant can verify the active deployment
+  without copying undocumented addresses from a chat message ([registry format](DEPLOYMENT-REGISTRY.md));
+  transaction-history improvements remain future work.
 
 ## Research: resolve the hard economic and UX questions
 
