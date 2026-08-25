@@ -11,7 +11,7 @@ narrow roles by governance.
 - Complete an independent smart-contract security review and publish the findings and remediation
   commits.
 - Deploy the unchanged reference system to Arbitrum Sepolia with multisig beneficiaries, a
-  documented reserve token, and a separately reviewed CPI updater.
+  documented reserve token, and a separately reviewed CPI updater ([issue #40](https://github.com/fredrikblau/halal-protocol/issues/40)).
 - Publish the deployment addresses, verified source links, deployment log, and the output of
   `scripts/verify-deployment.sh`.
 - [x] Publish an operator runbook for reserve health, CPI freshness, updater rotation, governance

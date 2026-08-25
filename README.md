@@ -44,6 +44,7 @@ Start with the [good first issues](https://github.com/fredrikblau/halal-protocol
   no-deployment health state in Playwright.
 - Pick [issue #39](https://github.com/fredrikblau/halal-protocol/issues/39) to document monitoring
   integration with deployment-health exit codes.
+- Help coordinate the first carefully gated [Arbitrum Sepolia deployment](https://github.com/fredrikblau/halal-protocol/issues/40).
 - Use [Discussions](https://github.com/fredrikblau/halal-protocol/discussions) for design questions.
 - Report security vulnerabilities through [`SECURITY.md`](SECURITY.md), not a public issue.
 
