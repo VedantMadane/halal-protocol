@@ -1,15 +1,17 @@
 # Protocol invariants
 
 The stateful harness in [`contracts/test/HalalPSMInvariant.t.sol`](../contracts/test/HalalPSMInvariant.t.sol)
-exercises randomized deposits, withdrawals, `transferRedeemable`, and `cancelRedeemable` operations across two actors.
-Foundry runs each invariant for 64 sequences of 2,048 calls by default.
+exercises randomized deposits, withdrawals, `transferRedeemable`, `cancelRedeemable`, and
+governance CPI changes with reserve top-ups across two actors. Foundry runs each invariant for 64
+sequences of 2,048 calls by default (the scheduled deep workflow raises this to 128 sequences of
+8,192 calls).
 
 ## Accounting properties
 
 | Property | Meaning | Harness scope |
 | --- | --- | --- |
 | Redemption-credit conservation | The sum of tracked actor credits equals `totalHlcIssued`. | All HLC issuance comes through PSM deposits; cancellation and withdrawal retire both values; the handler is the only actor surface. |
-| Genesis-rate collateralization | Reserve held by the PSM is at least `reserveRequired()`. | CPI remains at the genesis rate; reserve top-ups are not modeled. |
+| Governance-rate collateralization | Reserve held by the PSM remains at least `reserveRequired()` after a governance CPI change. | The handler tops up the mock reserve before each rate change, then continues mixed user actions. |
 | Supply decomposition | Token supply equals the fixed 10M genesis allocation plus outstanding PSM issuance. | The handler does not call the separately available ERC20 burn path; `cancelRedeemable` preserves this equation by reducing both values. |
 
 These are deliberately state-transition properties rather than claims that every governance

@@ -14,13 +14,22 @@ contract HalalPSMHandler is Test {
     HalalPSM internal immutable psm;
     HalalToken internal immutable token;
     MockERC20 internal immutable reserve;
+    address internal immutable governance;
     address internal immutable alice;
     address internal immutable bob;
 
-    constructor(HalalPSM psm_, HalalToken token_, MockERC20 reserve_, address alice_, address bob_) {
+    constructor(
+        HalalPSM psm_,
+        HalalToken token_,
+        MockERC20 reserve_,
+        address governance_,
+        address alice_,
+        address bob_
+    ) {
         psm = psm_;
         token = token_;
         reserve = reserve_;
+        governance = governance_;
         alice = alice_;
         bob = bob_;
     }
@@ -79,6 +88,28 @@ contract HalalPSMHandler is Test {
         vm.stopPrank();
     }
 
+    /// @notice Models a governance-approved CPI change while ensuring the test environment funds
+    /// any reserve required by the new rate first. This exercises deposits, withdrawals, transfers,
+    /// and cancellations across changing conversion rates without turning the invariant into an
+    /// intentional under-collateralization test.
+    function governCPIWithReserveTopUp(uint256 cpiSeed) external {
+        uint256 newCPI = bound(cpiSeed, psm.MIN_CPI(), psm.MAX_CPI());
+        uint256 requiredAtNewRate = (psm.totalHlcIssued() * newCPI) / psm.CPI_PRECISION();
+        uint256 reserveBalance = reserve.balanceOf(address(psm));
+
+        if (requiredAtNewRate > reserveBalance) {
+            uint256 topUp = requiredAtNewRate - reserveBalance;
+            reserve.mint(governance, topUp);
+            vm.startPrank(governance);
+            reserve.approve(address(psm), topUp);
+            psm.depositReserve(topUp);
+            vm.stopPrank();
+        }
+
+        vm.prank(governance);
+        psm.mockCPI(newCPI);
+    }
+
     function knownRedeemableCredit() external view returns (uint256) {
         return psm.redeemableBalance(alice) + psm.redeemableBalance(bob);
     }
@@ -95,7 +126,7 @@ contract HalalPSMInvariantTest is Deployers {
 
     function setUp() public {
         deployAll();
-        handler = new HalalPSMHandler(psm, token, reserve, alice, bob);
+        handler = new HalalPSMHandler(psm, token, reserve, address(timelock), alice, bob);
         targetContract(address(handler));
     }
 
@@ -103,7 +134,7 @@ contract HalalPSMInvariantTest is Deployers {
         assertEq(handler.knownRedeemableCredit(), psm.totalHlcIssued());
     }
 
-    function invariant_PsmSupplyRemainsCollateralizedAtGenesisRate() public view {
+    function invariant_PsmSupplyRemainsCollateralizedAcrossGovernanceRateChanges() public view {
         assertGe(reserve.balanceOf(address(psm)), psm.reserveRequired());
     }
 
