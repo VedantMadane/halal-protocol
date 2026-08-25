@@ -534,6 +534,31 @@ contract HalalPSMTest is Deployers {
         vm.stopPrank();
     }
 
+    function test_StaleCpiReportStillAllowsExistingHolderToWithdraw() public {
+        MockERC20 freshReserve = new MockERC20("Fresh DAI", "fDAI", 18);
+        HalalPSM freshPsm = _newPsmWithUpdater(freshReserve);
+        _grantPsmTokenRoles(freshPsm);
+        _bootstrapPsm(freshPsm);
+        freshReserve.mint(alice, 1e18);
+
+        vm.startPrank(alice);
+        freshReserve.approve(address(freshPsm), 1e18);
+        freshPsm.deposit(1e18);
+        vm.stopPrank();
+
+        vm.warp(block.timestamp + freshPsm.MAX_REPORT_AGE() + 1);
+        assertFalse(freshPsm.isCPIReportFresh());
+
+        vm.startPrank(alice);
+        token.approve(address(freshPsm), 1e18);
+        freshPsm.withdraw(1e18);
+        vm.stopPrank();
+
+        assertEq(freshPsm.redeemableBalance(alice), 0);
+        assertEq(freshPsm.totalHlcIssued(), 0);
+        assertEq(freshReserve.balanceOf(alice), 1e18);
+    }
+
     function test_DepositReserveByDAO() public {
         reserve.mint(address(timelock), 500e18);
         vm.startPrank(address(timelock));

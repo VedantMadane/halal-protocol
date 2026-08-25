@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.130 - 2026-08-26
+
+- Added a regression test proving that stale CPI data blocks new deposits while preserving an
+  existing holder's withdrawal path during an oracle outage.
+- Documented the one-sided freshness invariant and synchronized contributor-facing test counts with
+  the 172-test suite.
+
 ## 0.1.0-alpha.129 - 2026-08-26
 
 - Added fail-closed health alerts for duplicate CPI adapter signers and signer-owner overlap,

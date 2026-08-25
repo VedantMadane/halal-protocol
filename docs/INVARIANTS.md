@@ -20,6 +20,11 @@ unbacked genesis allocation, transfers it a PSM claim, redeems exactly that clai
 remaining genesis HLC cannot drain the reserve. A plain ERC20 balance is therefore not evidence of
 PSM redemption authority; `redeemableBalance` is the authority boundary.
 
+Oracle freshness is intentionally one-sided: `test_StaleCpiReportStillAllowsExistingHolderToWithdraw`
+proves that a stale report blocks new deposits while an existing holder can still redeem its own
+credit. This preserves an exit path during an oracle outage without allowing new issuance against
+unknown CPI data.
+
 These are deliberately state-transition properties rather than claims that every governance
 override is fully collateralized. Routine `updateCPI()` reports cannot raise `reserveRequired()`
 above the reserve held by the PSM; the DAO-gated `mockCPI()` emergency path can intentionally do so.
