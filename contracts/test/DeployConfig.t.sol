@@ -11,6 +11,14 @@ contract DeployHalalSystemHarness is DeployHalalSystem {
     function expectedChainIdMatches(uint256 expectedChainId, uint256 actualChainId) external pure returns (bool) {
         return _isExpectedChainId(expectedChainId, actualChainId);
     }
+
+    function beneficiariesAreDistinct(address teamBeneficiary, address treasuryBeneficiary)
+        external
+        pure
+        returns (bool)
+    {
+        return _beneficiariesAreDistinct(teamBeneficiary, treasuryBeneficiary);
+    }
 }
 
 contract DeployConfigTest {
@@ -30,5 +38,12 @@ contract DeployConfigTest {
         require(deployer.expectedChainIdMatches(31_337, 31_337));
         require(!deployer.expectedChainIdMatches(31_337, 42_161));
         require(!deployer.expectedChainIdMatches(0, 31_337));
+    }
+
+    function test_BeneficiariesMustBeDistinctAndNonzero() public view {
+        require(deployer.beneficiariesAreDistinct(address(0x1), address(0x2)));
+        require(!deployer.beneficiariesAreDistinct(address(0), address(0x2)));
+        require(!deployer.beneficiariesAreDistinct(address(0x1), address(0)));
+        require(!deployer.beneficiariesAreDistinct(address(0x1), address(0x1)));
     }
 }

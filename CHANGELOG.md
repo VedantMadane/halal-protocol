@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.114 - 2026-08-25
+
+- Made the production deployment script reject shared team/treasury beneficiary addresses, keeping
+  the two vesting allocations under distinct custody boundaries.
+- Added deployment-config regression coverage and synchronized docs with 163 Foundry tests.
+
 ## 0.1.0-alpha.113 - 2026-08-25
 
 - Regenerated the checked-in CPI adapter frontend ABI after the signer-set liveness hardening,

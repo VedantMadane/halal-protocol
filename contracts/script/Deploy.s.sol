@@ -122,7 +122,7 @@ contract DeployHalalSystem is Script {
                 || thresholdWholeHlc == 0 || thresholdWholeHlc > type(uint256).max / 1e18 || cfg.quorumPercent == 0
                 || cfg.quorumPercent > 100 || cfg.timelockDelay == 0 || cfg.reserveToken == address(0)
                 || cfg.teamBeneficiary == address(0) || cfg.treasuryBeneficiary == address(0)
-                || cfg.cpiUpdater == cfg.deployer
+                || cfg.teamBeneficiary == cfg.treasuryBeneficiary || cfg.cpiUpdater == cfg.deployer
         ) revert InvalidConfig();
 
         // forge-lint: disable-next-line(unsafe-typecast)
@@ -135,6 +135,15 @@ contract DeployHalalSystem is Script {
     /// @dev Kept separate so the chain-identity guard can be tested without reading process env vars.
     function _isExpectedChainId(uint256 expectedChainId, uint256 actualChainId) internal pure returns (bool) {
         return expectedChainId != 0 && expectedChainId == actualChainId;
+    }
+
+    function _beneficiariesAreDistinct(address teamBeneficiary, address treasuryBeneficiary)
+        internal
+        pure
+        returns (bool)
+    {
+        return teamBeneficiary != address(0) && treasuryBeneficiary != address(0)
+            && teamBeneficiary != treasuryBeneficiary;
     }
 
     function _defaultVotingPeriod(uint256 chainId) internal pure returns (uint256) {
