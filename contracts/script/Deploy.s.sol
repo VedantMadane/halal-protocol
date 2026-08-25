@@ -13,8 +13,8 @@ import { HalalTimelock } from "../src/HalalTimelock.sol";
 ///   PRIVATE_KEY            deployer key (broadcaster)
 ///   EXPECTED_CHAIN_ID      exact chain id returned by the selected RPC; deployment fails closed on mismatch
 ///   RESERVE_TOKEN          reserve asset for the PSM (e.g. DAI address on the target network)
-///   TEAM_BENEFICIARY       team vesting beneficiary (should be a multisig)
-///   TREASURY_BENEFICIARY   treasury vesting beneficiary (should be a multisig)
+///   TEAM_BENEFICIARY       team vesting beneficiary (should be a multisig, not the deployer)
+///   TREASURY_BENEFICIARY   treasury vesting beneficiary (should be a multisig, not the deployer)
 /// Optional env vars (defaults match docs/TECHNICAL-DOCS.md):
 ///   VOTING_DELAY_BLOCKS (1), VOTING_PERIOD_BLOCKS (chain-aware), PROPOSAL_THRESHOLD_WHOLE_HLC (100),
 ///   QUORUM_PERCENT (4), TIMELOCK_DELAY_SECONDS (172800), CPI_UPDATER (unset)
@@ -121,8 +121,9 @@ contract DeployHalalSystem is Script {
             votingDelay > type(uint48).max || votingPeriod == 0 || votingPeriod > type(uint32).max
                 || thresholdWholeHlc == 0 || thresholdWholeHlc > type(uint256).max / 1e18 || cfg.quorumPercent == 0
                 || cfg.quorumPercent > 100 || cfg.timelockDelay == 0 || cfg.reserveToken == address(0)
-                || cfg.teamBeneficiary == address(0) || cfg.treasuryBeneficiary == address(0)
-                || cfg.teamBeneficiary == cfg.treasuryBeneficiary || cfg.cpiUpdater == cfg.deployer
+                || !_beneficiariesAreDistinct(cfg.teamBeneficiary, cfg.treasuryBeneficiary)
+                || cfg.teamBeneficiary == cfg.deployer || cfg.treasuryBeneficiary == cfg.deployer
+                || cfg.cpiUpdater == cfg.deployer
         ) revert InvalidConfig();
 
         // forge-lint: disable-next-line(unsafe-typecast)

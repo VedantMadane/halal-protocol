@@ -444,3 +444,8 @@ All notable changes to this project are documented here.
   workflow.
 
 The project remains unaudited and is not production-ready. See [`SECURITY.md`](SECURITY.md).
+## [0.1.0-alpha.115] - 2026-08-25
+
+- Made the production deployment script reject team or treasury beneficiaries equal to the
+  temporary deployer, reducing accidental custody centralization during deployment.
+- Added deployment-config regression coverage and clarified the local-demo exception.

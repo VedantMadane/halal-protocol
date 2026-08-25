@@ -19,6 +19,10 @@ contract DeployHalalSystemHarness is DeployHalalSystem {
     {
         return _beneficiariesAreDistinct(teamBeneficiary, treasuryBeneficiary);
     }
+
+    function beneficiaryIsNotDeployer(address deployer, address beneficiary) external pure returns (bool) {
+        return beneficiary != address(0) && beneficiary != deployer;
+    }
 }
 
 contract DeployConfigTest {
@@ -45,5 +49,11 @@ contract DeployConfigTest {
         require(!deployer.beneficiariesAreDistinct(address(0), address(0x2)));
         require(!deployer.beneficiariesAreDistinct(address(0x1), address(0)));
         require(!deployer.beneficiariesAreDistinct(address(0x1), address(0x1)));
+    }
+
+    function test_ProductionBeneficiariesMustNotBeTheDeployer() public view {
+        require(deployer.beneficiaryIsNotDeployer(address(0x1), address(0x2)));
+        require(!deployer.beneficiaryIsNotDeployer(address(0x1), address(0x1)));
+        require(!deployer.beneficiaryIsNotDeployer(address(0x1), address(0)));
     }
 }

@@ -21,7 +21,7 @@ Record the following in a deployment journal:
 
 - chain name and chain ID;
 - reserve token address, symbol, decimals, and transfer behavior;
-- distinct team and treasury beneficiary addresses, with multisig ownership confirmed;
+- distinct team and treasury beneficiary addresses, neither equal to the deployer, with multisig ownership confirmed;
 - DAO, timelock, token, vesting, and PSM addresses;
 - CPI source, report publisher, updater account, key custody, and rotation contact;
 - deployer address and the commit or release used for deployment.
