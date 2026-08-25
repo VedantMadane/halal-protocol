@@ -69,7 +69,9 @@ pnpm gen:abis
 ```
 
 The frontend is a read/write client for deployed contracts. Contract sources and deployment
-instructions live in [`../contracts`](../contracts) and [`../docs`](../docs).
+instructions live in [`../contracts`](../contracts) and [`../docs`](../docs). Governance actions use
+generated ABIs, including the optional CPI report adapter, so reviewers can inspect signer rotation,
+threshold changes, and ownership actions before voting.
 
 The PSM page pauses new deposits when the deployment has no verifiable timestamped CPI report, the
 report is older than the contract's `MAX_REPORT_AGE`, or the reserve is below `reserveRequired()`.

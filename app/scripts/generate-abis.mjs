@@ -24,6 +24,7 @@ const TARGETS = [
   ["HalalPSM", "HalalPSM", "halalPsmAbi"],
   ["HalalDAO", "HalalDAO", "halalDaoAbi"],
   ["HalalTimelock", "HalalTimelock", "halalTimelockAbi"],
+  ["CPIReportAdapter", "CPIReportAdapter", "cpiReportAdapterAbi"],
 ];
 
 // Generic ERC20 ABI for the PSM's reserve token (e.g. DAI/USDC) - sourced from the compiled

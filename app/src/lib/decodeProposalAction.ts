@@ -1,7 +1,23 @@
 import { decodeFunctionData, type Address, type Hex } from "viem";
-import { halalPsmAbi, halalVestingAbi, halalTokenAbi, halalDaoAbi, halalTimelockAbi, erc20Abi } from "@/abis";
+import {
+  halalPsmAbi,
+  halalVestingAbi,
+  halalTokenAbi,
+  halalDaoAbi,
+  halalTimelockAbi,
+  cpiReportAdapterAbi,
+  erc20Abi,
+} from "@/abis";
 
-const ALL_ABIS = [halalPsmAbi, halalVestingAbi, halalTokenAbi, halalDaoAbi, halalTimelockAbi, erc20Abi];
+const ALL_ABIS = [
+  halalPsmAbi,
+  halalVestingAbi,
+  halalTokenAbi,
+  halalDaoAbi,
+  halalTimelockAbi,
+  cpiReportAdapterAbi,
+  erc20Abi,
+];
 
 export interface DecodedAction {
   functionName: string;

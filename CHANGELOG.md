@@ -2,12 +2,19 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.59 - 2026-08-25
+
+- Added a generated `CPIReportAdapter` ABI so the dApp can decode adapter governance actions
+  instead of displaying their raw calldata.
+
 ## 0.1.0-alpha.58 - 2026-08-25
 
 - Added a non-broadcasting CPI adapter handoff generator that checks the adapter's PSM, timelock
   owner, and source ID before printing grant, source, and optional old-updater revocation actions.
 - Added a decodeability test for the handoff action builder and refreshed public test-count references
   to the current 149-test Solidity suite.
+- Added generated `CPIReportAdapter` ABI support so the dApp can decode adapter governance actions
+  instead of displaying their raw calldata.
 
 ## Unreleased
 - Made the PSM reject deposits when no CPI report exists or the accepted report is older than
