@@ -163,6 +163,39 @@ Also monitor these on-chain events and state changes:
 The health script is the minimum check. Pair it with event indexing and an explorer or archive RPC
 when monitoring a public deployment.
 
+### 2.1 Cron or systemd health wrapper
+
+The health command already emits `key=value` records and returns nonzero when a deployment is
+unhealthy. A small wrapper can turn that result into one log line for a scheduler or service
+manager:
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="/opt/halal-protocol"
+if output="$({
+  RPC_URL="$HALAL_RPC_URL" EXPECTED_CHAIN_ID="$HALAL_CHAIN_ID" \
+  TIMELOCK="$HALAL_TIMELOCK" TOKEN="$HALAL_TOKEN" \
+  TEAM_VESTING="$HALAL_TEAM_VESTING" TREASURY_VESTING="$HALAL_TREASURY_VESTING" \
+  DAO="$HALAL_DAO" PSM="$HALAL_PSM" RESERVE_TOKEN="$HALAL_RESERVE_TOKEN" \
+  TEAM_BENEFICIARY="$HALAL_TEAM_BENEFICIARY" TREASURY_BENEFICIARY="$HALAL_TREASURY_BENEFICIARY" \
+  DEPLOYER_ADDRESS="$HALAL_DEPLOYER_ADDRESS" \
+  "$ROOT_DIR/scripts/check-deployment-health.sh";
+} 2>&1)"; then
+  printf 'halal_health status=healthy\n'
+else
+  reason="$(printf '%s\n' "$output" | awk -F= '$1 == "reason" { print $2; exit }')"
+  printf 'halal_health status=unhealthy reason=%s\n' "${reason:-check_failed}" >&2
+  exit 1
+fi
+```
+
+Inject the `HALAL_*` values through a protected service environment or secret manager. Do not put
+private keys in this wrapper: `check-deployment-health.sh` is read-only. Alert on exit status 1 and
+include the emitted `reason` in the incident record. At minimum, exercise the wrapper against a
+stale CPI report and a reserve deficit before enabling automatic alerts.
+
 ## 3. CPI updater operations
 
 Use a dedicated updater account or reviewed consumer. Give it only `UPDATER_ROLE` on the PSM, keep

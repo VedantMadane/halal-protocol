@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.96 - 2026-08-25
+
+- Added a dependency-free cron/systemd health-wrapper example that preserves read-only checks,
+  nonzero failure status, and explicit unhealthy reasons.
+
 ## 0.1.0-alpha.95 - 2026-08-25
 
 - Clarified that CPI freshness is an on-chain deposit gate while reserve-deficit blocking remains a
