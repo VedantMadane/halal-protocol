@@ -2,6 +2,26 @@
 
 ![Halal DAO governance workflow](governance_flow.svg)
 
+## Five-minute contributor map
+
+If this repository is new to you, follow one value-and-control path before reading the full
+reference below. Start a disposable system with `./scripts/local-demo.sh` (or run `make app-smoke`
+for a non-interactive check), then use these files as the map:
+
+| Stage | What happens | Start with |
+| --- | --- | --- |
+| 1. Reserve deposit | A user deposits the configured reserve asset into the PSM; the PSM mints HLC and records the redeemable claim. | [`HalalPSM.sol`](../contracts/src/HalalPSM.sol), [`HalalPSM.t.sol`](../contracts/test/HalalPSM.t.sol) |
+| 2. CPI report | An updater or signed adapter submits a bounded, fresh CPI report; the PSM accepts it only when its replay, cadence, and reserve-health checks pass. | [`CPIReportAdapter.sol`](../contracts/src/CPIReportAdapter.sol), [`CPI-ADAPTER-SPEC.md`](CPI-ADAPTER-SPEC.md) |
+| 3. Redemption | A holder withdraws reserve against HLC or retires a matching redeemable claim; ordinary HLC transfers intentionally do not transfer PSM claim ownership. | [`HalalPSM.sol`](../contracts/src/HalalPSM.sol), [`Treasury.md`](Treasury.md) |
+| 4. Governance | HLC voting power moves a proposal through Governor, quorum, queue, and the timelock before privileged protocol state changes. | [`HalalDAO.sol`](../contracts/src/HalalDAO.sol), [`DAO-Guide.md`](DAO-Guide.md) |
+| 5. Operations and UI | Read-only scripts and the Next.js app expose wiring, CPI freshness, reserve coverage, adapter alignment, and deployment evidence. | [`check-deployment-health.sh`](../scripts/check-deployment-health.sh), [`app/src/app/health`](../app/src/app/health), [`OPERATOR-RUNBOOK.md`](OPERATOR-RUNBOOK.md) |
+
+For a focused first contribution, choose a path in [`CONTRIBUTOR-MAP.md`](CONTRIBUTOR-MAP.md), run
+the smallest relevant test, and read [`DESIGN-DECISIONS.md`](DESIGN-DECISIONS.md) before assuming
+that a planning document describes current behavior. Solidity changes require extra review because
+the reference contracts are immutable and unaudited; security findings belong in the private
+reporting process in [`SECURITY.md`](../SECURITY.md).
+
 ## System Architecture Diagram
 
 ```

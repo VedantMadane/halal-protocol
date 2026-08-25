@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.134 - 2026-08-26
+
+- Added a five-minute contributor map to the architecture guide, linking the deposit, CPI,
+  redemption, governance, and operations paths to their implementation entry points.
+- Made the first-contribution workflow explicit for new reviewers and issue participants.
+
 ## 0.1.0-alpha.133 - 2026-08-26
 
 - Required every public deployment-registry entry to include an HTTPS deployment journal, matching
