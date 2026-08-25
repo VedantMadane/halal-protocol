@@ -125,6 +125,15 @@ jobs:
       - name: forge lint (first-party code)
         run: forge lint src test script --severity high --severity med --severity low --severity gas
 
+      - name: Economic model smoke test
+        working-directory: .
+        run: |
+          node scripts/model-psm.mjs --months=24 --monthly-inflation-bps=50 > /tmp/halal-economic-model.csv
+          grep -q '^24,' /tmp/halal-economic-model.csv
+          grep -q '^24,.*,-[1-9]' /tmp/halal-economic-model.csv
+          node scripts/model-psm.mjs --months=24 --monthly-inflation-bps=50 --apply-topups=true > /tmp/halal-economic-model-topups.csv
+          grep -q '^24,.*,+0,' /tmp/halal-economic-model-topups.csv
+
   abi:
     name: Verify generated ABIs
     needs: changes

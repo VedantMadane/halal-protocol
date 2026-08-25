@@ -49,6 +49,7 @@ conservative accounting model:
 | Can a deployment be checked without a private key? | [`scripts/verify-deployment.sh`](scripts/verify-deployment.sh) |
 | Can I inspect the full system locally? | [`./scripts/local-demo.sh`](scripts/local-demo.sh) on a disposable Anvil chain |
 | Can an operator monitor PSM health without a wallet? | [`scripts/check-psm-health.sh`](scripts/check-psm-health.sh) exits nonzero for stale CPI or reserve deficits |
+| Can I model CPI-driven reserve needs reproducibly? | [`docs/ECONOMIC-MODEL.md`](docs/ECONOMIC-MODEL.md) and `make economic-model` |
 | Are generated frontend interfaces kept in sync? | ABI regeneration is a required CI check |
 | Is the security posture stated plainly? | [`SECURITY.md`](SECURITY.md) and [`docs/THREAT-MODEL.md`](docs/THREAT-MODEL.md) |
 
@@ -106,6 +107,8 @@ walkthrough, and the exact API surface — see:
   updater operations, governance review, and incident response.
 - [`docs/INVARIANTS.md`](docs/INVARIANTS.md) — the stateful PSM properties exercised by Foundry
   and the exact scope of those guarantees.
+- [`docs/ECONOMIC-MODEL.md`](docs/ECONOMIC-MODEL.md) — a dependency-free CPI and reserve-adequacy
+  scenario model with machine-readable output.
 - [`docs/ROADMAP.md`](docs/ROADMAP.md) — the risk-ordered path from unaudited reference
   implementation to independently reviewed testnet and production readiness.
 

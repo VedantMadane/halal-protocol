@@ -40,6 +40,7 @@ narrow roles by governance.
 - Evaluate whether per-address redemption credit is the right long-term settlement model. Ordinary
   HLC transfers deliberately do not move PSM redemption credit today, which is safe against genesis
   allocation leakage but surprising for standard ERC20 users.
+- [x] Publish a deterministic 18-decimal reserve-adequacy scenario model ([`docs/ECONOMIC-MODEL.md`](ECONOMIC-MODEL.md)).
 - Evaluate isolated multi-reserve PSMs and a canonical cross-chain strategy only after the single-
   reserve deployment has meaningful testnet evidence.
 

@@ -1,4 +1,4 @@
-.PHONY: verify contracts-build contracts-test contracts-lint contracts-coverage app-lint app-build abis psm-health
+.PHONY: verify contracts-build contracts-test contracts-lint contracts-coverage app-lint app-build abis psm-health economic-model
 
 verify: contracts-build contracts-test contracts-lint app-lint app-build
 
@@ -25,3 +25,6 @@ abis:
 
 psm-health:
 	./scripts/check-psm-health.sh
+
+economic-model:
+	node scripts/model-psm.mjs

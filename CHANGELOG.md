@@ -4,6 +4,10 @@ All notable changes to this project are documented here.
 
 ## Unreleased
 
+- Added a dependency-free CPI and reserve-adequacy scenario model with CSV output and optional
+  modeled top-ups (`make economic-model`).
+- Added a CI smoke test that confirms the model reports a deficit without top-ups and full reserve
+  coverage when modeled top-ups are enabled.
 - Added an adversarial reserve-token test for ERC20 calls that return `false`, confirming the PSM
   fails closed through `SafeERC20`; the documented suite now has 133 tests.
 - Added the differential arithmetic suite to the scheduled deep workflow at 10,000 fuzz runs per
@@ -11,7 +15,7 @@ All notable changes to this project are documented here.
 - Corrected the differential arithmetic fuzz bounds so cases whose mathematically correct output
   exceeds `uint256` are excluded without reducing coverage of representable boundary values.
 - Added independent differential PSM arithmetic fuzzing across every supported reserve-decimal
-  count, CPI bound, and representable large input; the documented suite now has 132 tests.
+  count, CPI bound, and representable large input.
 - Published `docs/OPERATOR-RUNBOOK.md` with launch acceptance, recurring monitoring, updater
   rotation, governance review, and incident-response procedures.
 - Updated the local demo and CI smoke test to bootstrap a disposable CPI updater and seed a fresh
