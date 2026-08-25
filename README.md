@@ -102,6 +102,8 @@ walkthrough, and the exact API surface — see:
   mitigations, and unresolved risks for reviewers and deployment operators.
 - [`docs/INVARIANTS.md`](docs/INVARIANTS.md) — the stateful PSM properties exercised by Foundry
   and the exact scope of those guarantees.
+- [`docs/ROADMAP.md`](docs/ROADMAP.md) — the risk-ordered path from unaudited reference
+  implementation to independently reviewed testnet and production readiness.
 
 Those docs describe design intent and were written to guide the implementation; a few figures in
 them are approximate/aspirational rather than exact. `contracts/src/` is the ground truth for

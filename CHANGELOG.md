@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## Unreleased
 
+- Added a risk-ordered public roadmap covering audit readiness, testnet operations, monitoring, and
+  the unresolved redemption-credit and economic-model questions.
 - Made vesting beneficiary and deployer-role assertions mandatory in the post-deployment verifier,
   so a successful audit cannot omit deployment identity checks.
 - Extended the local demo and CI deployment smoke test to assert both vesting beneficiaries, and

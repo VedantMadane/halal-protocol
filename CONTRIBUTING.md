@@ -2,8 +2,8 @@
 
 Thanks for considering a contribution. Halal is a real financial protocol (a CPI-indexed
 stablecoin plus the DAO that governs it), so contributions to `contracts/` are held to a higher
-bar than a typical app repo — see [Changes to `contracts/src/`](#changes-to-contractssrc) below
-before you dive in.
+bar than a typical app repo — see the [roadmap](docs/ROADMAP.md) and [Changes to
+`contracts/src/`](#changes-to-contractssrc) below before you dive in.
 
 ## Ground rules
 
