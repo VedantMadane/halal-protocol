@@ -29,8 +29,8 @@ contract DeployCPIReportAdapter is Script {
 
         if (
             expectedChainId == 0 || block.chainid != expectedChainId || psm == address(0) || owner == address(0)
-                || owner == deployer || signerOne == address(0) || signerTwo == address(0) || threshold == 0
-                || sourceId == bytes32(0) || (signerThree == address(0) && threshold > 2)
+                || owner == deployer || !_adapterSignersAreSafe(deployer, signerOne, signerTwo, signerThree)
+                || threshold == 0 || sourceId == bytes32(0) || (signerThree == address(0) && threshold > 2)
                 || (signerThree != address(0) && threshold > 3)
         ) revert InvalidConfig();
 
@@ -52,5 +52,18 @@ contract DeployCPIReportAdapter is Script {
         if (signerThree != address(0)) console.log("Signer 3:", signerThree);
         console.logBytes32(sourceId);
         console.log("Grant UPDATER_ROLE to the adapter only after governance review.");
+    }
+
+    function _adapterSignersAreSafe(address deployer, address signerOne, address signerTwo, address signerThree)
+        internal
+        pure
+        returns (bool)
+    {
+        if (
+            signerOne == address(0) || signerTwo == address(0) || signerOne == signerTwo || signerOne == deployer
+                || signerTwo == deployer
+        ) return false;
+        if (signerThree == address(0)) return true;
+        return signerThree != signerOne && signerThree != signerTwo && signerThree != deployer;
     }
 }

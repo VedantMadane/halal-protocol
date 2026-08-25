@@ -2,6 +2,7 @@
 pragma solidity 0.8.24;
 
 import { DeployHalalSystem } from "../script/Deploy.s.sol";
+import { DeployCPIReportAdapter } from "../script/DeployCPIReportAdapter.s.sol";
 
 contract DeployHalalSystemHarness is DeployHalalSystem {
     function defaultVotingPeriod(uint256 chainId) external pure returns (uint256) {
@@ -25,8 +26,19 @@ contract DeployHalalSystemHarness is DeployHalalSystem {
     }
 }
 
+contract DeployCPIReportAdapterHarness is DeployCPIReportAdapter {
+    function adapterSignersAreSafe(address deployer, address signerOne, address signerTwo, address signerThree)
+        external
+        pure
+        returns (bool)
+    {
+        return _adapterSignersAreSafe(deployer, signerOne, signerTwo, signerThree);
+    }
+}
+
 contract DeployConfigTest {
     DeployHalalSystemHarness internal deployer = new DeployHalalSystemHarness();
+    DeployCPIReportAdapterHarness internal adapterDeployer = new DeployCPIReportAdapterHarness();
 
     function test_ArbitrumDefaultsToOneWeekVotingPeriod() public view {
         require(deployer.defaultVotingPeriod(42_161) == 2_419_200);
@@ -55,5 +67,15 @@ contract DeployConfigTest {
         require(deployer.beneficiaryIsNotDeployer(address(0x1), address(0x2)));
         require(!deployer.beneficiaryIsNotDeployer(address(0x1), address(0x1)));
         require(!deployer.beneficiaryIsNotDeployer(address(0x1), address(0)));
+    }
+
+    function test_AdapterSignersMustBeDistinctAndIndependentFromDeployer() public view {
+        require(adapterDeployer.adapterSignersAreSafe(address(0x1), address(0x2), address(0x3), address(0)));
+        require(adapterDeployer.adapterSignersAreSafe(address(0x1), address(0x2), address(0x3), address(0x4)));
+        require(!adapterDeployer.adapterSignersAreSafe(address(0x1), address(0x1), address(0x3), address(0)));
+        require(!adapterDeployer.adapterSignersAreSafe(address(0x1), address(0x2), address(0x2), address(0)));
+        require(!adapterDeployer.adapterSignersAreSafe(address(0x1), address(0x1), address(0x3), address(0x4)));
+        require(!adapterDeployer.adapterSignersAreSafe(address(0x1), address(0x2), address(0x3), address(0x1)));
+        require(!adapterDeployer.adapterSignersAreSafe(address(0x1), address(0x2), address(0x3), address(0x2)));
     }
 }

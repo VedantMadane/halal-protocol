@@ -193,7 +193,7 @@ Result: CPI rate is updated; the purchasing-power target changes subject to orac
 ## Test Coverage Summary
 
 ```
-Foundry test suite (165 tests: 162 unit/configuration + 3 stateful invariants)
+Foundry test suite (166 tests: 163 unit/configuration + 3 stateful invariants)
 
 ✓ Initialization Tests
   ├─ test_InitialState                    → 10M HLC in vesting
@@ -261,7 +261,7 @@ Based on `forge build --gas-report`:
 | File | Size | Purpose |
 |------|------|---------|
 | `contracts/src/` | First-party protocol contracts |
-| `contracts/test/` | 165 tests (162 unit/configuration + 3 stateful PSM invariants) and fixtures |
+| `contracts/test/` | 166 tests (163 unit/configuration + 3 stateful PSM invariants) and fixtures |
 | `contracts/script/` | Deployment and proposal examples |
 | `app/src/` | Next.js frontend |
 | `docs/` | Protocol and operational documentation |
@@ -300,7 +300,7 @@ Based on `forge build --gas-report`:
 ## Next Steps for You
 
 ### Immediate (This Week)
-1. **Test locally**: `forge test -vvv` ✓ (165/165 should pass)
+1. **Test locally**: `forge test -vvv` ✓ (166/166 should pass)
 2. **Deploy to Arbitrum Sepolia**: `forge script script/Deploy.s.sol:DeployHalalSystem --rpc-url $RPC_URL --private-key $PRIVATE_KEY --broadcast`
 3. **Create test proposal**: Use Examples.s.sol or the non-broadcasting CPI adapter handoff template
 

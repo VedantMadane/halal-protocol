@@ -160,9 +160,10 @@ forge script script/DeployCPIReportAdapter.s.sol:DeployCPIReportAdapter \
 ```
 
 `CPI_SIGNER_3` is optional. The script rejects a zero or mismatched chain ID, a deployer-owned
-adapter, a zero source ID, and an impossible threshold. The adapter constructor also rejects
-duplicate signers. Record the output, source-ID derivation, commit, and deployment transaction in
-the deployment journal.
+adapter, zero or duplicate signer addresses, signer addresses equal to the deployer, a zero source
+ID, and an impossible threshold before broadcasting. The adapter constructor retains the same
+duplicate-signer defense. Record the output, source-ID derivation, commit, and deployment transaction
+in the deployment journal.
 
 ### Governance wiring
 

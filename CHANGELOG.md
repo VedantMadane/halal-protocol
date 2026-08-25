@@ -479,3 +479,8 @@ The project remains unaudited and is not production-ready. See [`SECURITY.md`](S
 
 - Synchronized the generated frontend HalalToken ABI with the alpha120 genesis-recipient guard,
   restoring the generated-ABI CI gate.
+## [0.1.0-alpha.122] - 2026-08-26
+
+- Made the CPI adapter deployment script reject duplicate or deployer-controlled signer addresses
+  before broadcasting.
+- Added focused deployment-config coverage for the adapter signer boundary.
