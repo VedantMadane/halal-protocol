@@ -74,7 +74,8 @@ The system is intended to preserve these properties:
   Production deployments must supply and govern the oracle/relayer infrastructure; timestamped
   reports should use `updateCPIWithTimestamp`. Its report watermark starts empty at deployment, so
   a fresh source report can bootstrap the feed immediately. Later reports observe the configured
-  cadence.
+  cadence. The PSM rejects deposits while the watermark is empty or stale; the frontend repeats
+  that gate to give users an explanation before signing.
 - There is no instant guardian pause or upgrade admin. This avoids a hidden centralized backdoor,
   but means incident response is constrained by the configured governance path.
 - HLC burning is restricted to a `BURNER_ROLE` module. The reference PSM holds that role and burns

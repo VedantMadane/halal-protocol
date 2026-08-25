@@ -27,6 +27,17 @@ contract HalalPSMTest is Deployers {
         vm.stopPrank();
     }
 
+    function _newPsmWithUpdater(MockERC20 targetReserve) internal returns (HalalPSM target) {
+        target = new HalalPSM(address(targetReserve), address(token), address(timelock), address(this));
+    }
+
+    function _bootstrapPsm(HalalPSM target) internal {
+        vm.startPrank(address(timelock));
+        target.grantRole(target.UPDATER_ROLE(), address(this));
+        vm.stopPrank();
+        target.updateCPI(1_000_000);
+    }
+
     function test_DepositMintsOneToOneAtGenesisRate() public {
         vm.prank(alice);
         psm.deposit(1_000e18);
@@ -140,6 +151,7 @@ contract HalalPSMTest is Deployers {
     function test_RevertWhen_DepositRoundsDownToZeroHLC() public {
         MockERC20 highDecimal = new MockERC20("High Decimal", "mHD", 24);
         HalalPSM highDecimalPsm = new HalalPSM(address(highDecimal), address(token), address(timelock), address(0));
+        _bootstrapPsm(highDecimalPsm);
 
         highDecimal.mint(alice, 1);
         vm.startPrank(alice);
@@ -257,21 +269,21 @@ contract HalalPSMTest is Deployers {
         vm.prank(address(timelock));
         psm.grantRole(updaterRole, address(this));
 
+        vm.warp(block.timestamp + psm.minUpdateInterval() + 1);
         vm.expectRevert(HalalPSM.StepTooLarge.selector);
         psm.updateCPI(1_300_000); // >20% jump from 1.0
     }
 
     function test_FirstUpdaterReportIsAcceptedImmediately() public {
-        bytes32 updaterRole = psm.UPDATER_ROLE();
-        vm.prank(address(timelock));
-        psm.grantRole(updaterRole, address(this));
+        MockERC20 freshReserve = new MockERC20("Fresh DAI", "fDAI", 18);
+        HalalPSM freshPsm = _newPsmWithUpdater(freshReserve);
 
         uint256 reportTimestamp = block.timestamp - 1;
-        psm.updateCPIWithTimestamp(1_050_000, reportTimestamp);
+        freshPsm.updateCPIWithTimestamp(1_050_000, reportTimestamp);
 
-        assertEq(psm.cpiRate(), 1_050_000);
-        assertEq(psm.lastReportTimestamp(), reportTimestamp);
-        assertEq(psm.lastUpdated(), block.timestamp);
+        assertEq(freshPsm.cpiRate(), 1_050_000);
+        assertEq(freshPsm.lastReportTimestamp(), reportTimestamp);
+        assertEq(freshPsm.lastUpdated(), block.timestamp);
     }
 
     function test_ConstructorCanBootstrapUpdaterAndDAOCanRevokeIt() public {
@@ -316,15 +328,13 @@ contract HalalPSMTest is Deployers {
     }
 
     function test_FirstTimestampedReportCanPrecedeDeployment() public {
-        bytes32 updaterRole = psm.UPDATER_ROLE();
-        vm.prank(address(timelock));
-        psm.grantRole(updaterRole, address(this));
+        MockERC20 freshReserve = new MockERC20("Fresh DAI", "fDAI", 18);
+        HalalPSM freshPsm = _newPsmWithUpdater(freshReserve);
 
-        uint256 reportTimestamp = psm.lastUpdated() - 1;
-        vm.warp(block.timestamp + psm.minUpdateInterval() + 1);
-        psm.updateCPIWithTimestamp(1_050_000, reportTimestamp);
+        uint256 reportTimestamp = freshPsm.lastUpdated() - 1;
+        freshPsm.updateCPIWithTimestamp(1_050_000, reportTimestamp);
 
-        assertEq(psm.lastReportTimestamp(), reportTimestamp);
+        assertEq(freshPsm.lastReportTimestamp(), reportTimestamp);
     }
 
     function test_UpdaterRejectsReplayedTimestampedReport() public {
@@ -420,15 +430,46 @@ contract HalalPSMTest is Deployers {
     }
 
     function test_UpdaterLargeIntervalUsesExpectedRevert() public {
-        bytes32 updaterRole = psm.UPDATER_ROLE();
+        MockERC20 freshReserve = new MockERC20("Fresh DAI", "fDAI", 18);
+        HalalPSM freshPsm = _newPsmWithUpdater(freshReserve);
         vm.startPrank(address(timelock));
-        psm.setMinUpdateInterval(type(uint256).max);
-        psm.grantRole(updaterRole, address(this));
+        freshPsm.setMinUpdateInterval(type(uint256).max);
         vm.stopPrank();
 
-        psm.updateCPI(1_050_000);
+        freshPsm.updateCPI(1_050_000);
         vm.expectRevert(HalalPSM.UpdateTooSoon.selector);
-        psm.updateCPI(1_050_000);
+        freshPsm.updateCPI(1_050_000);
+    }
+
+    function test_RevertWhen_DepositHasNoCpiReport() public {
+        MockERC20 freshReserve = new MockERC20("Fresh DAI", "fDAI", 18);
+        HalalPSM freshPsm = new HalalPSM(address(freshReserve), address(token), address(timelock), address(0));
+        _grantPsmTokenRoles(freshPsm);
+        assertFalse(freshPsm.isCPIReportFresh());
+        freshReserve.mint(alice, 1e18);
+
+        vm.startPrank(alice);
+        freshReserve.approve(address(freshPsm), 1e18);
+        vm.expectRevert(HalalPSM.CpiReportMissing.selector);
+        freshPsm.deposit(1e18);
+        vm.stopPrank();
+    }
+
+    function test_RevertWhen_DepositHasStaleCpiReport() public {
+        MockERC20 freshReserve = new MockERC20("Fresh DAI", "fDAI", 18);
+        HalalPSM freshPsm = _newPsmWithUpdater(freshReserve);
+        _grantPsmTokenRoles(freshPsm);
+        _bootstrapPsm(freshPsm);
+        assertTrue(freshPsm.isCPIReportFresh());
+        freshReserve.mint(alice, 1e18);
+
+        vm.warp(block.timestamp + freshPsm.MAX_REPORT_AGE() + 1);
+        assertFalse(freshPsm.isCPIReportFresh());
+        vm.startPrank(alice);
+        freshReserve.approve(address(freshPsm), 1e18);
+        vm.expectRevert(HalalPSM.CpiReportStale.selector);
+        freshPsm.deposit(1e18);
+        vm.stopPrank();
     }
 
     function test_DepositReserveByDAO() public {
@@ -518,6 +559,7 @@ contract HalalPSMTest is Deployers {
         MockFeeOnTransferERC20 feeReserve = new MockFeeOnTransferERC20(100); // 1% per transfer
         HalalPSM feePsm = new HalalPSM(address(feeReserve), address(token), address(timelock), address(0));
         _grantPsmTokenRoles(feePsm);
+        _bootstrapPsm(feePsm);
 
         feeReserve.mint(alice, 1_000e18);
         vm.startPrank(alice);
@@ -538,6 +580,7 @@ contract HalalPSMTest is Deployers {
         HalalPSM outgoingFeePsm =
             new HalalPSM(address(outgoingFeeReserve), address(token), address(timelock), address(0));
         _grantPsmTokenRoles(outgoingFeePsm);
+        _bootstrapPsm(outgoingFeePsm);
 
         outgoingFeeReserve.mint(alice, 2_100e18);
         vm.startPrank(alice);
@@ -561,6 +604,7 @@ contract HalalPSMTest is Deployers {
         HalalPSM outgoingFeePsm =
             new HalalPSM(address(outgoingFeeReserve), address(token), address(timelock), address(0));
         _grantPsmTokenRoles(outgoingFeePsm);
+        _bootstrapPsm(outgoingFeePsm);
 
         outgoingFeeReserve.mint(alice, 2_100e18);
         vm.startPrank(alice);
@@ -609,6 +653,7 @@ contract HalalPSMTest is Deployers {
         MockERC20 usdc = new MockERC20("Mock USDC", "mUSDC", 6);
         HalalPSM usdcPsm = new HalalPSM(address(usdc), address(token), address(timelock), address(0));
         _grantPsmTokenRoles(usdcPsm);
+        _bootstrapPsm(usdcPsm);
 
         usdc.mint(alice, 1_000e6);
         vm.startPrank(alice);
@@ -629,6 +674,7 @@ contract HalalPSMTest is Deployers {
         MockERC20 usdc = new MockERC20("Mock USDC", "mUSDC", 6);
         HalalPSM usdcPsm = new HalalPSM(address(usdc), address(token), address(timelock), address(0));
         _grantPsmTokenRoles(usdcPsm);
+        _bootstrapPsm(usdcPsm);
 
         usdc.mint(alice, 1e6);
         vm.startPrank(alice);
@@ -673,6 +719,7 @@ contract HalalPSMTest is Deployers {
         MockERC20 highDecimal = new MockERC20("High Decimal", "mHD", 24);
         HalalPSM hdPsm = new HalalPSM(address(highDecimal), address(token), address(timelock), address(0));
         _grantPsmTokenRoles(hdPsm);
+        _bootstrapPsm(hdPsm);
 
         highDecimal.mint(alice, 1_000e24);
         vm.startPrank(alice);

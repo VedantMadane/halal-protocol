@@ -98,6 +98,8 @@ contract HalalPSM is AccessControl, ReentrancyGuard {
     error DeadlineExpired();
     error InvalidReportTimestamp();
     error ReportTooOld();
+    error CpiReportMissing();
+    error CpiReportStale();
 
     /// @param reserve_ Reserve asset (e.g. DAI). Any ERC20Metadata-compliant token works; decimals
     /// are normalized against HLC's 18 decimals.
@@ -148,6 +150,7 @@ contract HalalPSM is AccessControl, ReentrancyGuard {
     }
 
     function _deposit(uint256 reserveAmount, uint256 minHlcOut) internal {
+        _checkDepositSafety();
         if (reserveAmount == 0) revert ZeroAmount();
         uint256 balanceBefore = reserve.balanceOf(address(this));
         reserve.safeTransferFrom(msg.sender, address(this), reserveAmount);
@@ -284,6 +287,14 @@ contract HalalPSM is AccessControl, ReentrancyGuard {
         return _hlcToReserve(hlcAmount);
     }
 
+    /// @notice Returns whether the PSM has accepted a CPI report within the freshness window.
+    /// Deposits enforce this same condition on-chain; frontends can use this view to explain a
+    /// rejected deposit before the user signs a transaction.
+    function isCPIReportFresh() public view returns (bool) {
+        // forge-lint: disable-next-line(block-timestamp)
+        return lastReportTimestamp != 0 && block.timestamp - lastReportTimestamp <= MAX_REPORT_AGE;
+    }
+
     // ── Oracle / rate management ─────────────────────────────────────────
 
     /// @notice Submits a new CPI reading using the block timestamp as the report timestamp. It is
@@ -380,6 +391,12 @@ contract HalalPSM is AccessControl, ReentrancyGuard {
     function _checkDeadline(uint256 deadline) internal view {
         // forge-lint: disable-next-line(block-timestamp)
         if (block.timestamp > deadline) revert DeadlineExpired();
+    }
+
+    function _checkDepositSafety() internal view {
+        if (lastReportTimestamp == 0) revert CpiReportMissing();
+        // forge-lint: disable-next-line(block-timestamp)
+        if (block.timestamp - lastReportTimestamp > MAX_REPORT_AGE) revert CpiReportStale();
     }
 
     function _setCPI(uint256 newCPI, bool enforceStepLimit) internal {

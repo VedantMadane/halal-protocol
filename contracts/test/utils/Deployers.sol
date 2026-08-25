@@ -69,7 +69,12 @@ abstract contract Deployers is Test {
         dao = new HalalDAO(token, timelock, uint48(VOTING_DELAY), VOTING_PERIOD, PROPOSAL_THRESHOLD, QUORUM_PERCENT);
 
         reserve = new MockERC20("Mock DAI", "mDAI", 18);
-        psm = new HalalPSM(address(reserve), address(token), address(timelock), address(0));
+        // Seed a current report for tests that exercise ordinary user flows. Tests covering the
+        // bootstrap and stale-report gates deploy a fresh PSM without this step.
+        address testUpdater = address(0xBEEF);
+        psm = new HalalPSM(address(reserve), address(token), address(timelock), testUpdater);
+        vm.prank(testUpdater);
+        psm.updateCPI(1_000_000);
 
         // Wire roles: PSM can mint and burn HLC through accounting-aware paths; timelock becomes
         // token admin; deployer gives up all roles.

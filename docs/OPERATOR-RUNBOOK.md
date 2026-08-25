@@ -5,10 +5,11 @@ the repository checkout, Foundry, a read-only RPC endpoint, and access to the de
 governance accounts. Keep private keys in the signer or custody system; do not put them in this
 repository, shell history, CI logs, or monitoring configuration.
 
-The contracts are immutable and the reference system has no protocol-level pause. A frontend can
-block new deposits when its safety checks fail, but a direct contract caller can still submit a
-valid deposit while the PSM has reserve capacity. Treat the PSM health check as an alert and follow
-the reserve and governance procedures below.
+The contracts are immutable and the reference system has no general pause. `HalalPSM` rejects new
+deposits until it has a fresh CPI report, and rejects them again when that report exceeds
+`MAX_REPORT_AGE`. Existing users can still withdraw their own redeemable credit when the reserve
+and accounting checks permit it. Treat the PSM health check as an alert and follow the reserve and
+governance procedures below.
 
 ## 1. Launch acceptance
 
@@ -67,8 +68,9 @@ passes. Explorer verification does not replace the verifier.
 
 ### 1.3 Bootstrap the CPI feed
 
-The PSM starts with `lastReportTimestamp == 0`. Submit a current report through the preferred
-timestamped path before opening the frontend:
+The PSM starts with `lastReportTimestamp == 0`, and its deposit entrypoints reject calls until a
+report has been accepted. Submit a current report through the preferred timestamped path before
+opening the frontend:
 
 ```shell
 REPORT_AT=... # source publication timestamp, in Unix seconds
@@ -104,8 +106,8 @@ Alert on a nonzero exit code and retain the emitted values:
 
 | Signal | Meaning | First response |
 | --- | --- | --- |
-| `reason=timestamped_cpi_report_missing` | No timestamped source report has been accepted | Keep deposits closed in the frontend and bootstrap a reviewed report through the updater |
-| `reason=timestamped_cpi_report_stale` | The latest report is older than `MAX_REPORT_AGE` | Investigate the source and relayer; do not submit invented data |
+| `reason=timestamped_cpi_report_missing` | No timestamped source report has been accepted | The PSM rejects deposits; bootstrap a reviewed report through the updater |
+| `reason=timestamped_cpi_report_stale` | The latest report is older than `MAX_REPORT_AGE` | The PSM rejects deposits; investigate the source and relayer |
 | `reason=reserve_deficit` | Current reserve is below `reserveRequired()` | Stop public promotion, investigate reserve movements, and prepare a governance-approved top-up |
 | `warning=normal_cpi_update_overdue` | `lastUpdated + minUpdateInterval` has passed | Check the updater queue and source publication schedule |
 
@@ -186,7 +188,8 @@ that submits or executes the proposal.
 1. Confirm `reserveSurplus()` and the reserve token balance from an independent RPC.
 2. Identify CPI changes, withdrawals, cancellations, reserve transfers, and reserve-token events
    since the last healthy check.
-3. Stop new public promotion and explain that direct contract deposits are not protocol-paused.
+3. Stop new public promotion. The frontend blocks deposits while the deficit remains visible;
+   the contract's CPI freshness gate remains independent of that reserve alert.
 4. Prepare a governance proposal to top up the reserve or apply another documented mitigation.
 5. Do not withdraw reserve surplus while the deficit exists. Re-run the health check after every
    governance or reserve action.

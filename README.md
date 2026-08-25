@@ -44,10 +44,11 @@ conservative accounting model:
 
 | Reviewer question | Evidence in this repository |
 | --- | --- |
-| Does the accounting have stateful coverage? | 136 Foundry tests, including 3 PSM invariants, differential arithmetic checks, and fuzzing |
+| Does the accounting have stateful coverage? | 138 Foundry tests, including 3 PSM invariants, differential arithmetic checks, and fuzzing |
 | Do invariants cover CPI changes? | [`docs/INVARIANTS.md`](docs/INVARIANTS.md) models governance rate changes and reserve top-ups |
 | Can a deployment be checked without a private key? | [`scripts/verify-deployment.sh`](scripts/verify-deployment.sh) |
 | Can I inspect the full system locally? | [`./scripts/local-demo.sh`](scripts/local-demo.sh) on a disposable Anvil chain |
+| Does the PSM fail closed on missing or stale CPI data? | `HalalPSM` rejects deposits until `isCPIReportFresh()` is true; the dApp mirrors the gate |
 | Can an operator monitor PSM health without a wallet? | [`scripts/check-psm-health.sh`](scripts/check-psm-health.sh) exits nonzero for stale CPI or reserve deficits |
 | Can I model CPI-driven reserve needs reproducibly? | [`docs/ECONOMIC-MODEL.md`](docs/ECONOMIC-MODEL.md) and `make economic-model` |
 | Are public deployment addresses reviewable? | [`docs/DEPLOYMENT-REGISTRY.md`](docs/DEPLOYMENT-REGISTRY.md) and the checked-in registry |
@@ -60,7 +61,7 @@ discipline, not a safety guarantee.
 ## Status & risk
 
 **This protocol has not undergone a professional security audit, and there is no bug bounty
-program yet.** The contracts pass their own test suite (136/136 at the time of writing — 133 unit
+program yet.** The contracts pass their own test suite (138/138 at the time of writing — 135 unit
 and configuration tests plus 3 stateful invariants; see
 `contracts/test/`), but a passing test suite is not a substitute for an audit, and this repo
 should not be treated as safe to use with real, meaningful funds. If you deploy or interact with

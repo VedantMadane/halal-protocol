@@ -315,6 +315,19 @@ export const halalPsmAbi = [
   },
   {
     "type": "function",
+    "name": "isCPIReportFresh",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "lastReportTimestamp",
     "inputs": [],
     "outputs": [
@@ -993,6 +1006,16 @@ export const halalPsmAbi = [
         "internalType": "bytes32"
       }
     ]
+  },
+  {
+    "type": "error",
+    "name": "CpiReportMissing",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "CpiReportStale",
+    "inputs": []
   },
   {
     "type": "error",

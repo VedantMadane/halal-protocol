@@ -10,6 +10,8 @@ const KNOWN_ERRORS: Record<string, string> = {
   UnsupportedDecimals: "This reserve token uses unsupported decimal precision.",
   ZeroAllocation: "Allocation must be greater than zero.",
   RateOutOfBounds: "That CPI rate is outside the allowed 0.1–2.0 range.",
+  CpiReportMissing: "Deposits are paused until the PSM accepts its first CPI report.",
+  CpiReportStale: "Deposits are paused because the PSM's CPI report is stale.",
   StepTooLarge: "That CPI change is larger than the 20% per-update limit.",
   UpdateTooSoon: "The minimum interval between CPI updates hasn't elapsed yet.",
   InvalidUpdateInterval: "The CPI update interval must be greater than zero.",
