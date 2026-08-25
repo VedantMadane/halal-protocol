@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.98 - 2026-08-25
+
+- Added browser coverage proving the wallet-free deployment health page renders its read-only
+  checks on the disposable local deployment.
+
 ## 0.1.0-alpha.97 - 2026-08-25
 
 - Added a reserve-token compatibility matrix that separates tested transfer and decimal behavior

@@ -111,6 +111,18 @@ async function installAnvilProvider(page: Page) {
   }, { rpcUrl: RPC_URL, account: ANVIL_ACCOUNT });
 }
 
+test("renders deployment health without a wallet provider", async ({ page }) => {
+  await page.goto("/health");
+
+  await expect(page.getByRole("heading", { name: "Deployment health" })).toBeVisible();
+  await expect(page.getByText("Read-only checks from the selected chain.")).toBeVisible();
+  await expect(page.getByText("Deployment checks")).toBeVisible();
+  await expect(page.getByText("Chain ID:").locator("..")).toContainText("31337");
+  await expect(page.getByText("Contract wiring and roles")).toBeVisible();
+  await expect(page.getByText("CPI report freshness")).toBeVisible();
+  await expect(page.getByText("PSM reserve coverage")).toBeVisible();
+});
+
 test("withdraws through the real HLC permit flow on disposable Anvil state", async ({ page }) => {
   await seedRedeemableHlc();
   await installAnvilProvider(page);
