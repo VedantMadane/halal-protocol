@@ -3,8 +3,10 @@ pragma solidity 0.8.24;
 
 import { Test } from "forge-std/Test.sol";
 import { CPIReportAdapter } from "../src/CPIReportAdapter.sol";
+import { CPIAdapterGovernance } from "../src/CPIAdapterGovernance.sol";
 import { HalalPSM } from "../src/HalalPSM.sol";
 import { HalalToken } from "../src/HalalToken.sol";
+import { IAccessControl } from "@openzeppelin/contracts/access/IAccessControl.sol";
 import { MockCPIReportSink } from "./mocks/MockCPIReportSink.sol";
 import { MockERC20 } from "./mocks/MockERC20.sol";
 
@@ -140,6 +142,33 @@ contract CPIReportAdapterTest is Test {
         adapter.setThreshold(3);
         vm.expectRevert(CPIReportAdapter.InvalidThreshold.selector);
         adapter.removeSigner(signerOne);
+    }
+
+    function test_BuildsDecodeableGovernanceHandoff() public view {
+        address oldUpdater = address(0xBEEF);
+        (address[] memory targets, uint256[] memory values, bytes[] memory calldatas) =
+            CPIAdapterGovernance.buildHandoff(address(sink), address(adapter), "BLS:CUUR0000SA0", oldUpdater);
+
+        assertEq(targets.length, 3);
+        assertEq(values.length, 3);
+        assertEq(calldatas.length, 3);
+        assertEq(targets[0], address(sink));
+        assertEq(targets[1], address(sink));
+        assertEq(targets[2], address(sink));
+        assertEq(values[0], 0);
+        assertEq(values[1], 0);
+        assertEq(values[2], 0);
+        assertEq(calldatas[0], abi.encodeCall(IAccessControl.grantRole, (keccak256("UPDATER_ROLE"), address(adapter))));
+        assertEq(calldatas[1], abi.encodeCall(HalalPSM.setSource, ("BLS:CUUR0000SA0")));
+        assertEq(calldatas[2], abi.encodeCall(IAccessControl.revokeRole, (keccak256("UPDATER_ROLE"), oldUpdater)));
+
+        (targets, values, calldatas) =
+            CPIAdapterGovernance.buildHandoff(address(sink), address(adapter), "BLS:CUUR0000SA0", address(0));
+        assertEq(targets.length, 2);
+        assertEq(values.length, 2);
+        assertEq(calldatas.length, 2);
+        assertEq(calldatas[0], abi.encodeCall(IAccessControl.grantRole, (keccak256("UPDATER_ROLE"), address(adapter))));
+        assertEq(calldatas[1], abi.encodeCall(HalalPSM.setSource, ("BLS:CUUR0000SA0")));
     }
 
     function _signReport(uint256 reportedCPI, uint256 reportedAt, uint256 firstKey)

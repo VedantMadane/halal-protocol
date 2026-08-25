@@ -7,7 +7,7 @@ read [`SECURITY.md`](../SECURITY.md) before using real funds. It includes:
 
 - **HalalDAO.sol** - OpenZeppelin Governor with voting
 - **HalalTimelock.sol** - 2-day execution delay
-- **Full Test Suite** - 148 tests (145 unit/configuration tests plus 3 stateful PSM invariants) covering the core workflows
+- **Full Test Suite** - 149 tests (146 unit/configuration tests plus 3 stateful PSM invariants) covering the core workflows
 - **Deployment Script** - One-command setup
 - **Example Proposals** - Ready-to-use proposal templates
 
@@ -74,21 +74,48 @@ call: psm.setSource(newJS)
 effect: Switch from US CPI → China CPI (or other)
 ```
 
-### 3. **Grant a Module Minting Permission**
+### 3. **Hand Off Routine CPI Reporting to the Quorum Adapter**
+
+Prepare the governance calldata with the non-broadcasting helper:
+
+```bash
+export PSM=0x...
+export CPI_ADAPTER=0x...
+export TIMELOCK=0x...
+export CPI_SOURCE='BLS:CUUR0000SA0'
+export EXPECTED_CPI_SOURCE_ID=0x...
+export OLD_CPI_UPDATER=0x... # optional; revoke after the adapter is granted
+
+forge script script/PrepareCPIAdapterHandoff.s.sol:PrepareCPIAdapterHandoff \
+  --rpc-url "$RPC_URL"
+```
+
+The output contains three zero-value actions when `OLD_CPI_UPDATER` is set:
+
+1. `PSM.grantRole(UPDATER_ROLE, CPI_ADAPTER)`
+2. `PSM.setSource(CPI_SOURCE)`
+3. `PSM.revokeRole(UPDATER_ROLE, OLD_CPI_UPDATER)`
+
+The script checks that the adapter points to the selected PSM, is owned by the selected timelock,
+and carries the expected `sourceId`; it never broadcasts. Review the signer threshold and signer
+addresses before submitting the returned arrays through the DAO. The handoff builder has a decodeability test in
+`CPIReportAdapter.t.sol`.
+
+### 4. **Grant a Module Minting Permission**
 ```solidity
 targets: [Token]
 call: token.grantRole(token.MINTER_ROLE(), module)
 effect: Authorize a separately reviewed module to mint HLC; the DAO/timelock is not itself a minter
 ```
 
-### 4. **Revoke Team Vesting**
+### 5. **Revoke Team Vesting**
 ```solidity
 targets: [TeamVesting]
 call: teamVesting.revoke()
 effect: Emergency return of unvested tokens to DAO treasury
 ```
 
-### 5. **Release Treasury Vesting (no proposal required)**
+### 6. **Release Treasury Vesting (no proposal required)**
 ```solidity
 call: treasuryVesting.release()
 caller: beneficiary, multisig operator, or any third party
@@ -99,7 +126,7 @@ effect: vested tokens are sent to the configured treasury beneficiary
 beneficiary. A DAO proposal is only needed for DAO-controlled actions such as revoking the
 revocable team schedule.
 
-### 6. **Change Governance Parameters** (future deployment)
+### 7. **Change Governance Parameters** (future deployment)
 
 The current non-upgradeable `HalalDAO` keeps its voting delay, voting period, proposal threshold,
 and quorum settings in the deployed Governor. Changing them requires deploying and wiring a new
@@ -167,7 +194,7 @@ forge test -vvv
 # ✓ test_CastVote_For
 # ✓ test_FullProposalFlow
 # ✓ test_DAO_ControlsPSM_AfterTakeover
-# ... (148 tests: 145 unit/configuration + 3 invariants) ...
+# ... (149 tests: 146 unit/configuration + 3 invariants) ...
 ```
 
 ### Step 3: Verify on Arbiscan
@@ -352,7 +379,7 @@ timelocked migration of protocol roles.
 
 Before moving to Arbitrum mainnet:
 
-- [ ] All tests passing locally and on the target network (148/148 local suite)
+- [ ] All tests passing locally and on the target network (149/149 local suite)
 - [ ] Manual proposal cycle tested (create → vote → queue → execute)
 - [ ] Team vesting wallet is multisig (e.g., Gnosis Safe)
 - [ ] Treasury vesting wallet is multisig
@@ -366,10 +393,11 @@ Before moving to Arbitrum mainnet:
 
 ## Files Included
 
-- `contracts/src/` — five core contracts plus the optional CPI report adapter
-- `contracts/test/` — 148 tests (145 unit/configuration tests plus 3 stateful PSM invariants) and fixtures
+- `contracts/src/` — five core contracts plus the optional CPI report adapter and handoff action builder
+- `contracts/test/` — 149 tests (146 unit/configuration tests plus 3 stateful PSM invariants) and fixtures
 - `contracts/script/Deploy.s.sol` — full-system deployment script
 - `contracts/script/Examples.s.sol` — governance proposal examples
+- `contracts/script/PrepareCPIAdapterHandoff.s.sol` — non-broadcasting adapter handoff calldata generator
 - `app/` — Next.js frontend
 
 ---

@@ -2,8 +2,14 @@
 
 All notable changes to this project are documented here.
 
-## Unreleased
+## 0.1.0-alpha.58 - 2026-08-25
 
+- Added a non-broadcasting CPI adapter handoff generator that checks the adapter's PSM, timelock
+  owner, and source ID before printing grant, source, and optional old-updater revocation actions.
+- Added a decodeability test for the handoff action builder and refreshed public test-count references
+  to the current 149-test Solidity suite.
+
+## Unreleased
 - Made the PSM reject deposits when no CPI report exists or the accepted report is older than
   `MAX_REPORT_AGE`, so the safety gate applies to direct contract callers as well as the dApp.
 - Made public deployment manifests carry a deployment transaction and HTTPS explorer/source links.

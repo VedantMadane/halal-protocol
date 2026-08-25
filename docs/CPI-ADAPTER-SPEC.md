@@ -140,6 +140,12 @@ the deployment journal.
    adapter's PSM role only after the new adapter passes its first-report and health checks.
 7. Review signer additions, removals, threshold changes, and owner transfers as governance actions.
 
+The repository includes `script/PrepareCPIAdapterHandoff.s.sol` to prepare the grant, source update,
+and optional old-updater revocation as zero-value DAO actions. The script requires `PSM`,
+`CPI_ADAPTER`, `TIMELOCK`, `CPI_SOURCE`, and `EXPECTED_CPI_SOURCE_ID`; it checks the adapter's
+immutable PSM binding, owner, and source ID, then prints calldata without broadcasting. Review the
+signer set and threshold separately before submitting the returned arrays.
+
 The module remains unaudited. A deployment must not treat the presence of this source file or its
 tests as an approval to accept meaningful funds.
 

@@ -1,0 +1,31 @@
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.24;
+
+/// @notice Encodes the DAO actions required to hand CPI reporting to a quorum adapter.
+/// @dev The caller must verify the adapter address, source policy, and old updater before
+/// submitting the returned proposal. The optional old updater is revoked last so the adapter
+/// remains authorized throughout the handoff.
+library CPIAdapterGovernance {
+    bytes32 internal constant UPDATER_ROLE = keccak256("UPDATER_ROLE");
+
+    function buildHandoff(address psm, address adapter, string memory source, address oldUpdater)
+        internal
+        pure
+        returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
+    {
+        uint256 actionCount = oldUpdater == address(0) ? 2 : 3;
+        targets = new address[](actionCount);
+        values = new uint256[](actionCount);
+        calldatas = new bytes[](actionCount);
+
+        targets[0] = psm;
+        calldatas[0] = abi.encodeWithSignature("grantRole(bytes32,address)", UPDATER_ROLE, adapter);
+        targets[1] = psm;
+        calldatas[1] = abi.encodeWithSignature("setSource(string)", source);
+
+        if (oldUpdater != address(0)) {
+            targets[2] = psm;
+            calldatas[2] = abi.encodeWithSignature("revokeRole(bytes32,address)", UPDATER_ROLE, oldUpdater);
+        }
+    }
+}
