@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.78 - 2026-08-25
+
+- Added the HLC permit path to the dApp withdrawal form, with runtime selector detection for older
+  immutable PSM deployments and an approval fallback.
+- Added typed-data signing and signature encoding to the withdrawal smoke-tested frontend build.
+
 ## 0.1.0-alpha.77 - 2026-08-25
 
 - Added the HLC permit transfer path to the dApp's redeemable-credit form, with a standard approval

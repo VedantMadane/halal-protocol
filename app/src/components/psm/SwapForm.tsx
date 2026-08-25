@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { formatUnits, parseUnits, toFunctionSelector } from "viem";
-import { useAccount, useBlock, useBytecode, useReadContract, useSimulateContract } from "wagmi";
+import { formatUnits, parseSignature, parseUnits, toFunctionSelector } from "viem";
+import { useAccount, useBlock, useBytecode, useChainId, useReadContract, useSignTypedData, useSimulateContract } from "wagmi";
 import { erc20Abi, halalPsmAbi, halalTokenAbi } from "@/abis";
 import { useDeployment } from "@/hooks/useDeployment";
 import { useDeploymentIntegrity } from "@/hooks/useDeploymentIntegrity";
@@ -23,6 +23,9 @@ const DEPOSIT_DEADLINE_SELECTOR = toFunctionSelector(
 );
 const WITHDRAW_DEADLINE_SELECTOR = toFunctionSelector(
   "function withdrawWithMinReserveOutAndDeadline(uint256,uint256,uint256)",
+);
+const WITHDRAW_PERMIT_SELECTOR = toFunctionSelector(
+  "function withdrawWithPermit(uint256,uint256,uint256,uint8,bytes32,bytes32)",
 );
 
 function safeParseUnits(value: string, decimals: number): bigint | undefined {
@@ -75,6 +78,7 @@ function SwapFormInner({
   reserveSymbolFallback,
   cpiRate,
   depositBlockedReason,
+  address,
   isConnected,
   user,
   mode,
@@ -102,7 +106,10 @@ function SwapFormInner({
   deploymentVerified: boolean;
   verificationChecking: boolean;
 }) {
+  const chainId = useChainId();
   const [slippageBps, setSlippageBps] = useState(50);
+  const [permitError, setPermitError] = useState<string>();
+  const { signTypedDataAsync, isPending: isSigningPermit } = useSignTypedData();
   const { data: reserveDecimals, isError: reserveDecimalsError, error: reserveMetadataError } = useReadContract({
     address: deploymentReserve,
     abi: erc20Abi,
@@ -126,7 +133,16 @@ function SwapFormInner({
   const supportsDeadlineActions =
     runtimeBytecode.includes(DEPOSIT_DEADLINE_SELECTOR.slice(2).toLowerCase()) &&
     runtimeBytecode.includes(WITHDRAW_DEADLINE_SELECTOR.slice(2).toLowerCase());
+  const supportsWithdrawPermit = runtimeBytecode.includes(WITHDRAW_PERMIT_SELECTOR.slice(2).toLowerCase());
   const deadline = latestBlock?.timestamp !== undefined ? latestBlock.timestamp + DEADLINE_WINDOW : undefined;
+
+  const { data: permitNonce } = useReadContract({
+    address: deploymentToken,
+    abi: halalTokenAbi,
+    functionName: "nonces",
+    args: address ? [address] : undefined,
+    query: { enabled: isConnected && mode === "withdraw" },
+  });
 
   const reserveMetadataReady = reserveDecimals !== undefined;
   // Reserve amounts use the reserve token's native precision; HLC is always 18 decimals.
@@ -273,6 +289,59 @@ function SwapFormInner({
     actionTx.writeContract(actionSimulation.data.request);
   }
 
+  async function handleWithdrawWithPermit() {
+    if (
+      mode !== "withdraw" ||
+      !address ||
+      parsedAmount === undefined ||
+      parsedAmount === 0n ||
+      minOutput === undefined ||
+      deadline === undefined ||
+      permitNonce === undefined
+    ) {
+      return;
+    }
+
+    setPermitError(undefined);
+    try {
+      const signature = await signTypedDataAsync({
+        domain: {
+          name: "Halal",
+          version: "1",
+          chainId,
+          verifyingContract: deploymentToken,
+        },
+        types: {
+          Permit: [
+            { name: "owner", type: "address" },
+            { name: "spender", type: "address" },
+            { name: "value", type: "uint256" },
+            { name: "nonce", type: "uint256" },
+            { name: "deadline", type: "uint256" },
+          ],
+        },
+        primaryType: "Permit",
+        message: {
+          owner: address,
+          spender: deploymentPsm,
+          value: parsedAmount,
+          nonce: permitNonce,
+          deadline,
+        },
+      });
+      const { v, r, s } = parseSignature(signature);
+      if (v === undefined) throw new Error("Wallet returned an incomplete permit signature.");
+      actionTx.writeContract({
+        address: deploymentPsm,
+        abi: halalPsmAbi,
+        functionName: "withdrawWithPermit",
+        args: [parsedAmount, minOutput, deadline, Number(v), r, s],
+      });
+    } catch (error) {
+      setPermitError(getFriendlyErrorMessage(error));
+    }
+  }
+
   const fromSymbol = mode === "deposit" ? symbol : "HLC";
   const toSymbol = mode === "deposit" ? "HLC" : symbol;
 
@@ -286,6 +355,11 @@ function SwapFormInner({
       {mode === "deposit" && depositBlockedReason && (
         <Alert tone="danger" title="Deposit paused by protocol safety checks">
           {depositBlockedReason}
+        </Alert>
+      )}
+      {permitError && (
+        <Alert tone="danger" title="Permit withdrawal was not signed">
+          {permitError} You can approve HLC first and retry the withdrawal.
         </Alert>
       )}
       {actionSimulation.isError && (
@@ -434,9 +508,30 @@ function SwapFormInner({
           Transaction would fail
         </Button>
       ) : needsApproval ? (
-        <Button className="w-full" onClick={handleApprove} loading={approveTx.isPending || approveTx.isConfirming}>
-          Approve {fromSymbol}
-        </Button>
+        mode === "withdraw" && supportsWithdrawPermit ? (
+          <div className="space-y-2">
+            <Button
+              className="w-full"
+              onClick={handleWithdrawWithPermit}
+              disabled={permitNonce === undefined || deadline === undefined || minOutput === undefined}
+              loading={isSigningPermit || actionTx.isPending || actionTx.isConfirming}
+            >
+              Sign & withdraw in one transaction
+            </Button>
+            <Button
+              className="w-full"
+              variant="secondary"
+              onClick={handleApprove}
+              loading={approveTx.isPending || approveTx.isConfirming}
+            >
+              Approve HLC first
+            </Button>
+          </div>
+        ) : (
+          <Button className="w-full" onClick={handleApprove} loading={approveTx.isPending || approveTx.isConfirming}>
+            Approve {fromSymbol}
+          </Button>
+        )
       ) : (
           <Button
             className="w-full"

@@ -66,6 +66,7 @@ conservative accounting model:
 | Is the CI supply chain independently scored? | The pinned-action [`Scorecard workflow`](.github/workflows/scorecard.yml) publishes OpenSSF SARIF results |
 | Can a permit-capable wallet approve and act in one transaction? | `HalalPSM` exposes bounded EIP-2612 paths for deposits, withdrawals, and redeemable-credit transfers |
 | Does the dApp expose permit transfers? | The redeemable-credit form offers “Sign & transfer in one transaction” with approval fallback |
+| Does the dApp expose permit withdrawals? | The swap form detects the deployed PSM selector and offers signed HLC withdrawal with approval fallback |
 | Are release sources checksummed and attestable? | [`Release artifacts`](.github/workflows/release-artifacts.yml) publishes a reproducible source bundle, SHA-256 checksum, and build-provenance attestation |
 | Is the security posture stated plainly? | [`SECURITY.md`](SECURITY.md) and [`docs/THREAT-MODEL.md`](docs/THREAT-MODEL.md) |
 | Is the production CPI integration boundary defined? | [`docs/CPI-ADAPTER-SPEC.md`](docs/CPI-ADAPTER-SPEC.md) and [issue #17](https://github.com/fredrikblau/halal-protocol/issues/17) |

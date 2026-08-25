@@ -99,6 +99,9 @@ The redeemable-credit transfer form offers an HLC EIP-2612 permit flow when the 
 typed-data signing. The form submits the signed transfer in one transaction and keeps the two-step
 approval flow available as a fallback.
 
+The swap form offers the same permit flow for HLC withdrawals when the selected PSM exposes the
+permit selector. Older immutable deployments use the approval flow automatically.
+
 The dashboard also shows the six most recent `CPIUpdated` events from the configured deployment
 block. Each row includes the block, transaction hash, rate change, and whether the updater or a
 governance override submitted it. A failed event read appears as an error instead of an incomplete
