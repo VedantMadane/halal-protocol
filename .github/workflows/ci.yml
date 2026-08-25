@@ -71,7 +71,7 @@ jobs:
         run: forge fmt --check src test script
 
       - name: forge build
-        run: forge build --sizes
+        run: forge build --force --sizes
 
       - name: Local deployment smoke test
         run: |
@@ -87,7 +87,7 @@ jobs:
           PRIVATE_KEY="$LOCAL_PRIVATE_KEY" \
             CPI_UPDATER="$LOCAL_UPDATER_ADDRESS" \
             forge script script/DeployLocal.s.sol:DeployLocalHalalSystem \
-            --rpc-url http://127.0.0.1:18545 --broadcast --non-interactive | tee "$DEPLOY_LOG"
+            --rpc-url http://127.0.0.1:18545 --broadcast --non-interactive --force | tee "$DEPLOY_LOG"
           value_from_env() {
             awk -F= -v key="$1" '$1 ~ key {gsub(/^[[:space:]]+|[[:space:]]+$/, "", $2); print $2}' "$DEPLOY_LOG"
           }
@@ -148,7 +148,7 @@ jobs:
 
       - name: Build contracts
         working-directory: contracts
-        run: forge build
+        run: forge build --force
 
       - name: Install pnpm
         uses: pnpm/action-setup@v6
