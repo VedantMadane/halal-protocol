@@ -217,11 +217,12 @@ in the report archive. Never place a production signer key in the repository or 
 
 ## Reference source profile: U.S. CPI-U
 
-The repository includes a parser for the BLS CPI-U all-items series `CUUR0000SA0`, which BLS
-identifies as the all-items U.S. city average for all urban consumers, not seasonally adjusted.
-The official API exposes the series ID, monthly period, and index value through its latest-series
-endpoint. It does not supply the source publication timestamp required by the PSM, so the operator
-must copy that timestamp from the archived BLS release record and retain both records together.
+The repository includes a parser for the BLS CPI-U all-items series `CUUR0000SA0`, which [BLS
+identifies](https://www.bls.gov/cpi/factsheets/cpi-series-ids.htm) as the all-items U.S. city average
+for all urban consumers, not seasonally adjusted. The [official API](https://www.bls.gov/developers/api_signature_v2.htm)
+exposes the series ID, monthly period, and index value through its latest-series endpoint. It does
+not supply the source publication timestamp required by the PSM, so the operator must copy that
+timestamp from the archived BLS release record and retain both records together.
 
 Fetch the latest series response from the official API, then convert the raw index into the protocol
 ratio using the deployment's documented base index:
