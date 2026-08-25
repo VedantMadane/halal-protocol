@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.84 - 2026-08-25
+
+- Fixed client-side loading of per-chain `NEXT_PUBLIC_HLC_*` deployment overrides in Next.js.
+- Added a disposable-Anvil Playwright test for the browser HLC permit withdrawal flow and wired it
+  into `make verify` and frontend CI.
+
 ## 0.1.0-alpha.83 - 2026-08-25
 
 - Added a safe default `make` help target that lists the verification, demo, and development

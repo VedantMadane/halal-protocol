@@ -11,7 +11,8 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
-    "gen:abis": "node scripts/generate-abis.mjs"
+    "gen:abis": "node scripts/generate-abis.mjs",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@rainbow-me/rainbowkit": "^2.2.11",
@@ -23,6 +24,7 @@
     "wagmi": "^2.19.5"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

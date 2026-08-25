@@ -221,3 +221,9 @@ jobs:
 
       - name: Configured local dApp smoke test
         run: cd .. && ./scripts/local-app-smoke.sh
+
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Browser permit-flow test
+        run: pnpm test:e2e

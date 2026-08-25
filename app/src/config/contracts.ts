@@ -144,20 +144,56 @@ type DeploymentRegistry = Partial<Record<string, DeploymentSource>>;
 const registry = deploymentRegistry as DeploymentRegistry;
 
 function configuredDeployment(chainId: number): HalalDeployment | undefined {
-  const suffix = String(chainId);
+  if (chainId !== 31337 && chainId !== 421614 && chainId !== 42161) return undefined;
+  const suffix = String(chainId) as "31337" | "421614" | "42161";
   const registered = registry[suffix] ?? {};
+  // Keep these references static: Next.js only exposes NEXT_PUBLIC_* variables to client code
+  // when the property name is statically analyzable at build time.
+  const environment: Record<typeof suffix, DeploymentSource> = {
+    "31337": {
+      token: process.env.NEXT_PUBLIC_HLC_TOKEN_31337,
+      teamVesting: process.env.NEXT_PUBLIC_HLC_TEAM_VESTING_31337,
+      treasuryVesting: process.env.NEXT_PUBLIC_HLC_TREASURY_VESTING_31337,
+      psm: process.env.NEXT_PUBLIC_HLC_PSM_31337,
+      dao: process.env.NEXT_PUBLIC_HLC_DAO_31337,
+      timelock: process.env.NEXT_PUBLIC_HLC_TIMELOCK_31337,
+      reserveToken: process.env.NEXT_PUBLIC_HLC_RESERVE_TOKEN_31337,
+      reserveTokenSymbol: process.env.NEXT_PUBLIC_HLC_RESERVE_SYMBOL_31337,
+      deploymentBlock: process.env.NEXT_PUBLIC_HLC_DEPLOYMENT_BLOCK_31337,
+      cpiAdapter: process.env.NEXT_PUBLIC_HLC_CPI_ADAPTER_31337,
+      cpiSourceId: process.env.NEXT_PUBLIC_HLC_CPI_SOURCE_ID_31337,
+    },
+    "421614": {
+      token: process.env.NEXT_PUBLIC_HLC_TOKEN_421614,
+      teamVesting: process.env.NEXT_PUBLIC_HLC_TEAM_VESTING_421614,
+      treasuryVesting: process.env.NEXT_PUBLIC_HLC_TREASURY_VESTING_421614,
+      psm: process.env.NEXT_PUBLIC_HLC_PSM_421614,
+      dao: process.env.NEXT_PUBLIC_HLC_DAO_421614,
+      timelock: process.env.NEXT_PUBLIC_HLC_TIMELOCK_421614,
+      reserveToken: process.env.NEXT_PUBLIC_HLC_RESERVE_TOKEN_421614,
+      reserveTokenSymbol: process.env.NEXT_PUBLIC_HLC_RESERVE_SYMBOL_421614,
+      deploymentBlock: process.env.NEXT_PUBLIC_HLC_DEPLOYMENT_BLOCK_421614,
+      cpiAdapter: process.env.NEXT_PUBLIC_HLC_CPI_ADAPTER_421614,
+      cpiSourceId: process.env.NEXT_PUBLIC_HLC_CPI_SOURCE_ID_421614,
+    },
+    "42161": {
+      token: process.env.NEXT_PUBLIC_HLC_TOKEN_42161,
+      teamVesting: process.env.NEXT_PUBLIC_HLC_TEAM_VESTING_42161,
+      treasuryVesting: process.env.NEXT_PUBLIC_HLC_TREASURY_VESTING_42161,
+      psm: process.env.NEXT_PUBLIC_HLC_PSM_42161,
+      dao: process.env.NEXT_PUBLIC_HLC_DAO_42161,
+      timelock: process.env.NEXT_PUBLIC_HLC_TIMELOCK_42161,
+      reserveToken: process.env.NEXT_PUBLIC_HLC_RESERVE_TOKEN_42161,
+      reserveTokenSymbol: process.env.NEXT_PUBLIC_HLC_RESERVE_SYMBOL_42161,
+      deploymentBlock: process.env.NEXT_PUBLIC_HLC_DEPLOYMENT_BLOCK_42161,
+      cpiAdapter: process.env.NEXT_PUBLIC_HLC_CPI_ADAPTER_42161,
+      cpiSourceId: process.env.NEXT_PUBLIC_HLC_CPI_SOURCE_ID_42161,
+    },
+  };
+  const fromEnvironment = environment[suffix];
   return deploymentFromSource({
-    token: process.env[`NEXT_PUBLIC_HLC_TOKEN_${suffix}`] || registered.token,
-    teamVesting: process.env[`NEXT_PUBLIC_HLC_TEAM_VESTING_${suffix}`] || registered.teamVesting,
-    treasuryVesting: process.env[`NEXT_PUBLIC_HLC_TREASURY_VESTING_${suffix}`] || registered.treasuryVesting,
-    psm: process.env[`NEXT_PUBLIC_HLC_PSM_${suffix}`] || registered.psm,
-    dao: process.env[`NEXT_PUBLIC_HLC_DAO_${suffix}`] || registered.dao,
-    timelock: process.env[`NEXT_PUBLIC_HLC_TIMELOCK_${suffix}`] || registered.timelock,
-    reserveToken: process.env[`NEXT_PUBLIC_HLC_RESERVE_TOKEN_${suffix}`] || registered.reserveToken,
-    reserveTokenSymbol: process.env[`NEXT_PUBLIC_HLC_RESERVE_SYMBOL_${suffix}`] || registered.reserveTokenSymbol,
-    deploymentBlock: process.env[`NEXT_PUBLIC_HLC_DEPLOYMENT_BLOCK_${suffix}`] || registered.deploymentBlock,
-    cpiAdapter: process.env[`NEXT_PUBLIC_HLC_CPI_ADAPTER_${suffix}`] || registered.cpiAdapter,
-    cpiSourceId: process.env[`NEXT_PUBLIC_HLC_CPI_SOURCE_ID_${suffix}`] || registered.cpiSourceId,
+    ...registered,
+    ...Object.fromEntries(Object.entries(fromEnvironment).filter(([, value]) => value !== undefined)),
   });
 }
 

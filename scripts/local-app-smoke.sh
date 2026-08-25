@@ -89,6 +89,14 @@ DEPLOYMENT_BLOCK="$(cast block latest --field number --rpc-url "$LOCAL_RPC_URL")
   pnpm build
 )
 
+if [[ "${KEEP_SERVER:-false}" == "true" ]]; then
+  # Playwright owns the lifetime of this process. Keep the server in the foreground so its
+  # termination reaches this shell's cleanup trap and removes the disposable Anvil state.
+  cd "$ROOT_DIR/app"
+  pnpm start --hostname 127.0.0.1 --port "$APP_PORT" >/tmp/halal-app-smoke-next.log 2>&1
+  exit 0
+fi
+
 (
   cd "$ROOT_DIR/app"
   pnpm start --hostname 127.0.0.1 --port "$APP_PORT"

@@ -70,6 +70,10 @@ From the repository root, `make app-smoke` deploys a disposable Anvil instance, 
 the generated addresses, and requests the dashboard, governance, PSM, and vesting routes. The
 script restores any existing `app/.env.local` file when it exits.
 
+Run `make app-e2e` to launch the same disposable environment and exercise the browser wallet shim
+through an HLC permit withdrawal. The test uses Anvil's funded development account and never
+contacts a public RPC or needs a private key.
+
 The project currently targets Node.js 22 or newer because pnpm 11 requires the Node 22 runtime.
 
 Regenerate contract ABIs after changing Solidity interfaces:
