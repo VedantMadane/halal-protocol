@@ -35,6 +35,7 @@ contract CPIReportAdapter is EIP712, Ownable2Step, ReentrancyGuard {
     error ZeroAddress();
     error ZeroSourceId();
     error InvalidSignerSet();
+    error SignerOwnerOverlap();
     error SignerSetTooLarge();
     error SignerAlreadyConfigured();
     error SignerNotConfigured();
@@ -66,7 +67,7 @@ contract CPIReportAdapter is EIP712, Ownable2Step, ReentrancyGuard {
 
         for (uint256 i = 0; i < signers_.length; ++i) {
             address signer = signers_[i];
-            if (signer == address(0) || isSigner[signer]) revert InvalidSignerSet();
+            if (signer == address(0) || signer == owner_ || isSigner[signer]) revert InvalidSignerSet();
             isSigner[signer] = true;
             _signerIndexPlusOne[signer] = _signers.length + 1;
             _signers.push(signer);
@@ -75,9 +76,24 @@ contract CPIReportAdapter is EIP712, Ownable2Step, ReentrancyGuard {
         }
     }
 
+    /// @notice Starts an ownership transfer only to an address outside the report signer set.
+    /// Keeping custody boundaries disjoint prevents one compromised key from both changing the
+    /// quorum and satisfying it.
+    function transferOwnership(address newOwner) public override onlyOwner {
+        if (isSigner[newOwner]) revert SignerOwnerOverlap();
+        super.transferOwnership(newOwner);
+    }
+
+    /// @notice Completes the two-step transfer only when the accepting owner is not a signer.
+    function acceptOwnership() public override {
+        if (isSigner[msg.sender]) revert SignerOwnerOverlap();
+        super.acceptOwnership();
+    }
+
     /// @notice Adds a report signer. Governance should call this through the owner timelock.
     function addSigner(address signer) external onlyOwner {
         if (signer == address(0)) revert ZeroAddress();
+        if (signer == owner()) revert SignerOwnerOverlap();
         if (isSigner[signer]) revert SignerAlreadyConfigured();
         if (signerCount >= MAX_SIGNERS) revert SignerSetTooLarge();
         isSigner[signer] = true;

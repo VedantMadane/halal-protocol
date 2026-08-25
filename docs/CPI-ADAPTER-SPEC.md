@@ -131,7 +131,8 @@ tracks the last forwarded timestamp, binds each signature to the adapter's immut
 and protects its PSM call with a reentrancy guard. `Ownable2Step` controls signer rotation and
 threshold changes. The signer set is capped at `MAX_SIGNERS = 64` so governance cannot expand
 signature verification until reports exceed practical block-gas limits; production deployments
-should use the smallest independently governed quorum that meets their custody policy. Set the owner to the protocol timelock before granting the adapter
+should use the smallest independently governed quorum that meets their custody policy. The owner
+must remain outside the signer set; set it to the protocol timelock before granting the adapter
 `UPDATER_ROLE` on the PSM.
 
 `getSigners()` exposes the current signer set for deployment verification and `signerAt(index)`
@@ -161,8 +162,9 @@ forge script script/DeployCPIReportAdapter.s.sol:DeployCPIReportAdapter \
 
 `CPI_SIGNER_3` is optional. The script rejects a zero private key, a zero or mismatched chain ID, a
 PSM address without contract bytecode, a deployer-owned adapter, zero or duplicate signer addresses,
-signer addresses equal to the deployer, a zero source ID, and an impossible threshold before
-broadcasting. The adapter constructor retains the same duplicate-signer defense. Record the output,
+signer addresses equal to the deployer or adapter owner, a zero source ID, and an impossible
+threshold before broadcasting. The adapter constructor and ownership rotation retain the same
+custody-separation defense. Record the output,
 source-ID derivation, commit, and deployment transaction in the deployment journal.
 
 ### Governance wiring

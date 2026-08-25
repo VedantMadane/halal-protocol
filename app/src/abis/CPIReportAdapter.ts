@@ -580,6 +580,11 @@ export const cpiReportAdapterAbi = [
   },
   {
     "type": "error",
+    "name": "SignerOwnerOverlap",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "SignerSetTooLarge",
     "inputs": []
   },

@@ -31,12 +31,14 @@ contract DeployCPIReportAdapterHarness is DeployCPIReportAdapter {
         return _psmIsContract(psm);
     }
 
-    function adapterSignersAreSafe(address deployer, address signerOne, address signerTwo, address signerThree)
-        external
-        pure
-        returns (bool)
-    {
-        return _adapterSignersAreSafe(deployer, signerOne, signerTwo, signerThree);
+    function adapterSignersAreSafe(
+        address deployer,
+        address owner,
+        address signerOne,
+        address signerTwo,
+        address signerThree
+    ) external pure returns (bool) {
+        return _adapterSignersAreSafe(deployer, owner, signerOne, signerTwo, signerThree);
     }
 }
 
@@ -74,13 +76,36 @@ contract DeployConfigTest {
     }
 
     function test_AdapterSignersMustBeDistinctAndIndependentFromDeployer() public view {
-        require(adapterDeployer.adapterSignersAreSafe(address(0x1), address(0x2), address(0x3), address(0)));
-        require(adapterDeployer.adapterSignersAreSafe(address(0x1), address(0x2), address(0x3), address(0x4)));
-        require(!adapterDeployer.adapterSignersAreSafe(address(0x1), address(0x1), address(0x3), address(0)));
-        require(!adapterDeployer.adapterSignersAreSafe(address(0x1), address(0x2), address(0x2), address(0)));
-        require(!adapterDeployer.adapterSignersAreSafe(address(0x1), address(0x1), address(0x3), address(0x4)));
-        require(!adapterDeployer.adapterSignersAreSafe(address(0x1), address(0x2), address(0x3), address(0x1)));
-        require(!adapterDeployer.adapterSignersAreSafe(address(0x1), address(0x2), address(0x3), address(0x2)));
+        require(
+            adapterDeployer.adapterSignersAreSafe(address(0x1), address(0x5), address(0x2), address(0x3), address(0))
+        );
+        require(
+            adapterDeployer.adapterSignersAreSafe(address(0x1), address(0x5), address(0x2), address(0x3), address(0x4))
+        );
+        require(
+            !adapterDeployer.adapterSignersAreSafe(address(0x1), address(0x5), address(0x1), address(0x3), address(0))
+        );
+        require(
+            !adapterDeployer.adapterSignersAreSafe(address(0x1), address(0x5), address(0x2), address(0x2), address(0))
+        );
+        require(
+            !adapterDeployer.adapterSignersAreSafe(address(0x1), address(0x5), address(0x1), address(0x3), address(0x4))
+        );
+        require(
+            !adapterDeployer.adapterSignersAreSafe(address(0x1), address(0x5), address(0x2), address(0x3), address(0x1))
+        );
+        require(
+            !adapterDeployer.adapterSignersAreSafe(address(0x1), address(0x5), address(0x2), address(0x3), address(0x2))
+        );
+        require(
+            !adapterDeployer.adapterSignersAreSafe(address(0x1), address(0x5), address(0x5), address(0x3), address(0))
+        );
+        require(
+            !adapterDeployer.adapterSignersAreSafe(address(0x1), address(0x5), address(0x2), address(0x5), address(0))
+        );
+        require(
+            !adapterDeployer.adapterSignersAreSafe(address(0x1), address(0x5), address(0x2), address(0x3), address(0x5))
+        );
     }
 
     function test_AdapterDeploymentRequiresAContractPSM() public view {

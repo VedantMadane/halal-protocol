@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.126 - 2026-08-26
+
+- Enforced independent CPI adapter ownership and signer custody across construction, signer
+  rotation, and two-step ownership transfers.
+- Added custody-boundary regression coverage and synchronized published documentation with 171
+  Foundry tests.
+
 ## 0.1.0-alpha.125 - 2026-08-26
 
 - Rejected zero-valued CPI publication timestamps in the PSM, keeping direct updater bootstrap

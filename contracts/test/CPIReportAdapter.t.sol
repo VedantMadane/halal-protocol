@@ -158,6 +158,25 @@ contract CPIReportAdapterTest is Test {
         assertEq(sink.lastCPI(), 1_010_000);
     }
 
+    function test_RevertWhen_ConstructorSignerIsOwner() public {
+        address[] memory signers = new address[](2);
+        signers[0] = address(this);
+        signers[1] = signerOne;
+
+        vm.expectRevert(CPIReportAdapter.InvalidSignerSet.selector);
+        new CPIReportAdapter(address(sink), address(this), signers, 2, SOURCE_ID);
+    }
+
+    function test_RevertWhen_OwnerIsAddedAsSigner() public {
+        vm.expectRevert(CPIReportAdapter.SignerOwnerOverlap.selector);
+        adapter.addSigner(address(this));
+    }
+
+    function test_RevertWhen_OwnershipTransferTargetsSigner() public {
+        vm.expectRevert(CPIReportAdapter.SignerOwnerOverlap.selector);
+        adapter.transferOwnership(signerOne);
+    }
+
     function test_RevertWhen_RemovedSignerSubmitsReport() public {
         adapter.removeSigner(signerThree);
         uint256 reportedAt = block.timestamp - 1;

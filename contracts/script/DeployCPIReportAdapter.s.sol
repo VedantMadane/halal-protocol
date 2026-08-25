@@ -30,7 +30,7 @@ contract DeployCPIReportAdapter is Script {
         if (
             privateKey == 0 || expectedChainId == 0 || block.chainid != expectedChainId || !_psmIsContract(psm)
                 || owner == address(0) || owner == deployer
-                || !_adapterSignersAreSafe(deployer, signerOne, signerTwo, signerThree) || threshold == 0
+                || !_adapterSignersAreSafe(deployer, owner, signerOne, signerTwo, signerThree) || threshold == 0
                 || sourceId == bytes32(0) || (signerThree == address(0) && threshold > 2)
                 || (signerThree != address(0) && threshold > 3)
         ) revert InvalidConfig();
@@ -59,16 +59,18 @@ contract DeployCPIReportAdapter is Script {
         return psm.code.length > 0;
     }
 
-    function _adapterSignersAreSafe(address deployer, address signerOne, address signerTwo, address signerThree)
-        internal
-        pure
-        returns (bool)
-    {
+    function _adapterSignersAreSafe(
+        address deployer,
+        address owner,
+        address signerOne,
+        address signerTwo,
+        address signerThree
+    ) internal pure returns (bool) {
         if (
             signerOne == address(0) || signerTwo == address(0) || signerOne == signerTwo || signerOne == deployer
-                || signerTwo == deployer
+                || signerTwo == deployer || signerOne == owner || signerTwo == owner
         ) return false;
         if (signerThree == address(0)) return true;
-        return signerThree != signerOne && signerThree != signerTwo && signerThree != deployer;
+        return signerThree != signerOne && signerThree != signerTwo && signerThree != deployer && signerThree != owner;
     }
 }

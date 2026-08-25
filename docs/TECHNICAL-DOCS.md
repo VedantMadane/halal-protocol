@@ -3,7 +3,7 @@
 **Version**: 1.1.0
 **Date**: August 24, 2026
 **Network**: Arbitrum (Sepolia & Mainnet)
-**Status**: Unaudited reference implementation | 168 tests passing (165 unit/configuration + 3 invariants) | Not production-ready
+**Status**: Unaudited reference implementation | 171 tests passing (168 unit/configuration + 3 invariants) | Not production-ready
 
 ---
 
@@ -190,7 +190,7 @@ EOF
 ```bash
 # 1. Test locally
 forge test -vvv
-# Expected: 168/168 tests passing ✓
+# Expected: 171/171 tests passing ✓
 
 # 2. Fund wallet with testnet ETH on Arbitrum Sepolia
 # Visit: https://sepoliafaucet.com
@@ -541,9 +541,9 @@ forge coverage
 ✓ test_TimelockPreventsImmediateExecution
 ✓ test_TeamVestingRevocable
 ✓ test_TreasuryVestingNonRevocable
-✓ 165 unit/configuration tests plus 3 stateful PSM invariants covering the core contracts and governance flows
+✓ 168 unit/configuration tests plus 3 stateful PSM invariants covering the core contracts and governance flows
 
-Total: 168 tests passing ✓
+Total: 171 tests passing ✓
 ```
 
 ### Verify on Arbiscan
@@ -561,7 +561,7 @@ Total: 168 tests passing ✓
 
 ### Before Deployment
 
-- [ ] All 168 tests passing locally, including the stateful invariants
+- [ ] All 171 tests passing locally, including the stateful invariants
 - [ ] Gas estimates reviewed & acceptable
 - [ ] No compiler warnings
 - [ ] Code review completed
