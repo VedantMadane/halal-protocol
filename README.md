@@ -43,7 +43,7 @@ conservative accounting model:
 
 | Reviewer question | Evidence in this repository |
 | --- | --- |
-| Does the accounting have stateful coverage? | 128 Foundry tests, including 3 PSM invariants and fuzzing |
+| Does the accounting have stateful coverage? | 130 Foundry tests, including 3 PSM invariants and fuzzing |
 | Do invariants cover CPI changes? | [`docs/INVARIANTS.md`](docs/INVARIANTS.md) models governance rate changes and reserve top-ups |
 | Can a deployment be checked without a private key? | [`scripts/verify-deployment.sh`](scripts/verify-deployment.sh) |
 | Can I inspect the full system locally? | [`./scripts/local-demo.sh`](scripts/local-demo.sh) on a disposable Anvil chain |
@@ -56,7 +56,7 @@ discipline, not a safety guarantee.
 ## Status & risk
 
 **This protocol has not undergone a professional security audit, and there is no bug bounty
-program yet.** The contracts pass their own test suite (128/128 at the time of writing — 125 unit
+program yet.** The contracts pass their own test suite (130/130 at the time of writing — 127 unit
 and configuration tests plus 3 stateful invariants; see
 `contracts/test/`), but a passing test suite is not a substitute for an audit, and this repo
 should not be treated as safe to use with real, meaningful funds. If you deploy or interact with
@@ -69,8 +69,8 @@ active, unaudited, open-source project, and honesty about that is a design goal 
 
 - **`HalalToken` (HLC)** — `ERC20Votes` + `ERC20Permit` + `AccessControl`. Genesis 6M/4M
   team/treasury allocation minted once via `initialMint`; all further minting requires
-  `MINTER_ROLE`, which the DAO grants (initially to the PSM, and to future modules on a
-  case-by-case vote).
+  `MINTER_ROLE`, while accounting-aware burns require `BURNER_ROLE`; the DAO grants those roles
+  narrowly (initially to the PSM, and to future modules only by case-by-case vote).
 - **`HalalVesting`** — one instance per beneficiary (team, treasury), linear vesting with an
   optional cliff; the team schedule is DAO-revocable, the treasury schedule is not.
 - **`HalalPSM`** — mints/burns HLC against a reserve asset at a CPI-adjusted rate; CPI is

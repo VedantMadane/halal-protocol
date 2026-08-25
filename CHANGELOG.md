@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## Unreleased
 
+- Restricted HLC burning to the PSM's accounting-aware `BURNER_ROLE`, preventing direct token burns
+  from stranding PSM redemption credit; deployment verification and tests now assert the new role.
 - Added a risk-ordered public roadmap covering audit readiness, testnet operations, monitoring, and
   the unresolved redemption-credit and economic-model questions.
 - Made vesting beneficiary and deployer-role assertions mandatory in the post-deployment verifier,

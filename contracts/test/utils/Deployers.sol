@@ -71,8 +71,10 @@ abstract contract Deployers is Test {
         reserve = new MockERC20("Mock DAI", "mDAI", 18);
         psm = new HalalPSM(address(reserve), address(token), address(timelock), address(0));
 
-        // Wire roles: PSM can mint HLC; timelock becomes token admin; deployer gives up all roles.
+        // Wire roles: PSM can mint and burn HLC through accounting-aware paths; timelock becomes
+        // token admin; deployer gives up all roles.
         token.grantRole(token.MINTER_ROLE(), address(psm));
+        token.grantRole(token.BURNER_ROLE(), address(psm));
         token.grantRole(token.DEFAULT_ADMIN_ROLE(), address(timelock));
         token.revokeRole(token.MINTER_ROLE(), deployer);
         token.revokeRole(token.DEFAULT_ADMIN_ROLE(), deployer);

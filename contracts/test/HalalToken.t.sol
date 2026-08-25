@@ -26,6 +26,7 @@ contract HalalTokenTest is Deployers {
     function test_DeployerHasNoRolesAfterSetup() public view {
         assertFalse(token.hasRole(token.DEFAULT_ADMIN_ROLE(), deployer));
         assertFalse(token.hasRole(token.MINTER_ROLE(), deployer));
+        assertFalse(token.hasRole(token.BURNER_ROLE(), deployer));
     }
 
     function test_TimelockIsAdmin() public view {
@@ -34,6 +35,10 @@ contract HalalTokenTest is Deployers {
 
     function test_PSMHasMinterRole() public view {
         assertTrue(token.hasRole(token.MINTER_ROLE(), address(psm)));
+    }
+
+    function test_PSMHasBurnerRole() public view {
+        assertTrue(token.hasRole(token.BURNER_ROLE(), address(psm)));
     }
 
     function test_TokenHasVotes() public {
@@ -54,12 +59,14 @@ contract HalalTokenTest is Deployers {
         assertEq(token.balanceOf(address(0xCAFE)), 500e18);
     }
 
-    function test_AnyoneCanBurnOwnTokens() public {
-        giveVotingPower(address(0xBEEF), 1_000e18);
-        vm.prank(address(0xBEEF));
-        token.burn(400e18);
-        assertEq(token.balanceOf(address(0xBEEF)), 600e18);
-        assertEq(token.totalSupply(), 10_000_000e18 + 1_000e18 - 400e18);
+    function test_PsmCanBurnItsOwnTokens() public {
+        vm.prank(address(psm));
+        token.burn(0);
+    }
+
+    function test_RevertWhen_UnauthorizedBurn() public {
+        vm.expectRevert();
+        token.burn(1e18);
     }
 
     function test_RevertWhen_ZeroAdminAtDeploy() public {

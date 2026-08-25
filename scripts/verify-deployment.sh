@@ -116,6 +116,7 @@ expect_equal "team beneficiary" "$(address_call "$TEAM_VESTING" 'beneficiary()(a
 expect_equal "treasury beneficiary" "$(address_call "$TREASURY_VESTING" 'beneficiary()(address)')" "$TREASURY_BENEFICIARY"
 
 minter_role="$(call "$TOKEN" 'MINTER_ROLE()(bytes32)')"
+burner_role="$(call "$TOKEN" 'BURNER_ROLE()(bytes32)')"
 admin_role="$(call "$TOKEN" 'DEFAULT_ADMIN_ROLE()(bytes32)')"
 timelock_admin_role="$(call "$TIMELOCK" 'DEFAULT_ADMIN_ROLE()(bytes32)')"
 proposer_role="$(call "$TIMELOCK" 'PROPOSER_ROLE()(bytes32)')"
@@ -125,6 +126,7 @@ psm_admin_role="$(call "$PSM" 'DEFAULT_ADMIN_ROLE()(bytes32)')"
 psm_updater_role="$(call "$PSM" 'UPDATER_ROLE()(bytes32)')"
 
 expect_true "PSM has HLC minter role" "$(call "$TOKEN" 'hasRole(bytes32,address)(bool)' "$minter_role" "$PSM")"
+expect_true "PSM has HLC burner role" "$(call "$TOKEN" 'hasRole(bytes32,address)(bool)' "$burner_role" "$PSM")"
 expect_true "timelock has HLC admin role" "$(call "$TOKEN" 'hasRole(bytes32,address)(bool)' "$admin_role" "$TIMELOCK")"
 expect_true "DAO has timelock proposer role" "$(call "$TIMELOCK" 'hasRole(bytes32,address)(bool)' "$proposer_role" "$DAO")"
 expect_true "timelock retains self-admin role" "$(call "$TIMELOCK" 'hasRole(bytes32,address)(bool)' "$timelock_admin_role" "$TIMELOCK")"
@@ -138,6 +140,7 @@ if [[ -n "${CPI_UPDATER:-}" ]]; then
 fi
 
 expect_equal "deployer HLC minter role" "$(call "$TOKEN" 'hasRole(bytes32,address)(bool)' "$minter_role" "$DEPLOYER_ADDRESS")" "false"
+expect_equal "deployer HLC burner role" "$(call "$TOKEN" 'hasRole(bytes32,address)(bool)' "$burner_role" "$DEPLOYER_ADDRESS")" "false"
 expect_equal "deployer HLC admin role" "$(call "$TOKEN" 'hasRole(bytes32,address)(bool)' "$admin_role" "$DEPLOYER_ADDRESS")" "false"
 expect_equal "deployer timelock admin role" "$(call "$TIMELOCK" 'hasRole(bytes32,address)(bool)' "$timelock_admin_role" "$DEPLOYER_ADDRESS")" "false"
 expect_equal "deployer PSM admin role" "$(call "$PSM" 'hasRole(bytes32,address)(bool)' "$psm_admin_role" "$DEPLOYER_ADDRESS")" "false"

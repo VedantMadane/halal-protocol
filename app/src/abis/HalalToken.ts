@@ -16,6 +16,19 @@ export const halalTokenAbi = [
   },
   {
     "type": "function",
+    "name": "BURNER_ROLE",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "CLOCK_MODE",
     "inputs": [],
     "outputs": [
@@ -164,25 +177,7 @@ export const halalTokenAbi = [
     "name": "burn",
     "inputs": [
       {
-        "name": "value",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "burnFrom",
-    "inputs": [
-      {
-        "name": "account",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "value",
+        "name": "amount",
         "type": "uint256",
         "internalType": "uint256"
       }

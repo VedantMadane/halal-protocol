@@ -19,6 +19,13 @@ contract HalalPSMTest is Deployers {
         reserve.approve(address(psm), type(uint256).max);
     }
 
+    function _grantPsmTokenRoles(HalalPSM target) internal {
+        vm.startPrank(address(timelock));
+        token.grantRole(token.MINTER_ROLE(), address(target));
+        token.grantRole(token.BURNER_ROLE(), address(target));
+        vm.stopPrank();
+    }
+
     function test_DepositMintsOneToOneAtGenesisRate() public {
         vm.prank(alice);
         psm.deposit(1_000e18);
@@ -478,9 +485,7 @@ contract HalalPSMTest is Deployers {
     function test_BoundedWithdrawalAccountsForFeeOnTransferReserve() public {
         MockFeeOnTransferERC20 feeReserve = new MockFeeOnTransferERC20(100); // 1% per transfer
         HalalPSM feePsm = new HalalPSM(address(feeReserve), address(token), address(timelock), address(0));
-        bytes32 minterRole = token.MINTER_ROLE();
-        vm.prank(address(timelock));
-        token.grantRole(minterRole, address(feePsm));
+        _grantPsmTokenRoles(feePsm);
 
         feeReserve.mint(alice, 1_000e18);
         vm.startPrank(alice);
@@ -500,9 +505,7 @@ contract HalalPSMTest is Deployers {
         MockOutgoingFeeERC20 outgoingFeeReserve = new MockOutgoingFeeERC20(100); // 1% extra debit
         HalalPSM outgoingFeePsm =
             new HalalPSM(address(outgoingFeeReserve), address(token), address(timelock), address(0));
-        bytes32 minterRole = token.MINTER_ROLE();
-        vm.prank(address(timelock));
-        token.grantRole(minterRole, address(outgoingFeePsm));
+        _grantPsmTokenRoles(outgoingFeePsm);
 
         outgoingFeeReserve.mint(alice, 2_100e18);
         vm.startPrank(alice);
@@ -525,9 +528,7 @@ contract HalalPSMTest is Deployers {
         MockOutgoingFeeERC20 outgoingFeeReserve = new MockOutgoingFeeERC20(100); // 1% extra debit
         HalalPSM outgoingFeePsm =
             new HalalPSM(address(outgoingFeeReserve), address(token), address(timelock), address(0));
-        bytes32 minterRole = token.MINTER_ROLE();
-        vm.prank(address(timelock));
-        token.grantRole(minterRole, address(outgoingFeePsm));
+        _grantPsmTokenRoles(outgoingFeePsm);
 
         outgoingFeeReserve.mint(alice, 2_100e18);
         vm.startPrank(alice);
@@ -575,9 +576,7 @@ contract HalalPSMTest is Deployers {
     function test_DecimalNormalization_SixDecimalReserve() public {
         MockERC20 usdc = new MockERC20("Mock USDC", "mUSDC", 6);
         HalalPSM usdcPsm = new HalalPSM(address(usdc), address(token), address(timelock), address(0));
-        bytes32 minterRole = token.MINTER_ROLE();
-        vm.prank(address(timelock));
-        token.grantRole(minterRole, address(usdcPsm));
+        _grantPsmTokenRoles(usdcPsm);
 
         usdc.mint(alice, 1_000e6);
         vm.startPrank(alice);
@@ -597,9 +596,7 @@ contract HalalPSMTest is Deployers {
     function test_RevertWhen_WithdrawalRoundsDownToZeroReserve() public {
         MockERC20 usdc = new MockERC20("Mock USDC", "mUSDC", 6);
         HalalPSM usdcPsm = new HalalPSM(address(usdc), address(token), address(timelock), address(0));
-        bytes32 minterRole = token.MINTER_ROLE();
-        vm.prank(address(timelock));
-        token.grantRole(minterRole, address(usdcPsm));
+        _grantPsmTokenRoles(usdcPsm);
 
         usdc.mint(alice, 1e6);
         vm.startPrank(alice);
@@ -643,9 +640,7 @@ contract HalalPSMTest is Deployers {
         // 24-decimal reserve token)
         MockERC20 highDecimal = new MockERC20("High Decimal", "mHD", 24);
         HalalPSM hdPsm = new HalalPSM(address(highDecimal), address(token), address(timelock), address(0));
-        bytes32 minterRole = token.MINTER_ROLE();
-        vm.prank(address(timelock));
-        token.grantRole(minterRole, address(hdPsm));
+        _grantPsmTokenRoles(hdPsm);
 
         highDecimal.mint(alice, 1_000e24);
         vm.startPrank(alice);
@@ -665,9 +660,7 @@ contract HalalPSMTest is Deployers {
     function test_HighDecimalReserveRetainsPrecisionAtNonGenesisCPI() public {
         MockERC20 highDecimal = new MockERC20("High Decimal", "mHD", 24);
         HalalPSM hdPsm = new HalalPSM(address(highDecimal), address(token), address(timelock), address(0));
-        bytes32 minterRole = token.MINTER_ROLE();
-        vm.prank(address(timelock));
-        token.grantRole(minterRole, address(hdPsm));
+        _grantPsmTokenRoles(hdPsm);
 
         vm.prank(address(timelock));
         hdPsm.mockCPI(1_200_000);

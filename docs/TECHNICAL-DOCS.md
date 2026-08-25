@@ -3,7 +3,7 @@
 **Version**: 1.1.0
 **Date**: August 24, 2026
 **Network**: Arbitrum (Sepolia & Mainnet)
-**Status**: Unaudited reference implementation | 128 tests passing (125 unit/configuration + 3 invariants) | Not production-ready
+**Status**: Unaudited reference implementation | 130 tests passing (127 unit/configuration + 3 invariants) | Not production-ready
 
 ---
 
@@ -33,8 +33,9 @@ The contracts are separate, immutable-by-design modules under `contracts/src/`:
 - **Features**:
   - ERC20Votes (snapshot-based voting)
   - ERC20Permit (gas-less approvals)
-  - AccessControl (MINTER_ROLE)
-  - Burnable (deflationary)
+  - AccessControl (MINTER_ROLE and accounting-aware BURNER_ROLE)
+  - Only the PSM or another DAO-approved accounting module may burn HLC; public self-burn is
+    intentionally disabled so redemption credit cannot be stranded.
 
 #### 2. **HalalVesting.sol** - Vesting Wallet
 - **Type**: Custom linear vesting contract with optional revocation
@@ -180,7 +181,7 @@ EOF
 ```bash
 # 1. Test locally
 forge test -vvv
-# Expected: 128/128 tests passing ✓
+# Expected: 130/130 tests passing ✓
 
 # 2. Fund wallet with testnet ETH on Arbitrum Sepolia
 # Visit: https://sepoliafaucet.com
@@ -346,7 +347,7 @@ delay, voting period, proposal threshold, or quorum requires deploying and wirin
 | Contract | Function | Caller | Via |
 |----------|----------|--------|-----|
 | HalalToken | `mint()` | PSM / DAO | MINTER_ROLE |
-| HalalToken | `burn()` | Anyone | Own tokens |
+| HalalToken | `burn()` | BURNER_ROLE module | Accounting-aware claim retirement |
 | HalalToken | `transfer()` | Anyone | ERC20 balance ownership |
 | HalalPSM | `updateCPI(uint256)` | UPDATER_ROLE relayer | Compatibility path; role granted by governance |
 | HalalPSM | `updateCPIWithTimestamp(uint256,uint256)` | UPDATER_ROLE relayer | Preferred freshness/replay-protected path |
@@ -424,6 +425,8 @@ function totalSupply() external view returns (uint256)
 function allowance(address owner, address spender) external view returns (uint256)
 function getVotes(address account) external view returns (uint256)
 function getPastVotes(address account, uint256 blockNumber) external view returns (uint256)
+function MINTER_ROLE() external view returns (bytes32)
+function BURNER_ROLE() external view returns (bytes32)
 
 // State-changing
 function transfer(address to, uint256 amount) external returns (bool)
@@ -431,7 +434,7 @@ function approve(address spender, uint256 amount) external returns (bool)
 function transferFrom(address from, address to, uint256 amount) external returns (bool)
 function permit(address owner, address spender, uint256 value, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external
 function mint(address to, uint256 amount) external onlyRole(MINTER_ROLE)
-function burn(uint256 amount) external
+function burn(uint256 amount) external onlyRole(BURNER_ROLE)
 ```
 
 ### HalalPSM
@@ -521,9 +524,9 @@ forge coverage
 ✓ test_TimelockPreventsImmediateExecution
 ✓ test_TeamVestingRevocable
 ✓ test_TreasuryVestingNonRevocable
-✓ 125 unit/configuration tests plus 3 stateful PSM invariants covering the core contracts and governance flows
+✓ 127 unit/configuration tests plus 3 stateful PSM invariants covering the core contracts and governance flows
 
-Total: 128 tests passing ✓
+Total: 130 tests passing ✓
 ```
 
 ### Verify on Arbiscan
@@ -541,7 +544,7 @@ Total: 128 tests passing ✓
 
 ### Before Deployment
 
-- [ ] All 128 tests passing locally, including the stateful invariants
+- [ ] All 130 tests passing locally, including the stateful invariants
 - [ ] Gas estimates reviewed & acceptable
 - [ ] No compiler warnings
 - [ ] Code review completed

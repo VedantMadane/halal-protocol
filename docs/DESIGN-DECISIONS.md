@@ -200,11 +200,12 @@ a fully composable ERC-4626-style claim token: a separate receipt token would ad
 accounting and another attack surface, so it remains a possible future extension rather than an
 implicit promise of the current HLC token.
 
-Because `HalalToken` also intentionally exposes the standard public `burn()` function, the PSM
-provides `cancelRedeemable(amount)` for users who want to surrender a PSM claim. It burns the HLC,
-retires the matching credit, and returns no reserve; using this path keeps `totalHlcIssued()` and
-`reserveRequired()` accurate. Directly burning a PSM holder's HLC remains voluntary but leaves that
-address's credit outstanding, so integrations should use the PSM-aware path when retiring a claim.
+The reference deployment grants `BURNER_ROLE` to the PSM and does not expose a public self-burn.
+This is deliberate: a holder burning HLC without informing the PSM would strand that address's
+redemption credit and leave the corresponding reserve as surplus. `cancelRedeemable(amount)` retires
+the matching credit before the PSM burns the HLC and returns no reserve, keeping `totalHlcIssued()`
+and `reserveRequired()` accurate. Future modules that need to burn HLC must preserve this ordering
+and receive `BURNER_ROLE` through governance.
 
 The normal updater path now refuses to create that shortfall. Governance can still use the explicit
 `mockCPI` emergency path to accept a reserve shortfall when correcting a disputed or failed oracle,

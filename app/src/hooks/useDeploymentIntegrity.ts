@@ -7,6 +7,7 @@ import { hasReadFailure, partialReadError } from "@/lib/readResults";
 import { useDeployment } from "./useDeployment";
 
 const MINTER_ROLE = keccak256(toBytes("MINTER_ROLE"));
+const BURNER_ROLE = keccak256(toBytes("BURNER_ROLE"));
 const PARAM_ROLE = keccak256(toBytes("PARAM_ROLE"));
 const PROPOSER_ROLE = keccak256(toBytes("PROPOSER_ROLE"));
 const EXECUTOR_ROLE = keccak256(toBytes("EXECUTOR_ROLE"));
@@ -15,8 +16,9 @@ const EXECUTOR_ROLE = keccak256(toBytes("EXECUTOR_ROLE"));
  * Verifies the configured addresses against the live contract graph before the dApp signs actions.
  * Environment variables are only a routing hint; they are not proof that the selected chain has
  * the intended Halal deployment. The role checks also ensure the configured graph is actually
- * governed as designed: the PSM can mint, the timelock administers protocol contracts, the DAO
- * can propose through the timelock, and anyone can execute a queued proposal.
+ * governed as designed: the PSM can mint and burn through accounting-aware paths, the timelock
+ * administers protocol contracts, the DAO can propose through the timelock, and anyone can execute
+ * a queued proposal.
  */
 export function useDeploymentIntegrity() {
   const { deployment } = useDeployment();
@@ -34,6 +36,7 @@ export function useDeploymentIntegrity() {
           { address: deployment.treasuryVesting, abi: halalVestingAbi, functionName: "dao" },
           { address: deployment.timelock, abi: halalTimelockAbi, functionName: "getMinDelay" },
           { address: deployment.token, abi: halalTokenAbi, functionName: "hasRole", args: [MINTER_ROLE, deployment.psm] },
+          { address: deployment.token, abi: halalTokenAbi, functionName: "hasRole", args: [BURNER_ROLE, deployment.psm] },
           { address: deployment.token, abi: halalTokenAbi, functionName: "hasRole", args: [zeroHash, deployment.timelock] },
           { address: deployment.psm, abi: halalPsmAbi, functionName: "hasRole", args: [zeroHash, deployment.timelock] },
           { address: deployment.psm, abi: halalPsmAbi, functionName: "hasRole", args: [PARAM_ROLE, deployment.timelock] },
@@ -58,12 +61,13 @@ export function useDeploymentIntegrity() {
   const treasuryDao = get<Address>(7);
   const timelockDelay = get<bigint>(8);
   const psmMinter = get<boolean>(9);
-  const tokenAdmin = get<boolean>(10);
-  const psmAdmin = get<boolean>(11);
-  const psmParam = get<boolean>(12);
-  const timelockProposer = get<boolean>(13);
-  const timelockExecutor = get<boolean>(14);
-  const timelockSelfAdmin = get<boolean>(15);
+  const psmBurner = get<boolean>(10);
+  const tokenAdmin = get<boolean>(11);
+  const psmAdmin = get<boolean>(12);
+  const psmParam = get<boolean>(13);
+  const timelockProposer = get<boolean>(14);
+  const timelockExecutor = get<boolean>(15);
+  const timelockSelfAdmin = get<boolean>(16);
   const expected = deployment;
 
   const readFailed = hasReadFailure(data);
@@ -80,6 +84,7 @@ export function useDeploymentIntegrity() {
     timelockDelay !== undefined &&
     timelockDelay > 0n &&
     psmMinter === true &&
+    psmBurner === true &&
     tokenAdmin === true &&
     psmAdmin === true &&
     psmParam === true &&

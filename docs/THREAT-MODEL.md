@@ -8,8 +8,8 @@ The contracts are non-upgradeable and currently unaudited.
 
 The system is intended to preserve these properties:
 
-1. HLC can only be minted by an account with `MINTER_ROLE`; in the shipped deployment that role is
-   held by the PSM.
+1. HLC can only be minted by an account with `MINTER_ROLE`, and burned by an accounting-aware
+   account with `BURNER_ROLE`; in the shipped deployment both roles are held by the PSM.
 2. PSM-issued HLC can only redeem against the caller's own PSM redemption credit. A plain HLC
    transfer does not transfer that credit; `transferRedeemable` does both operations atomically.
 3. A withdrawal cannot make the PSM's reserve deficit worse, and the DAO cannot withdraw reserve
@@ -76,10 +76,10 @@ The system is intended to preserve these properties:
   a fresh source report published immediately before deployment can bootstrap the feed.
 - There is no instant guardian pause or upgrade admin. This avoids a hidden centralized backdoor,
   but means incident response is constrained by the configured governance path.
-- The public `HalalToken.burn()` function allows a holder to burn its own HLC without informing the
-  PSM's per-address accounting. This cannot create a reserve claim or over-withdrawal, but it can
-  strand that holder's redemption credit and leave corresponding reserve as surplus. Users who
-  want accounting-aware retirement should use `cancelRedeemable`.
+- HLC burning is restricted to a `BURNER_ROLE` module. The reference PSM holds that role and burns
+  only after reducing its redemption credit, so a holder cannot strand a claim through a direct token
+  burn. Future modules must preserve the same accounting-aware ordering before governance grants the
+  role.
 - No professional audit, formal verification, economic simulation, oracle assessment, or bug bounty
   has been completed. Do not deploy with meaningful funds on the strength of this document.
 
@@ -90,7 +90,7 @@ Before a testnet or mainnet deployment, independently verify:
 - reserve token address, decimals, transfer behavior, and any fee/blacklist/pause controls;
 - team and treasury beneficiaries, preferably multisigs with documented ownership;
 - DAO voting period in target-chain blocks, threshold, quorum, and timelock delay;
-- `DEFAULT_ADMIN_ROLE`, `PARAM_ROLE`, `MINTER_ROLE`, and optional `UPDATER_ROLE` on every deployed
+- `DEFAULT_ADMIN_ROLE`, `PARAM_ROLE`, `MINTER_ROLE`, `BURNER_ROLE`, and optional `UPDATER_ROLE` on every deployed
   contract, including that the deployer has none; the verifier now requires the deployer address
   and both vesting beneficiary addresses instead of treating those identity checks as optional;
 - reserve balance versus `reserveRequired()` after every CPI change and treasury action;

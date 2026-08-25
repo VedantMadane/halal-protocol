@@ -190,8 +190,9 @@ contract DeployHalalSystem is Script {
     function _wireRoles(address deployer, HalalToken token, HalalTimelock timelock, HalalDAO dao, HalalPSM psm)
         internal
     {
-        // Token: PSM can mint against collateral; timelock becomes admin; deployer exits.
+        // Token: PSM can mint and burn against collateral; timelock becomes admin; deployer exits.
         token.grantRole(token.MINTER_ROLE(), address(psm));
+        token.grantRole(token.BURNER_ROLE(), address(psm));
         token.grantRole(token.DEFAULT_ADMIN_ROLE(), address(timelock));
         token.revokeRole(token.MINTER_ROLE(), deployer);
         token.revokeRole(token.DEFAULT_ADMIN_ROLE(), deployer);
@@ -225,6 +226,7 @@ contract DeployHalalSystem is Script {
                 || teamVesting.cliff() != 365 days || teamVesting.duration() != 4 * 365 days || !teamVesting.revocable()
                 || treasuryVesting.cliff() != 0 || treasuryVesting.duration() != 3 * 365 days
                 || treasuryVesting.revocable() || !token.hasRole(token.MINTER_ROLE(), address(psm))
+                || !token.hasRole(token.BURNER_ROLE(), address(psm))
                 || !token.hasRole(token.DEFAULT_ADMIN_ROLE(), address(timelock))
                 || token.hasRole(token.MINTER_ROLE(), deployer) || token.hasRole(token.DEFAULT_ADMIN_ROLE(), deployer)
                 || !timelock.hasRole(timelock.PROPOSER_ROLE(), address(dao))
