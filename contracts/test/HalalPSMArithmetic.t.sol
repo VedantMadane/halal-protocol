@@ -56,15 +56,20 @@ contract HalalPSMArithmeticTest is Test {
 
     function _maxDepositAmount(uint256 decimals, uint256 cpi) internal pure returns (uint256) {
         if (decimals < 18) {
-            return Math.mulDiv(type(uint256).max, cpi, (10 ** (18 - decimals)) * 1_000_000);
+            return _maxInputForOutput((10 ** (18 - decimals)) * 1_000_000, cpi);
         }
-        return type(uint256).max;
+        return _maxInputForOutput(1_000_000, cpi * (10 ** (decimals - 18)));
     }
 
     function _maxWithdrawAmount(uint256 decimals, uint256 cpi) internal pure returns (uint256) {
         if (decimals < 18) {
-            return type(uint256).max;
+            return _maxInputForOutput(cpi, 1_000_000 * (10 ** (18 - decimals)));
         }
-        return Math.mulDiv(type(uint256).max, 1_000_000, cpi * (10 ** (decimals - 18)));
+        return _maxInputForOutput(cpi * (10 ** (decimals - 18)), 1_000_000);
+    }
+
+    function _maxInputForOutput(uint256 numerator, uint256 denominator) internal pure returns (uint256) {
+        if (numerator <= denominator) return type(uint256).max;
+        return Math.mulDiv(type(uint256).max, denominator, numerator);
     }
 }

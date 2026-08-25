@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## Unreleased
 
+- Corrected the differential arithmetic fuzz bounds so cases whose mathematically correct output
+  exceeds `uint256` are excluded without reducing coverage of representable boundary values.
 - Added independent differential PSM arithmetic fuzzing across every supported reserve-decimal
   count, CPI bound, and representable large input; the documented suite now has 132 tests.
 - Published `docs/OPERATOR-RUNBOOK.md` with launch acceptance, recurring monitoring, updater
