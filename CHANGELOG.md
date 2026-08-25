@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.106 - 2026-08-25
+
+- Refreshed the contributor quickstart with a live good-first issue for configured CPI adapter
+  health-page coverage.
+
 ## 0.1.0-alpha.105 - 2026-08-25
 
 - Added an adapter-to-PSM integration regression proving out-of-range signed CPI reports revert

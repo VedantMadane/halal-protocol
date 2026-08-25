@@ -33,9 +33,9 @@ Start with the [good first issues](https://github.com/fredrikblau/halal-protocol
 
 - Run `./scripts/local-demo.sh` to see the contracts and dApp together.
 - Run `make verify` before opening a pull request.
-- Pick [issue #24](https://github.com/fredrikblau/halal-protocol/issues/24) for frontend accessibility
-  testing or [#25](https://github.com/fredrikblau/halal-protocol/issues/25) for an operator monitoring
-  example. Both are documentation/test tasks with no contract behavior changes.
+- Pick [issue #26](https://github.com/fredrikblau/halal-protocol/issues/26) to extend wallet-free
+  browser coverage to a configured CPI adapter. It is a bounded frontend/test-harness task with no
+  contract behavior changes.
 - Use [Discussions](https://github.com/fredrikblau/halal-protocol/discussions) for design questions.
 - Report security vulnerabilities through [`SECURITY.md`](SECURITY.md), not a public issue.
 
