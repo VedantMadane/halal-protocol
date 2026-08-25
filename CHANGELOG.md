@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## Unreleased
 
+- Extended the local demo and CI deployment smoke test to assert both vesting beneficiaries, and
+  included chain/block identity in local deployment output for repeatable handoffs.
 - Added optional beneficiary checks to the deployment verifier, deployment-time beneficiary
   assertions, and chain/block identity output for repeatable operator audits.
 - Hardened deployment assertions and repeat verification to enforce the intended team and treasury

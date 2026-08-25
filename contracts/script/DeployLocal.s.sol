@@ -73,6 +73,10 @@ contract DeployLocalHalalSystem is DeployHalalSystem {
         console.log("NEXT_PUBLIC_HLC_RESERVE_TOKEN_31337=", address(deployment.reserve));
         console.log("NEXT_PUBLIC_HLC_RESERVE_SYMBOL_31337=mDAI");
         console.log("NEXT_PUBLIC_HLC_DEPLOYMENT_BLOCK_31337=", block.number);
+        console.log("Team beneficiary:   ", deployment.teamVesting.beneficiary());
+        console.log("Treasury beneficiary:", deployment.treasuryVesting.beneficiary());
+        console.log("Deployment chain ID:", block.chainid);
+        console.log("Deployment block:   ", block.number);
     }
 
     function _deployLocal(uint256 privateKey) internal returns (LocalDeployment memory deployment) {

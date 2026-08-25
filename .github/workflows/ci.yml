@@ -94,6 +94,8 @@ jobs:
             DAO="$(value_from_env NEXT_PUBLIC_HLC_DAO_31337)" \
             PSM="$(value_from_env NEXT_PUBLIC_HLC_PSM_31337)" \
             RESERVE_TOKEN="$(awk '/Local demo reserve:/ {gsub(/^[[:space:]]+|[[:space:]]+$/, "", $4); print $4}' "$DEPLOY_LOG")" \
+            TEAM_BENEFICIARY="$(cast wallet address --private-key "$LOCAL_PRIVATE_KEY")" \
+            TREASURY_BENEFICIARY="$(cast wallet address --private-key "$LOCAL_PRIVATE_KEY")" \
             DEPLOYER_ADDRESS="$(cast wallet address --private-key "$LOCAL_PRIVATE_KEY")" \
             ../scripts/verify-deployment.sh
 
