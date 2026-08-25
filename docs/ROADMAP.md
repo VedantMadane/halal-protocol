@@ -24,8 +24,8 @@ narrow roles by governance.
 ## Next: make the system useful to real participants
 
 - Add a production CPI adapter/consumer with an explicit data-source policy, heartbeat, fallback,
-  and key-rotation procedure. The current contract accepts bounded reports but intentionally does
-  not fetch CPI data itself.
+  and key-rotation procedure. Start from the [`CPI adapter specification`](CPI-ADAPTER-SPEC.md);
+  the current contract accepts bounded reports but intentionally does not fetch CPI data itself.
 - Add monitoring for reserve deficits, stale CPI reports, role changes, vesting releases, and
   governance proposals, with documented alert thresholds.
 - Run a public testnet program that records deposits, withdrawals, CPI changes, governance actions,

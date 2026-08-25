@@ -14,7 +14,7 @@ operations. Report fund-risking findings through [`SECURITY.md`](../SECURITY.md)
 | --- | --- | --- |
 | Solidity security | [`docs/THREAT-MODEL.md`](THREAT-MODEL.md), [`contracts/test/`](../contracts/test/) | An adversarial test, the affected invariant, and a clear risk explanation |
 | Reserve-token behavior | [`HalalPSM.t.sol`](../contracts/test/HalalPSM.t.sol), [`HalalPSMArithmetic.t.sol`](../contracts/test/HalalPSMArithmetic.t.sol) | A reserve-token fixture and tests for balance deltas, fees, decimals, or callback behavior |
-| CPI/oracle integration | [`HalalPSM.sol`](../contracts/src/HalalPSM.sol), [`docs/OPERATOR-RUNBOOK.md`](OPERATOR-RUNBOOK.md) | A separate adapter or relayer design with source provenance, heartbeat, fallback, and rotation rules |
+| CPI/oracle integration | [`HalalPSM.sol`](../contracts/src/HalalPSM.sol), [`docs/CPI-ADAPTER-SPEC.md`](CPI-ADAPTER-SPEC.md), [`docs/OPERATOR-RUNBOOK.md`](OPERATOR-RUNBOOK.md) | A reviewed adapter or relayer with source provenance, heartbeat, fallback, and rotation rules |
 | Monitoring | [`scripts/check-deployment-health.sh`](../scripts/check-deployment-health.sh), [`docs/OPERATOR-RUNBOOK.md`](OPERATOR-RUNBOOK.md) | A read-only alert integration that preserves the scripts' fail-closed exit behavior |
 | Economic research | [`docs/ECONOMIC-MODEL.md`](ECONOMIC-MODEL.md), [`scripts/model-psm.mjs`](../scripts/model-psm.mjs) | A reproducible scenario, explicit assumptions, and a comparison with the Solidity rounding rules |
 | dApp UX | [`app/src/components/`](../app/src/components/), [`app/README.md`](../app/README.md) | A usable flow on the local demo, responsive states, and passing lint/build checks |

@@ -54,6 +54,7 @@ conservative accounting model:
 | Are public deployment addresses reviewable? | [`docs/DEPLOYMENT-REGISTRY.md`](docs/DEPLOYMENT-REGISTRY.md) and the checked-in registry |
 | Are generated frontend interfaces kept in sync? | ABI regeneration is a required CI check |
 | Is the security posture stated plainly? | [`SECURITY.md`](SECURITY.md) and [`docs/THREAT-MODEL.md`](docs/THREAT-MODEL.md) |
+| Is the production CPI integration boundary defined? | [`docs/CPI-ADAPTER-SPEC.md`](docs/CPI-ADAPTER-SPEC.md) and [issue #17](https://github.com/fredrikblau/halal-protocol/issues/17) |
 
 The project is still unaudited and not production-ready. The table is evidence of engineering
 discipline, not a safety guarantee.
