@@ -37,7 +37,8 @@ compensating for the reserve currency's own inflation over that period.
 
 ## 2. System overview
 
-Halal is five contracts, deployed once and never upgraded:
+Halal's core system is five contracts, deployed once and never upgraded. An optional signed CPI
+adapter can sit in front of the PSM without changing those core contracts:
 
 | Contract | Role |
 |---|---|

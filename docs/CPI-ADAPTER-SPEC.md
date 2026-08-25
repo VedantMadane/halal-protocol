@@ -84,6 +84,45 @@ The adapter and operator must apply these rules:
 The adapter must not treat a successful transaction as proof that the source was correct. The PSM
 only proves that the report satisfied its on-chain constraints.
 
+## Reference module
+
+The repository includes [`CPIReportAdapter.sol`](../contracts/src/CPIReportAdapter.sol) as an
+optional reference module. It uses the EIP-712 domain `Halal CPI Report Adapter`, version `1`, and
+the typed data:
+
+```text
+CPIReport(uint256 reportedCPI,uint256 reportedAt,bytes32 sourceId)
+```
+
+The submitter must provide exactly `threshold` signatures, ordered by recovered signer address in
+strictly ascending order. The adapter rejects future or non-increasing publication timestamps,
+tracks the last forwarded timestamp, binds each signature to the adapter's immutable `sourceId`,
+and protects its PSM call with a reentrancy guard. `Ownable2Step` controls signer rotation and
+threshold changes. Set the owner to the protocol timelock before granting the adapter
+`UPDATER_ROLE` on the PSM.
+
+The module authenticates the configured signer quorum. It does not prove that those signers parsed
+an official CPI source correctly. Operators still need the source policy, parser review, report
+archive, and independent security review described below.
+
+### Governance wiring
+
+1. Deploy the adapter with the PSM address, timelock owner, signer set, threshold, and a nonzero
+   `sourceId` derived from the documented source series and parser policy.
+2. Verify the EIP-712 domain, source ID, signer addresses, threshold, and owner before any report
+   is signed.
+3. Grant the adapter `UPDATER_ROLE` through the PSM's governance path.
+4. Set the PSM `source` metadata through governance and record the expected value in the deployment
+   journal.
+5. Submit a fresh test report, verify `CPIUpdated` and `CPIReportAccepted`, and run the combined
+   deployment health check with `CPI_UPDATER` and `EXPECTED_CPI_SOURCE`.
+6. Treat a source-series or parser-policy change as a new adapter deployment. Revoke the old
+   adapter's PSM role only after the new adapter passes its first-report and health checks.
+7. Review signer additions, removals, threshold changes, and owner transfers as governance actions.
+
+The module remains unaudited. A deployment must not treat the presence of this source file or its
+tests as an approval to accept meaningful funds.
+
 ## Monitoring requirements
 
 Run the combined audit with the deployment's expected updater and source:
@@ -93,7 +132,8 @@ RPC_URL=https://... EXPECTED_CHAIN_ID=421614 \
 TIMELOCK=0x... TOKEN=0x... TEAM_VESTING=0x... TREASURY_VESTING=0x... \
 DAO=0x... PSM=0x... RESERVE_TOKEN=0x... \
 TEAM_BENEFICIARY=0x... TREASURY_BENEFICIARY=0x... DEPLOYER_ADDRESS=0x... \
-CPI_UPDATER=0x... EXPECTED_CPI_SOURCE=https://... \
+CPI_UPDATER=0x... CPI_ADAPTER=0x... \
+EXPECTED_CPI_SOURCE=https://... EXPECTED_CPI_SOURCE_ID=0x... \
 ./scripts/check-deployment-health.sh
 ```
 
@@ -104,6 +144,9 @@ Alert on these conditions:
 - `reserve_deficit`;
 - `configured_cpi_updater_missing_role`;
 - `cpi_source_mismatch`;
+- `cpi_adapter_psm_mismatch`;
+- `cpi_adapter_source_id_mismatch`;
+- `cpi_adapter_quorum_invalid`;
 - overdue normal CPI cadence;
 - unexpected `RoleGranted`, `RoleRevoked`, or `SourceUpdated` events.
 

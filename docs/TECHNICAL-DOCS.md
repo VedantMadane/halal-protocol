@@ -3,7 +3,7 @@
 **Version**: 1.1.0
 **Date**: August 24, 2026
 **Network**: Arbitrum (Sepolia & Mainnet)
-**Status**: Unaudited reference implementation | 138 tests passing (135 unit/configuration + 3 invariants) | Not production-ready
+**Status**: Unaudited reference implementation | 148 tests passing (145 unit/configuration + 3 invariants) | Not production-ready
 
 ---
 
@@ -22,7 +22,7 @@
 
 ## Contract Overview
 
-### 5 First-Party Smart Contracts
+### 5 Core First-Party Smart Contracts
 
 The contracts are separate, immutable-by-design modules under `contracts/src/`:
 
@@ -73,6 +73,12 @@ The contracts are separate, immutable-by-design modules under `contracts/src/`:
   - Safety window for community
   - Exit time if unpopular
   - No admin bypass
+
+### Optional integration module: `CPIReportAdapter.sol`
+
+The optional adapter uses EIP-712 signatures and a configurable quorum before forwarding a report
+to `HalalPSM`. It is not part of the five-contract core deployment. See
+[`docs/CPI-ADAPTER-SPEC.md`](CPI-ADAPTER-SPEC.md) for its trust assumptions and deployment review.
   - Integrates with Governor
 
 ---
@@ -184,7 +190,7 @@ EOF
 ```bash
 # 1. Test locally
 forge test -vvv
-# Expected: 138/138 tests passing ✓
+# Expected: 148/148 tests passing ✓
 
 # 2. Fund wallet with testnet ETH on Arbitrum Sepolia
 # Visit: https://sepoliafaucet.com
@@ -529,7 +535,7 @@ forge coverage
 ✓ test_TreasuryVestingNonRevocable
 ✓ 135 unit/configuration tests plus 3 stateful PSM invariants covering the core contracts and governance flows
 
-Total: 138 tests passing ✓
+Total: 148 tests passing ✓
 ```
 
 ### Verify on Arbiscan
@@ -547,7 +553,7 @@ Total: 138 tests passing ✓
 
 ### Before Deployment
 
-- [ ] All 138 tests passing locally, including the stateful invariants
+- [ ] All 148 tests passing locally, including the stateful invariants
 - [ ] Gas estimates reviewed & acceptable
 - [ ] No compiler warnings
 - [ ] Code review completed
@@ -609,7 +615,7 @@ forge script script/Deploy.s.sol:DeployHalalSystem \
 
 ```
 contracts/
-├── src/ (five first-party protocol contracts)
+├── src/ (five core contracts plus the optional CPI report adapter)
 ├── script/ (deployment and proposal examples)
 └── test/ (Foundry tests and mocks)
 

@@ -1,13 +1,14 @@
 # Halal Contracts
 
 Foundry project for the Halal (HLC) protocol: `HalalToken`, `HalalVesting`, `HalalPSM`,
-`HalalDAO`, `HalalTimelock`. For the protocol overview, architecture, and governance model, see
+`HalalDAO`, `HalalTimelock`, and the optional `CPIReportAdapter`. For the protocol overview,
+architecture, and governance model, see
 the [root README](../README.md) and [`../docs/`](../docs).
 
 ## Layout
 
-- `src/` — the five core contracts.
-- `test/` — Foundry test suite (138 tests at the time of writing: 135 unit/configuration tests plus 3 stateful
+- `src/` — the five core contracts plus the optional CPI report adapter.
+- `test/` — Foundry test suite (148 tests at the time of writing: 145 unit/configuration tests plus 3 stateful
   PSM invariants; run `forge test` to confirm).
 - `script/Deploy.s.sol` — full deployment script (token, vesting, DAO, timelock, role wiring).
 - `../scripts/verify-deployment.sh` — read-only post-deployment wiring and role verifier.

@@ -1,0 +1,207 @@
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.24;
+
+import { Test } from "forge-std/Test.sol";
+import { CPIReportAdapter } from "../src/CPIReportAdapter.sol";
+import { HalalPSM } from "../src/HalalPSM.sol";
+import { HalalToken } from "../src/HalalToken.sol";
+import { MockCPIReportSink } from "./mocks/MockCPIReportSink.sol";
+import { MockERC20 } from "./mocks/MockERC20.sol";
+
+contract CPIReportAdapterTest is Test {
+    uint256 internal constant SIGNER_ONE_KEY = 0xA11CE;
+    uint256 internal constant SIGNER_TWO_KEY = 0xB0B;
+    uint256 internal constant SIGNER_THREE_KEY = 0xC0DE;
+    bytes32 internal constant SOURCE_ID = keccak256("official-cpi-series-v1");
+
+    address internal signerOne;
+    address internal signerTwo;
+    address internal signerThree;
+    MockCPIReportSink internal sink;
+    CPIReportAdapter internal adapter;
+
+    function setUp() public {
+        vm.warp(100 days);
+        signerOne = vm.addr(SIGNER_ONE_KEY);
+        signerTwo = vm.addr(SIGNER_TWO_KEY);
+        signerThree = vm.addr(SIGNER_THREE_KEY);
+        address[] memory signers = new address[](3);
+        signers[0] = signerOne;
+        signers[1] = signerTwo;
+        signers[2] = signerThree;
+        sink = new MockCPIReportSink();
+        adapter = new CPIReportAdapter(address(sink), address(this), signers, 2, SOURCE_ID);
+    }
+
+    function test_SubmitsQuorumReportToSink() public {
+        uint256 reportedAt = block.timestamp - 1;
+        bytes[] memory signatures = _signReport(1_010_000, reportedAt, SIGNER_ONE_KEY, SIGNER_TWO_KEY);
+
+        adapter.submitReport(1_010_000, reportedAt, signatures);
+
+        assertEq(sink.lastCPI(), 1_010_000);
+        assertEq(sink.lastReportTimestamp(), reportedAt);
+        assertEq(sink.lastCaller(), address(adapter));
+        assertEq(adapter.lastSubmittedTimestamp(), reportedAt);
+    }
+
+    function test_ForwardsReportToHalalPSM() public {
+        MockERC20 reserve = new MockERC20("Mock DAI", "mDAI", 18);
+        HalalToken token = new HalalToken(address(this));
+        HalalPSM psm = new HalalPSM(address(reserve), address(token), address(this), address(0));
+        address[] memory signers = new address[](2);
+        signers[0] = signerOne;
+        signers[1] = signerTwo;
+        CPIReportAdapter psmAdapter = new CPIReportAdapter(address(psm), address(this), signers, 2, SOURCE_ID);
+        psm.grantRole(psm.UPDATER_ROLE(), address(psmAdapter));
+
+        uint256 reportedAt = block.timestamp - 1;
+        bytes[] memory signatures = _signReportFor(psmAdapter, 1_010_000, reportedAt, SIGNER_ONE_KEY, SIGNER_TWO_KEY);
+        psmAdapter.submitReport(1_010_000, reportedAt, signatures);
+
+        assertEq(psm.cpiRate(), 1_010_000);
+        assertEq(psm.lastReportTimestamp(), reportedAt);
+    }
+
+    function test_RevertWhen_ReportHasOnlyOneSignature() public {
+        bytes[] memory signatures = _signReport(1_000_000, block.timestamp - 1, SIGNER_ONE_KEY);
+        vm.expectRevert(CPIReportAdapter.InvalidSignatureCount.selector);
+        adapter.submitReport(1_000_000, block.timestamp - 1, signatures);
+    }
+
+    function test_RevertWhen_SignaturesUseAnotherSourceId() public {
+        address[] memory signers = new address[](3);
+        signers[0] = signerOne;
+        signers[1] = signerTwo;
+        signers[2] = signerThree;
+        CPIReportAdapter otherSource =
+            new CPIReportAdapter(address(sink), address(this), signers, 2, keccak256("official-cpi-series-v2"));
+        uint256 reportedAt = block.timestamp - 1;
+        bytes[] memory signatures = _signReportFor(otherSource, 1_000_000, reportedAt, SIGNER_ONE_KEY, SIGNER_TWO_KEY);
+
+        vm.expectRevert(CPIReportAdapter.UnauthorizedSigner.selector);
+        adapter.submitReport(1_000_000, reportedAt, signatures);
+    }
+
+    function test_RevertWhen_SignerIsNotAuthorized() public {
+        uint256 outsiderKey = 0xD00D;
+        bytes[] memory signatures = _signReport(1_000_000, block.timestamp - 1, SIGNER_ONE_KEY, outsiderKey);
+        vm.expectRevert(CPIReportAdapter.UnauthorizedSigner.selector);
+        adapter.submitReport(1_000_000, block.timestamp - 1, signatures);
+    }
+
+    function test_RevertWhen_SignaturesAreNotSorted() public {
+        uint256 reportedAt = block.timestamp - 1;
+        bytes[] memory signatures = new bytes[](2);
+        if (signerOne < signerTwo) {
+            signatures[0] = _signature(1_000_000, reportedAt, SIGNER_TWO_KEY);
+            signatures[1] = _signature(1_000_000, reportedAt, SIGNER_ONE_KEY);
+        } else {
+            signatures[0] = _signature(1_000_000, reportedAt, SIGNER_ONE_KEY);
+            signatures[1] = _signature(1_000_000, reportedAt, SIGNER_TWO_KEY);
+        }
+        vm.expectRevert(CPIReportAdapter.SignaturesNotSorted.selector);
+        adapter.submitReport(1_000_000, reportedAt, signatures);
+    }
+
+    function test_RevertWhen_ReportTimestampDoesNotIncrease() public {
+        uint256 reportedAt = block.timestamp - 1;
+        bytes[] memory signatures = _signReport(1_000_000, reportedAt, SIGNER_ONE_KEY, SIGNER_TWO_KEY);
+        adapter.submitReport(1_000_000, reportedAt, signatures);
+
+        vm.expectRevert(CPIReportAdapter.ReportTimestampNotIncreasing.selector);
+        adapter.submitReport(1_010_000, reportedAt, signatures);
+    }
+
+    function test_RevertWhen_ReportTimestampIsInTheFuture() public {
+        uint256 reportedAt = block.timestamp + 1;
+        bytes[] memory signatures = _signReport(1_000_000, reportedAt, SIGNER_ONE_KEY, SIGNER_TWO_KEY);
+        vm.expectRevert(CPIReportAdapter.InvalidReportTimestamp.selector);
+        adapter.submitReport(1_000_000, reportedAt, signatures);
+    }
+
+    function test_OwnerCanRotateSignersWithoutBreakingQuorum() public {
+        uint256 replacementKey = 0xE11E;
+        address replacement = vm.addr(replacementKey);
+        adapter.removeSigner(signerThree);
+        adapter.addSigner(replacement);
+
+        assertFalse(adapter.isSigner(signerThree));
+        assertTrue(adapter.isSigner(replacement));
+        assertEq(adapter.signerCount(), 3);
+
+        uint256 reportedAt = block.timestamp - 1;
+        bytes[] memory signatures = _signReport(1_010_000, reportedAt, SIGNER_ONE_KEY, replacementKey);
+        adapter.submitReport(1_010_000, reportedAt, signatures);
+        assertEq(sink.lastCPI(), 1_010_000);
+    }
+
+    function test_RevertWhen_OwnerRemovesSignerBelowThreshold() public {
+        adapter.setThreshold(3);
+        vm.expectRevert(CPIReportAdapter.InvalidThreshold.selector);
+        adapter.removeSigner(signerOne);
+    }
+
+    function _signReport(uint256 reportedCPI, uint256 reportedAt, uint256 firstKey)
+        internal
+        view
+        returns (bytes[] memory signatures)
+    {
+        signatures = new bytes[](1);
+        signatures[0] = _signature(reportedCPI, reportedAt, firstKey);
+    }
+
+    function _signReport(uint256 reportedCPI, uint256 reportedAt, uint256 firstKey, uint256 secondKey)
+        internal
+        view
+        returns (bytes[] memory signatures)
+    {
+        address firstSigner = vm.addr(firstKey);
+        address secondSigner = vm.addr(secondKey);
+        signatures = new bytes[](2);
+        if (firstSigner < secondSigner) {
+            signatures[0] = _signature(reportedCPI, reportedAt, firstKey);
+            signatures[1] = _signature(reportedCPI, reportedAt, secondKey);
+        } else {
+            signatures[0] = _signature(reportedCPI, reportedAt, secondKey);
+            signatures[1] = _signature(reportedCPI, reportedAt, firstKey);
+        }
+    }
+
+    function _signature(uint256 reportedCPI, uint256 reportedAt, uint256 privateKey)
+        internal
+        view
+        returns (bytes memory)
+    {
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, adapter.reportDigest(reportedCPI, reportedAt));
+        return abi.encodePacked(r, s, v);
+    }
+
+    function _signReportFor(
+        CPIReportAdapter target,
+        uint256 reportedCPI,
+        uint256 reportedAt,
+        uint256 firstKey,
+        uint256 secondKey
+    ) internal view returns (bytes[] memory signatures) {
+        address firstSigner = vm.addr(firstKey);
+        address secondSigner = vm.addr(secondKey);
+        signatures = new bytes[](2);
+        if (firstSigner < secondSigner) {
+            signatures[0] = _signatureFor(target, reportedCPI, reportedAt, firstKey);
+            signatures[1] = _signatureFor(target, reportedCPI, reportedAt, secondKey);
+        } else {
+            signatures[0] = _signatureFor(target, reportedCPI, reportedAt, secondKey);
+            signatures[1] = _signatureFor(target, reportedCPI, reportedAt, firstKey);
+        }
+    }
+
+    function _signatureFor(CPIReportAdapter target, uint256 reportedCPI, uint256 reportedAt, uint256 privateKey)
+        internal
+        view
+        returns (bytes memory)
+    {
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, target.reportDigest(reportedCPI, reportedAt));
+        return abi.encodePacked(r, s, v);
+    }
+}

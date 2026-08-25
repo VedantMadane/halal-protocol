@@ -2,8 +2,8 @@
 set -euo pipefail
 
 # Read-only PSM health check for cron, CI, and monitoring agents.
-# Required: RPC_URL and PSM. Optional: CPI_UPDATER, EXPECTED_CPI_SOURCE, and
-# FAIL_ON_UPDATE_OVERDUE (default: true).
+# Required: RPC_URL and PSM. Optional: CPI_UPDATER, CPI_ADAPTER, EXPECTED_CPI_SOURCE,
+# EXPECTED_CPI_SOURCE_ID, and FAIL_ON_UPDATE_OVERDUE (default: true).
 
 for variable in RPC_URL PSM; do
   if [[ -z "${!variable:-}" ]]; then
@@ -14,8 +14,12 @@ done
 
 command -v cast >/dev/null || { echo "cast is required (install Foundry first)" >&2; exit 1; }
 
+call_at() {
+  cast call "$1" "$2" --rpc-url "$RPC_URL" | awk 'NR == 1 { print $1; exit }'
+}
+
 call() {
-  cast call "$PSM" "$@" --rpc-url "$RPC_URL" | awk 'NR == 1 { print $1; exit }'
+  call_at "$PSM" "$@"
 }
 
 address_call() {
@@ -57,6 +61,34 @@ if [[ -n "${EXPECTED_CPI_SOURCE:-}" && "$cpi_source" != "$EXPECTED_CPI_SOURCE" ]
   echo "status=unhealthy"
   echo "reason=cpi_source_mismatch"
   failure=1
+fi
+
+if [[ -n "${CPI_ADAPTER:-}" ]]; then
+  CPI_ADAPTER="${CPI_ADAPTER,,}"
+  adapter_psm="$(call_at "$CPI_ADAPTER" 'psm()(address)' | tr '[:upper:]' '[:lower:]')"
+  adapter_source_id="$(call_at "$CPI_ADAPTER" 'sourceId()(bytes32)' | tr '[:upper:]' '[:lower:]')"
+  adapter_threshold="$(call_at "$CPI_ADAPTER" 'threshold()(uint256)')"
+  adapter_signer_count="$(call_at "$CPI_ADAPTER" 'signerCount()(uint256)')"
+  echo "cpi_adapter=$CPI_ADAPTER"
+  echo "cpi_adapter_source_id=$adapter_source_id"
+  echo "cpi_adapter_threshold=$adapter_threshold"
+  echo "cpi_adapter_signer_count=$adapter_signer_count"
+
+  if [[ "$adapter_psm" != "${PSM,,}" ]]; then
+    echo "status=unhealthy"
+    echo "reason=cpi_adapter_psm_mismatch"
+    failure=1
+  fi
+  if [[ -n "${EXPECTED_CPI_SOURCE_ID:-}" && "$adapter_source_id" != "${EXPECTED_CPI_SOURCE_ID,,}" ]]; then
+    echo "status=unhealthy"
+    echo "reason=cpi_adapter_source_id_mismatch"
+    failure=1
+  fi
+  if [[ "$adapter_threshold" == "0" || "$adapter_signer_count" == "0" || "$adapter_threshold" -gt "$adapter_signer_count" ]]; then
+    echo "status=unhealthy"
+    echo "reason=cpi_adapter_quorum_invalid"
+    failure=1
+  fi
 fi
 
 if [[ "$reserve_surplus" == -* ]]; then

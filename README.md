@@ -17,9 +17,9 @@ treasury, both time-vested) is not reserve-backed. PSM issuance, protocol parame
 spending are controlled by an on-chain DAO (OpenZeppelin `Governor` + `TimelockController`) once
 the system is fully deployed and handed off — there is no unilateral admin key in that final state.
 
-This is a genuine, from-scratch implementation, not a fork or a wrapper — five contracts
-(`HalalToken`, `HalalVesting`, `HalalPSM`, `HalalDAO`, `HalalTimelock`), a Foundry test suite, and
-a Next.js frontend, all in this monorepo.
+This is a genuine, from-scratch implementation, not a fork or a wrapper: five immutable core
+contracts (`HalalToken`, `HalalVesting`, `HalalPSM`, `HalalDAO`, `HalalTimelock`), an optional signed
+CPI adapter, a Foundry test suite, and a Next.js frontend, all in this monorepo.
 
 The fastest way to see the complete system is `./scripts/local-demo.sh`: it starts a disposable
 Anvil chain, deploys the wired contracts, seeds a fresh local CPI report, and opens the frontend
@@ -44,7 +44,7 @@ conservative accounting model:
 
 | Reviewer question | Evidence in this repository |
 | --- | --- |
-| Does the accounting have stateful coverage? | 138 Foundry tests, including 3 PSM invariants, differential arithmetic checks, and fuzzing |
+| Does the accounting have stateful coverage? | 148 Foundry tests, including 3 PSM invariants, differential arithmetic checks, and fuzzing |
 | Do invariants cover CPI changes? | [`docs/INVARIANTS.md`](docs/INVARIANTS.md) models governance rate changes and reserve top-ups |
 | Can a deployment be checked without a private key? | [`scripts/verify-deployment.sh`](scripts/verify-deployment.sh) |
 | Can I inspect the full system locally? | [`./scripts/local-demo.sh`](scripts/local-demo.sh) on a disposable Anvil chain |
@@ -62,7 +62,7 @@ discipline, not a safety guarantee.
 ## Status & risk
 
 **This protocol has not undergone a professional security audit, and there is no bug bounty
-program yet.** The contracts pass their own test suite (138/138 at the time of writing — 135 unit
+program yet.** The contracts pass their own test suite (148/148 at the time of writing — 145 unit
 and configuration tests plus 3 stateful invariants; see
 `contracts/test/`), but a passing test suite is not a substitute for an audit, and this repo
 should not be treated as safe to use with real, meaningful funds. If you deploy or interact with
@@ -82,6 +82,9 @@ active, unaudited, open-source project, and honesty about that is a design goal 
 - **`HalalPSM`** — mints/burns HLC against a reserve asset at a CPI-adjusted rate; CPI is
   submitted by a rate-limited `UPDATER_ROLE` (intended to be a Chainlink Functions consumer or
   similar in production) with a DAO-gated manual override for emergencies.
+- **`CPIReportAdapter`** — optional EIP-712 quorum module that authenticates signed reports before
+  forwarding them to the PSM; it is unaudited and does not authenticate the underlying statistics
+  agency by itself.
 - **`HalalDAO`** — an OpenZeppelin `Governor` (settings + simple counting + votes + quorum
   fraction + timelock control) wired to HLC's vote-weight and to `HalalTimelock`.
 - **`HalalTimelock`** — a standard `TimelockController` enforcing an execution delay between a
@@ -129,8 +132,8 @@ read the NatSpec comments there, they're kept accurate and up to date.
 ## Repository layout
 
 ```
-contracts/   Foundry Solidity project — HalalToken, HalalVesting, HalalPSM, HalalDAO,
-             HalalTimelock, tests, deploy/example scripts.
+contracts/   Foundry Solidity project — five core contracts plus CPIReportAdapter,
+             tests, deploy/example scripts.
 app/         Next.js frontend dApp.
 docs/        Design and governance documentation (see above).
 ```

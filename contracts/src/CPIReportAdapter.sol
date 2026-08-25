@@ -1,0 +1,124 @@
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.24;
+
+import { Ownable2Step } from "@openzeppelin/contracts/access/Ownable2Step.sol";
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { EIP712 } from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
+import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+
+interface ICPIReportSink {
+    function updateCPIWithTimestamp(uint256 reportedCPI, uint256 reportedAt) external;
+}
+
+/// @title CPIReportAdapter
+/// @notice Optional quorum adapter that authenticates EIP-712 CPI reports before forwarding them
+/// to HalalPSM. The owner should be the protocol timelock, and the adapter itself should hold the
+/// PSM's UPDATER_ROLE. This module does not authenticate a statistics agency; governance must choose
+/// and document the source, parser, signer custody, and revision policy off-chain.
+/// @dev This contract is an unaudited reference module. Review the signer policy and source
+/// integration before granting it a role on a deployment with meaningful funds.
+contract CPIReportAdapter is EIP712, Ownable2Step, ReentrancyGuard {
+    bytes32 public constant REPORT_TYPEHASH =
+        keccak256("CPIReport(uint256 reportedCPI,uint256 reportedAt,bytes32 sourceId)");
+
+    ICPIReportSink public immutable psm;
+    bytes32 public immutable sourceId;
+    mapping(address => bool) public isSigner;
+    uint256 public signerCount;
+    uint256 public threshold;
+    uint256 public lastSubmittedTimestamp;
+
+    error ZeroAddress();
+    error ZeroSourceId();
+    error InvalidSignerSet();
+    error SignerAlreadyConfigured();
+    error SignerNotConfigured();
+    error InvalidThreshold();
+    error InvalidSignatureCount();
+    error UnauthorizedSigner();
+    error SignaturesNotSorted();
+    error InvalidReportTimestamp();
+    error ReportTimestampNotIncreasing();
+
+    event SignerAdded(address indexed signer);
+    event SignerRemoved(address indexed signer);
+    event ThresholdUpdated(uint256 threshold);
+    event SourceIdConfigured(bytes32 indexed sourceId);
+    event ReportSubmitted(uint256 indexed reportedAt, uint256 reportedCPI, uint256 signerCount);
+
+    constructor(address psm_, address owner_, address[] memory signers_, uint256 threshold_, bytes32 sourceId_)
+        EIP712("Halal CPI Report Adapter", "1")
+        Ownable(owner_)
+    {
+        if (psm_ == address(0)) revert ZeroAddress();
+        if (sourceId_ == bytes32(0)) revert ZeroSourceId();
+        if (signers_.length == 0 || threshold_ == 0 || threshold_ > signers_.length) revert InvalidSignerSet();
+        psm = ICPIReportSink(psm_);
+        sourceId = sourceId_;
+        threshold = threshold_;
+        emit SourceIdConfigured(sourceId_);
+
+        for (uint256 i = 0; i < signers_.length; ++i) {
+            address signer = signers_[i];
+            if (signer == address(0) || isSigner[signer]) revert InvalidSignerSet();
+            isSigner[signer] = true;
+            ++signerCount;
+            emit SignerAdded(signer);
+        }
+    }
+
+    /// @notice Adds a report signer. Governance should call this through the owner timelock.
+    function addSigner(address signer) external onlyOwner {
+        if (signer == address(0)) revert ZeroAddress();
+        if (isSigner[signer]) revert SignerAlreadyConfigured();
+        isSigner[signer] = true;
+        ++signerCount;
+        emit SignerAdded(signer);
+    }
+
+    /// @notice Removes a report signer while preserving the configured quorum.
+    function removeSigner(address signer) external onlyOwner {
+        if (!isSigner[signer]) revert SignerNotConfigured();
+        if (signerCount - 1 < threshold) revert InvalidThreshold();
+        isSigner[signer] = false;
+        --signerCount;
+        emit SignerRemoved(signer);
+    }
+
+    /// @notice Changes the number of distinct signatures required for each report.
+    function setThreshold(uint256 newThreshold) external onlyOwner {
+        if (newThreshold == 0 || newThreshold > signerCount) revert InvalidThreshold();
+        threshold = newThreshold;
+        emit ThresholdUpdated(newThreshold);
+    }
+
+    /// @notice Returns the EIP-712 digest that signers must approve.
+    function reportDigest(uint256 reportedCPI, uint256 reportedAt) public view returns (bytes32) {
+        return _hashTypedDataV4(keccak256(abi.encode(REPORT_TYPEHASH, reportedCPI, reportedAt, sourceId)));
+    }
+
+    /// @notice Forwards a report after verifying exactly `threshold` distinct authorized signatures.
+    /// Signatures must be ordered by recovered signer address in strictly ascending order.
+    function submitReport(uint256 reportedCPI, uint256 reportedAt, bytes[] calldata signatures) external nonReentrant {
+        // The PSM applies the same timestamp boundary. This check prevents the adapter from
+        // forwarding a report that its sink could accept but the adapter's own watermark could not.
+        // forge-lint: disable-next-line(block-timestamp)
+        if (reportedAt == 0 || reportedAt > block.timestamp) revert InvalidReportTimestamp();
+        if (reportedAt <= lastSubmittedTimestamp) revert ReportTimestampNotIncreasing();
+        if (signatures.length != threshold) revert InvalidSignatureCount();
+
+        bytes32 digest = reportDigest(reportedCPI, reportedAt);
+        address previousSigner;
+        for (uint256 i = 0; i < signatures.length; ++i) {
+            address signer = ECDSA.recover(digest, signatures[i]);
+            if (!isSigner[signer]) revert UnauthorizedSigner();
+            if (i > 0 && signer <= previousSigner) revert SignaturesNotSorted();
+            previousSigner = signer;
+        }
+
+        psm.updateCPIWithTimestamp(reportedCPI, reportedAt);
+        lastSubmittedTimestamp = reportedAt;
+        emit ReportSubmitted(reportedAt, reportedCPI, signatures.length);
+    }
+}
