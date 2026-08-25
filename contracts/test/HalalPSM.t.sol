@@ -908,6 +908,30 @@ contract HalalPSMTest is Deployers {
         assertEq(psm.reserveSurplus(), 400e18);
     }
 
+    function test_CancelRedeemableWithPermitUsesSignedHlcApproval() public {
+        (address permitAlice, uint256 permitAliceKey) = makeAddrAndKey("permitCancelAlice");
+        reserve.mint(permitAlice, 1_000e18);
+        vm.startPrank(permitAlice);
+        reserve.approve(address(psm), 1_000e18);
+        psm.deposit(1_000e18);
+        vm.stopPrank();
+
+        uint256 amount = 400e18;
+        uint256 deadline = block.timestamp + 1 hours;
+        (uint8 v, bytes32 r, bytes32 s) =
+            _permitSignature(address(token), permitAlice, address(psm), amount, deadline, permitAliceKey);
+
+        vm.prank(permitAlice);
+        psm.cancelRedeemableWithPermit(amount, deadline, v, r, s);
+
+        assertEq(token.balanceOf(permitAlice), 600e18);
+        assertEq(psm.redeemableBalance(permitAlice), 600e18);
+        assertEq(psm.totalHlcIssued(), 600e18);
+        assertEq(token.totalSupply(), 10_000_000e18 + 600e18);
+        assertEq(psm.reserveSurplus(), 400e18);
+        assertEq(token.nonces(permitAlice), 1);
+    }
+
     function test_TransferRedeemableWithPermitUsesSignedHlcApproval() public {
         (address permitAlice, uint256 permitAliceKey) = makeAddrAndKey("permitTransferAlice");
         address recipient = makeAddr("permitTransferRecipient");

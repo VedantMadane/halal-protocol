@@ -266,6 +266,22 @@ contract HalalPSM is AccessControl, ReentrancyGuard {
     /// `burn()` directly: it releases the surrendered claim from `totalHlcIssued`, allowing the
     /// corresponding reserve to become surplus. The caller must approve this contract for the HLC.
     function cancelRedeemable(uint256 hlcAmount) external nonReentrant {
+        _cancelRedeemable(hlcAmount);
+    }
+
+    /// @notice Irreversibly burns HLC and retires the caller's redemption credit with an EIP-2612
+    /// HLC permit. The permit is only an approval; the same accounting checks and irreversible
+    /// burn semantics as `cancelRedeemable` still apply.
+    function cancelRedeemableWithPermit(uint256 hlcAmount, uint256 deadline, uint8 v, bytes32 r, bytes32 s)
+        external
+        nonReentrant
+    {
+        _checkDeadline(deadline);
+        _tryPermit(address(hlc), hlcAmount, deadline, v, r, s);
+        _cancelRedeemable(hlcAmount);
+    }
+
+    function _cancelRedeemable(uint256 hlcAmount) internal {
         if (hlcAmount == 0) revert ZeroAmount();
         if (redeemableBalance[msg.sender] < hlcAmount) revert InsufficientRedeemableBalance();
 

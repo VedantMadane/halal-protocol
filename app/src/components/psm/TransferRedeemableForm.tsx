@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { isAddress, parseSignature, parseUnits, zeroAddress } from "viem";
-import { useAccount, useBlock, useChainId, useReadContract, useSignTypedData } from "wagmi";
+import { isAddress, parseSignature, parseUnits, toFunctionSelector, zeroAddress } from "viem";
+import { useAccount, useBlock, useBytecode, useChainId, useReadContract, useSignTypedData } from "wagmi";
 import { halalPsmAbi, halalTokenAbi } from "@/abis";
 import { useDeployment } from "@/hooks/useDeployment";
 import { useDeploymentIntegrity } from "@/hooks/useDeploymentIntegrity";
@@ -23,6 +23,13 @@ function safeParseHlc(value: string): bigint | undefined {
   }
 }
 
+const TRANSFER_PERMIT_SELECTOR = toFunctionSelector(
+  "function transferRedeemableWithPermit(address,uint256,uint256,uint8,bytes32,bytes32)",
+);
+const CANCEL_PERMIT_SELECTOR = toFunctionSelector(
+  "function cancelRedeemableWithPermit(uint256,uint256,uint8,bytes32,bytes32)",
+);
+
 export function TransferRedeemableForm() {
   const { deployment } = useDeployment();
   const deploymentIntegrity = useDeploymentIntegrity();
@@ -37,6 +44,14 @@ export function TransferRedeemableForm() {
   const cancelTx = useTxState();
   const [permitError, setPermitError] = useState<string>();
   const { signTypedDataAsync, isPending: isSigningPermit } = useSignTypedData();
+
+  const { data: psmBytecode } = useBytecode({
+    address: deployment?.psm,
+    query: { enabled: !!deployment && deploymentIntegrity.isVerified },
+  });
+  const runtimeBytecode = psmBytecode?.toLowerCase() ?? "";
+  const supportsTransferPermit = runtimeBytecode.includes(TRANSFER_PERMIT_SELECTOR.slice(2).toLowerCase());
+  const supportsCancelPermit = runtimeBytecode.includes(CANCEL_PERMIT_SELECTOR.slice(2).toLowerCase());
 
   const { data: permitNonce } = useReadContract({
     address: deployment?.token,
@@ -152,6 +167,51 @@ export function TransferRedeemableForm() {
     }
   }
 
+  async function handleCancelWithPermit() {
+    if (!isConnected || !canAct || parsedAmount === undefined || !address || permitNonce === undefined || permitDeadline === undefined) {
+      return;
+    }
+
+    setPermitError(undefined);
+    try {
+      const signature = await signTypedDataAsync({
+        domain: {
+          name: "Halal",
+          version: "1",
+          chainId,
+          verifyingContract: deployment!.token,
+        },
+        types: {
+          Permit: [
+            { name: "owner", type: "address" },
+            { name: "spender", type: "address" },
+            { name: "value", type: "uint256" },
+            { name: "nonce", type: "uint256" },
+            { name: "deadline", type: "uint256" },
+          ],
+        },
+        primaryType: "Permit",
+        message: {
+          owner: address,
+          spender: deployment!.psm,
+          value: parsedAmount,
+          nonce: permitNonce,
+          deadline: permitDeadline,
+        },
+      });
+      const { v, r, s } = parseSignature(signature);
+      if (v === undefined) throw new Error("Wallet returned an incomplete permit signature.");
+      cancelTx.writeContract({
+        address: deployment!.psm,
+        abi: halalPsmAbi,
+        functionName: "cancelRedeemableWithPermit",
+        args: [parsedAmount, permitDeadline, Number(v), r, s],
+      });
+    } catch (error) {
+      setPermitError(getFriendlyErrorMessage(error));
+    }
+  }
+
   function handleCancel() {
     if (!isConnected || !canAct || parsedAmount === undefined) return;
     cancelTx.writeContract({
@@ -180,8 +240,8 @@ export function TransferRedeemableForm() {
       )}
 
       {permitError && (
-        <Alert tone="danger" title="Permit transfer was not signed">
-          {permitError} You can approve HLC first and submit the transfer with the fallback path.
+        <Alert tone="danger" title="Permit action was not signed">
+          {permitError} You can approve HLC first and retry the transfer or claim retirement.
         </Alert>
       )}
 
@@ -244,14 +304,27 @@ export function TransferRedeemableForm() {
         <Button className="w-full" disabled>Insufficient redeemable HLC</Button>
       ) : needsApproval ? (
         <div className="space-y-2">
-          <Button
-            className="w-full"
-            onClick={handleTransferWithPermit}
-            disabled={permitNonce === undefined || permitDeadline === undefined}
-            loading={isSigningPermit || transferTx.isPending || transferTx.isConfirming}
-          >
-            Sign & transfer in one transaction
-          </Button>
+          {supportsTransferPermit && (
+            <Button
+              className="w-full"
+              onClick={handleTransferWithPermit}
+              disabled={permitNonce === undefined || permitDeadline === undefined}
+              loading={isSigningPermit || transferTx.isPending || transferTx.isConfirming}
+            >
+              Sign & transfer in one transaction
+            </Button>
+          )}
+          {supportsCancelPermit && (
+            <Button
+              className="w-full"
+              variant="secondary"
+              onClick={handleCancelWithPermit}
+              disabled={permitNonce === undefined || permitDeadline === undefined}
+              loading={isSigningPermit || cancelTx.isPending || cancelTx.isConfirming}
+            >
+              Sign & retire claim
+            </Button>
+          )}
           <Button
             className="w-full"
             variant="secondary"

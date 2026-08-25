@@ -78,8 +78,8 @@ Regenerate contract ABIs after changing Solidity interfaces:
 pnpm gen:abis
 ```
 
-Integrators can use the PSM's `depositWithPermit`, `withdrawWithPermit`, and
-`transferRedeemableWithPermit` methods when the reserve token and wallet support EIP-2612. Each
+Integrators can use the PSM's `depositWithPermit`, `withdrawWithPermit`, `transferRedeemableWithPermit`, and
+`cancelRedeemableWithPermit` methods when the relevant token and wallet support EIP-2612. Each
 method combines the signed approval with a slippage-bounded action and a caller-supplied deadline.
 Approval-based methods remain available for smart-contract wallets and reserve tokens without
 permit support.
@@ -100,11 +100,15 @@ Withdrawals remain available so users can use the contract's recovery path when 
 redemption credit can still be serviced.
 
 The redeemable-credit transfer form offers an HLC EIP-2612 permit flow when the wallet supports
-typed-data signing. The form submits the signed transfer in one transaction and keeps the two-step
-approval flow available as a fallback.
+typed-data signing and the selected PSM exposes the corresponding selector. The form submits the
+signed transfer in one transaction and keeps the two-step approval flow available as a fallback;
+older immutable deployments are detected automatically.
 
 The swap form offers the same permit flow for HLC withdrawals when the selected PSM exposes the
 permit selector. Older immutable deployments use the approval flow automatically.
+
+The claim-retirement action also supports HLC permits on selector-compatible PSM deployments. It
+remains explicitly irreversible and does not return reserve.
 
 The dashboard also shows the six most recent `CPIUpdated` events from the configured deployment
 block. Each row includes the block, transaction hash, rate change, and whether the updater or a

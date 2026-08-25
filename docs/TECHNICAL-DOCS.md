@@ -3,7 +3,7 @@
 **Version**: 1.1.0
 **Date**: August 24, 2026
 **Network**: Arbitrum (Sepolia & Mainnet)
-**Status**: Unaudited reference implementation | 157 tests passing (154 unit/configuration + 3 invariants) | Not production-ready
+**Status**: Unaudited reference implementation | 158 tests passing (155 unit/configuration + 3 invariants) | Not production-ready
 
 ---
 
@@ -190,7 +190,7 @@ EOF
 ```bash
 # 1. Test locally
 forge test -vvv
-# Expected: 157/157 tests passing ✓
+# Expected: 158/158 tests passing ✓
 
 # 2. Fund wallet with testnet ETH on Arbitrum Sepolia
 # Visit: https://sepoliafaucet.com
@@ -370,6 +370,7 @@ delay, voting period, proposal threshold, or quorum requires deploying and wirin
 | HalalPSM | `transferRedeemable(address,uint256)` | Anyone | Moves PSM HLC and its redemption credit atomically |
 | HalalPSM | `transferRedeemableWithPermit(address,uint256,uint256,uint8,bytes32,bytes32)` | Anyone | EIP-2612 HLC approval + atomic credit transfer |
 | HalalPSM | `cancelRedeemable(uint256)` | Anyone | Irreversibly burns HLC and retires matching credit |
+| HalalPSM | `cancelRedeemableWithPermit(uint256,uint256,uint8,bytes32,bytes32)` | Anyone | EIP-2612 HLC approval + irreversible claim retirement |
 | HalalPSM | `depositReserve()` | DAO | Proposal |
 | HalalPSM | `withdrawReserve(address,uint256)` | DAO | Proposal; only reserve surplus |
 | HalalPSM | `setMinUpdateInterval(uint256)` | DAO | Proposal; value must be positive |
@@ -471,6 +472,7 @@ function withdrawWithPermit(uint256 hlcAmount, uint256 minReserveOut, uint256 de
 function transferRedeemable(address to, uint256 hlcAmount) external
 function transferRedeemableWithPermit(address to, uint256 hlcAmount, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external
 function cancelRedeemable(uint256 hlcAmount) external // Burns HLC; returns no reserve
+function cancelRedeemableWithPermit(uint256 hlcAmount, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external // Permit + burn; returns no reserve
 // `deposit(uint256)` and `withdraw(uint256)` remain as unbounded compatibility methods.
 function depositReserve(uint256 amount) external onlyRole(PARAM_ROLE)
 function withdrawReserve(address to, uint256 amount) external onlyRole(PARAM_ROLE)
@@ -539,9 +541,9 @@ forge coverage
 ✓ test_TimelockPreventsImmediateExecution
 ✓ test_TeamVestingRevocable
 ✓ test_TreasuryVestingNonRevocable
-✓ 154 unit/configuration tests plus 3 stateful PSM invariants covering the core contracts and governance flows
+✓ 155 unit/configuration tests plus 3 stateful PSM invariants covering the core contracts and governance flows
 
-Total: 157 tests passing ✓
+Total: 158 tests passing ✓
 ```
 
 ### Verify on Arbiscan
@@ -559,7 +561,7 @@ Total: 157 tests passing ✓
 
 ### Before Deployment
 
-- [ ] All 157 tests passing locally, including the stateful invariants
+- [ ] All 158 tests passing locally, including the stateful invariants
 - [ ] Gas estimates reviewed & acceptable
 - [ ] No compiler warnings
 - [ ] Code review completed

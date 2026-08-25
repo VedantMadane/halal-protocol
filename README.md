@@ -45,7 +45,7 @@ conservative accounting model:
 
 | Reviewer question | Evidence in this repository |
 | --- | --- |
-| Does the accounting have stateful coverage? | 157 Foundry tests, including 3 PSM invariants, differential arithmetic checks, and fuzzing |
+| Does the accounting have stateful coverage? | 158 Foundry tests, including 3 PSM invariants, differential arithmetic checks, and fuzzing |
 | Do invariants cover CPI changes? | [`docs/INVARIANTS.md`](docs/INVARIANTS.md) models governance rate changes and reserve top-ups |
 | Can a deployment be checked without a private key? | [`scripts/verify-deployment.sh`](scripts/verify-deployment.sh) |
 | Can I inspect the full system locally? | [`./scripts/local-demo.sh`](scripts/local-demo.sh) on a disposable Anvil chain |
@@ -64,8 +64,9 @@ conservative accounting model:
 | Are generated frontend interfaces kept in sync? | ABI regeneration is a required CI check |
 | Does CI exercise a configured dApp? | `scripts/local-app-smoke.sh` deploys disposable Anvil state, builds with live addresses, and checks the main routes |
 | Is the CI supply chain independently scored? | The pinned-action [`Scorecard workflow`](.github/workflows/scorecard.yml) publishes OpenSSF SARIF results |
-| Can a permit-capable wallet approve and act in one transaction? | `HalalPSM` exposes bounded EIP-2612 paths for deposits, withdrawals, and redeemable-credit transfers |
+| Can a permit-capable wallet approve and act in one transaction? | `HalalPSM` exposes bounded EIP-2612 paths for deposits, withdrawals, redeemable-credit transfers, and claim retirement |
 | Does the dApp expose permit transfers? | The redeemable-credit form offers “Sign & transfer in one transaction” with approval fallback |
+| Does the dApp expose permit claim retirement? | The same form offers selector-gated “Sign & retire claim” while preserving the approval fallback |
 | Does the dApp expose permit withdrawals? | The swap form detects the deployed PSM selector and offers signed HLC withdrawal with approval fallback |
 | Are release sources checksummed and attestable? | [`Release artifacts`](.github/workflows/release-artifacts.yml) publishes a reproducible source bundle, SHA-256 checksum, and build-provenance attestation |
 | Is the security posture stated plainly? | [`SECURITY.md`](SECURITY.md) and [`docs/THREAT-MODEL.md`](docs/THREAT-MODEL.md) |
@@ -77,7 +78,7 @@ discipline, not a safety guarantee.
 ## Status & risk
 
 **This protocol has not undergone a professional security audit, and there is no bug bounty
-program yet.** The contracts pass their own test suite (157/157 at the time of writing — 154 unit
+program yet.** The contracts pass their own test suite (158/158 at the time of writing — 155 unit
 and configuration tests plus 3 stateful invariants; see
 `contracts/test/`), but a passing test suite is not a substitute for an audit, and this repo
 should not be treated as safe to use with real, meaningful funds. If you deploy or interact with

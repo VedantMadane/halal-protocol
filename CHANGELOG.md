@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.82 - 2026-08-25
+
+- Added `cancelRedeemableWithPermit` so claim retirement can combine HLC approval and the
+  accounting-aware burn in one transaction.
+- Exposed the permit retirement path in the dApp, with selector detection for older immutable PSM
+  deployments, and updated the generated ABI and protocol docs.
+
 ## 0.1.0-alpha.81 - 2026-08-25
 
 - Enabled protected-main contribution rules requiring pull requests, code-owner review, linear
