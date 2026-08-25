@@ -94,8 +94,10 @@ expect_positive "timelock delay" "$(call "$TIMELOCK" 'getMinDelay()(uint256)')"
 expect_true "genesis allocation minted" "$(call "$TOKEN" 'genesisMinted()(bool)')"
 team_allocation="$(call "$TOKEN" 'TEAM_ALLOCATION()(uint256)')"
 treasury_allocation="$(call "$TOKEN" 'TREASURY_ALLOCATION()(uint256)')"
-expect_equal "team genesis balance" "$(call "$TOKEN" 'balanceOf(address)(uint256)' "$TEAM_VESTING")" "$team_allocation"
-expect_equal "treasury genesis balance" "$(call "$TOKEN" 'balanceOf(address)(uint256)' "$TREASURY_VESTING")" "$treasury_allocation"
+# These allocations are immutable schedule values, while live balances decrease as vesting
+# releases occur. Checking balances would make a valid deployment fail on every later audit.
+expect_equal "team vesting allocation" "$(call "$TEAM_VESTING" 'totalAllocation()(uint256)')" "$team_allocation"
+expect_equal "treasury vesting allocation" "$(call "$TREASURY_VESTING" 'totalAllocation()(uint256)')" "$treasury_allocation"
 
 minter_role="$(call "$TOKEN" 'MINTER_ROLE()(bytes32)')"
 admin_role="$(call "$TOKEN" 'DEFAULT_ADMIN_ROLE()(bytes32)')"

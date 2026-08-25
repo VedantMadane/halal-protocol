@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## Unreleased
 
+- Made the deployment verifier safe to rerun after vesting releases by checking immutable vesting
+  allocations instead of requiring the contracts' live token balances to remain untouched.
 - Extended the stateful PSM invariant harness to exercise mixed user actions across governance CPI
   changes and reserve top-ups, not only at the genesis rate.
 - Added deadline-bounded PSM deposit and withdrawal entrypoints so new integrations can combine

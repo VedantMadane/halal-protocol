@@ -202,6 +202,9 @@ RESERVE_TOKEN=0x<reserve_token> \
 # Check each contract address from deploy output
 ```
 
+The verifier compares each vesting contract's immutable `totalAllocation` with the token's
+declared team or treasury allocation, so operators can rerun it after legitimate vesting releases.
+
 ### Expected Deploy Output
 
 ```
