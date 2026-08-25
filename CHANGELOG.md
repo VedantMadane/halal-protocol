@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.124 - 2026-08-26
+
+- Hardened the CPI adapter deployment preflight so it rejects a zero private key and PSM addresses
+  without contract bytecode before broadcasting.
+- Added deployment-config regression coverage and synchronized contributor-facing documentation with
+  167 Foundry tests.
+
 ## 0.1.0-alpha.114 - 2026-08-25
 
 - Made the production deployment script reject shared team/treasury beneficiary addresses, keeping

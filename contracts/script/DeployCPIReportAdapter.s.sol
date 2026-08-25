@@ -28,9 +28,10 @@ contract DeployCPIReportAdapter is Script {
         bytes32 sourceId = vm.envBytes32("CPI_SOURCE_ID");
 
         if (
-            expectedChainId == 0 || block.chainid != expectedChainId || psm == address(0) || owner == address(0)
-                || owner == deployer || !_adapterSignersAreSafe(deployer, signerOne, signerTwo, signerThree)
-                || threshold == 0 || sourceId == bytes32(0) || (signerThree == address(0) && threshold > 2)
+            privateKey == 0 || expectedChainId == 0 || block.chainid != expectedChainId || !_psmIsContract(psm)
+                || owner == address(0) || owner == deployer
+                || !_adapterSignersAreSafe(deployer, signerOne, signerTwo, signerThree) || threshold == 0
+                || sourceId == bytes32(0) || (signerThree == address(0) && threshold > 2)
                 || (signerThree != address(0) && threshold > 3)
         ) revert InvalidConfig();
 
@@ -52,6 +53,10 @@ contract DeployCPIReportAdapter is Script {
         if (signerThree != address(0)) console.log("Signer 3:", signerThree);
         console.logBytes32(sourceId);
         console.log("Grant UPDATER_ROLE to the adapter only after governance review.");
+    }
+
+    function _psmIsContract(address psm) internal view returns (bool) {
+        return psm.code.length > 0;
     }
 
     function _adapterSignersAreSafe(address deployer, address signerOne, address signerTwo, address signerThree)

@@ -27,6 +27,10 @@ contract DeployHalalSystemHarness is DeployHalalSystem {
 }
 
 contract DeployCPIReportAdapterHarness is DeployCPIReportAdapter {
+    function psmIsContract(address psm) external view returns (bool) {
+        return _psmIsContract(psm);
+    }
+
     function adapterSignersAreSafe(address deployer, address signerOne, address signerTwo, address signerThree)
         external
         pure
@@ -77,5 +81,11 @@ contract DeployConfigTest {
         require(!adapterDeployer.adapterSignersAreSafe(address(0x1), address(0x1), address(0x3), address(0x4)));
         require(!adapterDeployer.adapterSignersAreSafe(address(0x1), address(0x2), address(0x3), address(0x1)));
         require(!adapterDeployer.adapterSignersAreSafe(address(0x1), address(0x2), address(0x3), address(0x2)));
+    }
+
+    function test_AdapterDeploymentRequiresAContractPSM() public view {
+        require(adapterDeployer.psmIsContract(address(adapterDeployer)));
+        require(!adapterDeployer.psmIsContract(address(0x1)));
+        require(!adapterDeployer.psmIsContract(address(0)));
     }
 }

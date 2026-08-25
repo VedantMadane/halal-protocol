@@ -159,11 +159,11 @@ forge script script/DeployCPIReportAdapter.s.sol:DeployCPIReportAdapter \
   --rpc-url "$RPC_URL" --private-key "$PRIVATE_KEY" --broadcast
 ```
 
-`CPI_SIGNER_3` is optional. The script rejects a zero or mismatched chain ID, a deployer-owned
-adapter, zero or duplicate signer addresses, signer addresses equal to the deployer, a zero source
-ID, and an impossible threshold before broadcasting. The adapter constructor retains the same
-duplicate-signer defense. Record the output, source-ID derivation, commit, and deployment transaction
-in the deployment journal.
+`CPI_SIGNER_3` is optional. The script rejects a zero private key, a zero or mismatched chain ID, a
+PSM address without contract bytecode, a deployer-owned adapter, zero or duplicate signer addresses,
+signer addresses equal to the deployer, a zero source ID, and an impossible threshold before
+broadcasting. The adapter constructor retains the same duplicate-signer defense. Record the output,
+source-ID derivation, commit, and deployment transaction in the deployment journal.
 
 ### Governance wiring
 
