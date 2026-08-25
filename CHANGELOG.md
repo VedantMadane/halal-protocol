@@ -18,7 +18,7 @@ All notable changes to this project are documented here.
   by wallet connection and deployment integrity.
 - Added a contributor map with bounded paths for security, reserve tokens, oracle integrations,
   monitoring, economics, governance, dApp UX, and documentation; refreshed contribution and
-  citation metadata for the current 135-test release.
+  citation metadata for the alpha.38 release.
 - Added a dependency-free CPI and reserve-adequacy scenario model with CSV output and optional
   modeled top-ups (`make economic-model`).
 - Added a CI smoke test that confirms the model reports a deficit without top-ups and full reserve
