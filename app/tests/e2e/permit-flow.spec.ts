@@ -1,6 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 import { readFileSync } from "node:fs";
-import { createPublicClient, createWalletClient, http, parseUnits } from "viem";
+import { createPublicClient, createWalletClient, http, parseSignature, parseUnits, recoverTypedDataAddress } from "viem";
 
 const RPC_URL = "http://127.0.0.1:18545";
 const ANVIL_ACCOUNT = "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266" as const;
@@ -81,12 +81,27 @@ async function installAnvilProvider(page: Page) {
         const response = await fetch(rpcUrl, {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ jsonrpc: "2.0", id: Date.now(), method, params }),
+          body: JSON.stringify({
+            jsonrpc: "2.0",
+            id: Date.now(),
+            method,
+            params:
+              method === "eth_sendTransaction" && params[0] && typeof params[0] === "object"
+                // Anvil's estimate omits the post-permit burn path; the disposable shim supplies
+                // a bounded ceiling so the test exercises the complete transaction.
+                ? [{ ...(params[0] as Record<string, unknown>), gas: "0x989680" }]
+                : params,
+          }),
         });
         const payload = (await response.json()) as { result?: unknown; error?: { message: string } };
         if (payload.error) throw new Error(payload.error.message);
         if (method === "eth_sendTransaction") {
           (window as Window & { __lastTransaction?: unknown }).__lastTransaction = payload.result;
+        }
+        if (method === "eth_signTypedData_v4") {
+          const state = window as Window & { __permitSignature?: unknown; __permitData?: unknown };
+          state.__permitSignature = payload.result;
+          state.__permitData = params[1];
         }
         return payload.result;
       },
@@ -121,6 +136,15 @@ test("withdraws through the real HLC permit flow on disposable Anvil state", asy
     })
     .toBeTruthy()
     .then(() => page.evaluate(() => (window as Window & { __lastTransaction?: string }).__lastTransaction));
+  const permit = await page.evaluate(() => {
+    const state = window as Window & { __permitSignature?: string; __permitData?: string };
+    return { signature: state.__permitSignature, data: state.__permitData ? JSON.parse(state.__permitData) : undefined };
+  });
+  expect(permit.signature).toMatch(/^0x[0-9a-f]{130}$/i);
+  const { v } = parseSignature(permit.signature as `0x${string}`);
+  expect(v === 27n || v === 28n, `unexpected permit recovery id: ${v}`).toBe(true);
+  const recovered = await recoverTypedDataAddress({ ...permit.data, signature: permit.signature });
+  expect(recovered.toLowerCase()).toBe(ANVIL_ACCOUNT);
   const publicClient = createPublicClient({ chain: LOCAL_CHAIN, transport: http(RPC_URL) });
   const receipt = await publicClient.waitForTransactionReceipt({ hash: transactionHash as `0x${string}` });
   expect(receipt.status, `permit transaction reverted: ${transactionHash}`).toBe("success");

@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.87 - 2026-08-25
+
+- Fixed the disposable browser wallet shim's gas ceiling so the E2E permit withdrawal covers the
+  complete permit, transfer, and burn transaction.
+
 ## 0.1.0-alpha.86 - 2026-08-25
 
 - Made the browser permit test wait for the asynchronous wallet transaction hash before checking
