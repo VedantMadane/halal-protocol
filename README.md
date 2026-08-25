@@ -22,7 +22,8 @@ This is a genuine, from-scratch implementation, not a fork or a wrapper — five
 a Next.js frontend, all in this monorepo.
 
 The fastest way to see the complete system is `./scripts/local-demo.sh`: it starts a disposable
-Anvil chain, deploys the wired contracts, and opens the frontend with a faucet-backed local reserve.
+Anvil chain, deploys the wired contracts, seeds a fresh local CPI report, and opens the frontend
+with a faucet-backed local reserve.
 No external RPC key or real funds are needed for the demo.
 
 ## Why this project is interesting
@@ -101,6 +102,8 @@ walkthrough, and the exact API surface — see:
   number or behavior described in the docs above is exactly what the code does.
 - [`docs/THREAT-MODEL.md`](docs/THREAT-MODEL.md) — assets, trust boundaries, attack scenarios,
   mitigations, and unresolved risks for reviewers and deployment operators.
+- [`docs/OPERATOR-RUNBOOK.md`](docs/OPERATOR-RUNBOOK.md) — launch acceptance, monitoring, CPI
+  updater operations, governance review, and incident response.
 - [`docs/INVARIANTS.md`](docs/INVARIANTS.md) — the stateful PSM properties exercised by Foundry
   and the exact scope of those guarantees.
 - [`docs/ROADMAP.md`](docs/ROADMAP.md) — the risk-ordered path from unaudited reference

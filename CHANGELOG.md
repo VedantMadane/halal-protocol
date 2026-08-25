@@ -4,6 +4,10 @@ All notable changes to this project are documented here.
 
 ## Unreleased
 
+- Published `docs/OPERATOR-RUNBOOK.md` with launch acceptance, recurring monitoring, updater
+  rotation, governance review, and incident-response procedures.
+- Updated the local demo and CI smoke test to bootstrap a disposable CPI updater and seed a fresh
+  timestamped report, so the demo exercises the usable dApp path after the safety gate.
 - Added a read-only `check-psm-health.sh` operator check with key/value metrics and fail-closed
   exits for reserve deficits, missing/stale CPI reports, and overdue updater cadence.
 - Added `CPI_UPDATER` support to the local deployment helper so operator checks can exercise a

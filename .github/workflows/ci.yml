@@ -31,6 +31,8 @@ jobs:
           filters: |
             contracts:
               - 'contracts/**'
+              - 'scripts/**'
+              - 'Makefile'
             app:
               - 'app/**'
 
@@ -80,7 +82,10 @@ jobs:
           trap 'kill "$ANVIL_PID"' EXIT
           until cast chain-id --rpc-url http://127.0.0.1:18545 >/dev/null 2>&1; do sleep 1; done
           LOCAL_PRIVATE_KEY=$(cast wallet derive --insecure "$ANVIL_MNEMONIC" | awk '/Private key:/ { print $3; exit }')
+          LOCAL_UPDATER_KEY=$(cast wallet derive --insecure --accounts 2 "$ANVIL_MNEMONIC" | awk '/Private key:/ { key=$3 } END { print key }')
+          LOCAL_UPDATER_ADDRESS=$(cast wallet address --private-key "$LOCAL_UPDATER_KEY")
           PRIVATE_KEY="$LOCAL_PRIVATE_KEY" \
+            CPI_UPDATER="$LOCAL_UPDATER_ADDRESS" \
             forge script script/DeployLocal.s.sol:DeployLocalHalalSystem \
             --rpc-url http://127.0.0.1:18545 --broadcast --non-interactive | tee "$DEPLOY_LOG"
           value_from_env() {
@@ -97,7 +102,22 @@ jobs:
             TEAM_BENEFICIARY="$(cast wallet address --private-key "$LOCAL_PRIVATE_KEY")" \
             TREASURY_BENEFICIARY="$(cast wallet address --private-key "$LOCAL_PRIVATE_KEY")" \
             DEPLOYER_ADDRESS="$(cast wallet address --private-key "$LOCAL_PRIVATE_KEY")" \
+            CPI_UPDATER="$LOCAL_UPDATER_ADDRESS" \
             ../scripts/verify-deployment.sh
+          PSM_ADDRESS="$(value_from_env NEXT_PUBLIC_HLC_PSM_31337)"
+          set +e
+          HEALTH_OUTPUT=$(RPC_URL=http://127.0.0.1:18545 PSM="$PSM_ADDRESS" \
+            FAIL_ON_UPDATE_OVERDUE=false ../scripts/check-psm-health.sh 2>&1)
+          HEALTH_EXIT=$?
+          set -e
+          test "$HEALTH_EXIT" -ne 0
+          echo "$HEALTH_OUTPUT" | grep -q 'reason=timestamped_cpi_report_missing'
+          cast rpc evm_increaseTime 2160001 --rpc-url http://127.0.0.1:18545 >/dev/null
+          cast rpc evm_mine --rpc-url http://127.0.0.1:18545 >/dev/null
+          REPORT_AT=$(cast block latest --field timestamp --rpc-url http://127.0.0.1:18545)
+          cast send "$PSM_ADDRESS" 'updateCPIWithTimestamp(uint256,uint256)' 1000000 "$REPORT_AT" \
+            --private-key "$LOCAL_UPDATER_KEY" --rpc-url http://127.0.0.1:18545 >/dev/null
+          RPC_URL=http://127.0.0.1:18545 PSM="$PSM_ADDRESS" ../scripts/check-psm-health.sh | grep -q '^status=healthy$'
 
       - name: forge test
         run: forge test -vvv

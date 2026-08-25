@@ -40,16 +40,22 @@ anvil --silent --mnemonic "$LOCAL_MNEMONIC" --port 8545 >/tmp/halal-anvil.log 2>
 ANVIL_PID=$!
 until cast chain-id --rpc-url "$LOCAL_RPC_URL" >/dev/null 2>&1; do sleep 1; done
 LOCAL_PRIVATE_KEY="$(cast wallet derive --insecure "$LOCAL_MNEMONIC" | awk '/Private key:/ { print $3; exit }')"
+LOCAL_UPDATER_KEY="$(cast wallet derive --insecure --accounts 2 "$LOCAL_MNEMONIC" | awk '/Private key:/ { key=$3 } END { print key }')"
 if [[ -z "$LOCAL_PRIVATE_KEY" ]]; then
   echo "Could not derive the local demo account from ANVIL_MNEMONIC" >&2
   exit 1
 fi
+if [[ -z "$LOCAL_UPDATER_KEY" ]]; then
+  echo "Could not derive the local CPI updater from ANVIL_MNEMONIC" >&2
+  exit 1
+fi
+LOCAL_UPDATER_ADDRESS="$(cast wallet address --private-key "$LOCAL_UPDATER_KEY")"
 
 echo "Deploying Halal locally..."
 (
   cd "$ROOT_DIR/contracts"
   forge build --force
-  PRIVATE_KEY="$LOCAL_PRIVATE_KEY" forge script script/DeployLocal.s.sol:DeployLocalHalalSystem \
+  PRIVATE_KEY="$LOCAL_PRIVATE_KEY" CPI_UPDATER="$LOCAL_UPDATER_ADDRESS" forge script script/DeployLocal.s.sol:DeployLocalHalalSystem \
     --rpc-url "$LOCAL_RPC_URL" --broadcast --non-interactive
 ) | tee "$DEPLOY_LOG"
 
@@ -62,6 +68,14 @@ value_from_env() {
   awk -F= -v key="$1" '$1 ~ key {gsub(/^[[:space:]]+|[[:space:]]+$/, "", $2); print $2}' "$DEPLOY_LOG"
 }
 
+LOCAL_PSM="$(value_from_env NEXT_PUBLIC_HLC_PSM_31337)"
+echo "Seeding a fresh local CPI report..."
+cast rpc evm_increaseTime 2160001 --rpc-url "$LOCAL_RPC_URL" >/dev/null
+cast rpc evm_mine --rpc-url "$LOCAL_RPC_URL" >/dev/null
+LOCAL_REPORT_AT="$(cast block latest --field timestamp --rpc-url "$LOCAL_RPC_URL")"
+cast send "$LOCAL_PSM" 'updateCPIWithTimestamp(uint256,uint256)' 1000000 "$LOCAL_REPORT_AT" \
+  --private-key "$LOCAL_UPDATER_KEY" --rpc-url "$LOCAL_RPC_URL" >/dev/null
+
 RPC_URL="$LOCAL_RPC_URL" EXPECTED_CHAIN_ID=31337 \
   TIMELOCK="$(value_from_env NEXT_PUBLIC_HLC_TIMELOCK_31337)" \
   TOKEN="$(value_from_env NEXT_PUBLIC_HLC_TOKEN_31337)" \
@@ -73,7 +87,10 @@ RPC_URL="$LOCAL_RPC_URL" EXPECTED_CHAIN_ID=31337 \
   TEAM_BENEFICIARY="$(cast wallet address --private-key "$LOCAL_PRIVATE_KEY")" \
   TREASURY_BENEFICIARY="$(cast wallet address --private-key "$LOCAL_PRIVATE_KEY")" \
   DEPLOYER_ADDRESS="$(cast wallet address --private-key "$LOCAL_PRIVATE_KEY")" \
+  CPI_UPDATER="$LOCAL_UPDATER_ADDRESS" \
   "$ROOT_DIR/scripts/verify-deployment.sh"
+
+RPC_URL="$LOCAL_RPC_URL" PSM="$LOCAL_PSM" "$ROOT_DIR/scripts/check-psm-health.sh"
 
 if [[ -e "$APP_ENV_FILE" ]]; then
   APP_ENV_BACKUP="$(mktemp)"

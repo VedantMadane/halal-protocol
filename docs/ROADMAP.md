@@ -14,8 +14,8 @@ narrow roles by governance.
   documented reserve token, and a separately reviewed CPI updater.
 - Publish the deployment addresses, verified source links, deployment log, and the output of
   `scripts/verify-deployment.sh`.
-- Add an operator runbook for reserve health, CPI freshness, updater rotation, governance proposal
-  review, and incident response.
+- [x] Publish an operator runbook for reserve health, CPI freshness, updater rotation, governance
+  proposal review, and incident response ([`docs/OPERATOR-RUNBOOK.md`](OPERATOR-RUNBOOK.md)).
 - Extend adversarial testing with a broader reserve-token matrix, differential arithmetic checks,
   and longer stateful runs on every release candidate.
 

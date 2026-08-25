@@ -152,6 +152,9 @@ Total Timeline: voting period configured for the target chain + 2 days delay
 
 ## Deployment Instructions
 
+For the operational acceptance, monitoring, updater rotation, and incident procedures that follow
+deployment, see [`OPERATOR-RUNBOOK.md`](OPERATOR-RUNBOOK.md).
+
 ### Prerequisites
 
 ```bash
