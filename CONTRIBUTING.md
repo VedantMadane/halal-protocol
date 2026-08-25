@@ -26,6 +26,11 @@ bar than a typical app repo — see the [roadmap](docs/ROADMAP.md) and [Changes 
 6. Be responsive to review feedback. A maintainer will merge once checks pass and review is
    satisfied.
 
+The `main` branch is protected: changes must arrive through a pull request, receive one approval
+from the code owner, pass the path-detection check, use linear history, and resolve review
+conversations. Administrators may bypass the rule for repository recovery, but normal development
+should use the review path.
+
 CI (`.github/workflows/ci.yml`) runs the contracts and frontend test suites on every push and PR.
 A PR won't be merged with a red CI run.
 

@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.81 - 2026-08-25
+
+- Enabled protected-main contribution rules requiring pull requests, code-owner review, linear
+  history, and conversation resolution; documented the workflow for contributors.
+
 ## 0.1.0-alpha.80 - 2026-08-25
 
 - Extended the disposable dApp smoke test to assert the runtime browser security headers, preventing
