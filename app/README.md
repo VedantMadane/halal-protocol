@@ -84,3 +84,8 @@ The PSM page pauses new deposits when the deployment has no verifiable timestamp
 report is older than the contract's `MAX_REPORT_AGE`, or the reserve is below `reserveRequired()`.
 Withdrawals remain available so users can use the contract's recovery path when their own
 redemption credit can still be serviced.
+
+The dashboard also shows the six most recent `CPIUpdated` events from the configured deployment
+block. Each row includes the block, transaction hash, rate change, and whether the updater or a
+governance override submitted it. A failed event read appears as an error instead of an incomplete
+timeline.

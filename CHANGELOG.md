@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.69 - 2026-08-25
+
+- Added a read-only CPI update history card to the dashboard, sourced from the PSM event log with
+  block numbers, transaction hashes, update type, and recent rate changes.
+
 ## 0.1.0-alpha.68 - 2026-08-25
 
 - Extended the private-key-free CPI report verifier with live adapter and PSM watermark checks,

@@ -15,6 +15,7 @@ import { formatTokenGrouped } from "@/lib/format";
 import { getFriendlyErrorMessage } from "@/lib/errors";
 import { DeploymentIntegrityBanner } from "@/components/DeploymentIntegrityBanner";
 import { CpiAdapterCard } from "@/components/dashboard/CpiAdapterCard";
+import { CpiHistoryCard } from "@/components/dashboard/CpiHistoryCard";
 
 export default function DashboardPage() {
   const { deployment, isDeployed } = useDeployment();
@@ -84,6 +85,8 @@ export default function DashboardPage() {
               isLoading={psm.isLoading}
             />
           </div>
+
+          <CpiHistoryCard />
 
           {deployment?.cpiAdapter && <CpiAdapterCard />}
 
