@@ -121,7 +121,7 @@ function requiredHttpsUrl(optionName) {
 
 const explorerUrl = requiredHttpsUrl("explorer-url");
 const sourceVerificationUrl = requiredHttpsUrl("source-url");
-const journalUrl = options["journal-url"] ? requiredHttpsUrl("journal-url") : undefined;
+const journalUrl = requiredHttpsUrl("journal-url");
 
 console.log(`Verifying deployment on chain ${chainId} before updating the registry...`);
 execFileSync("bash", [verifierPath], { env: process.env, stdio: "inherit" });
@@ -141,7 +141,7 @@ registry[chainId] = {
   deploymentTx,
   explorerUrl,
   sourceVerificationUrl,
-  ...(journalUrl ? { journalUrl } : {}),
+  journalUrl,
   ...addresses,
   reserveTokenSymbol,
   deploymentBlock,

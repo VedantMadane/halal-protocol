@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.133 - 2026-08-26
+
+- Required every public deployment-registry entry to include an HTTPS deployment journal, matching
+  the documented evidence policy.
+- Added regression coverage for missing journal evidence and updated the recording workflow.
+
 ## 0.1.0-alpha.132 - 2026-08-26
 
 - Made deployment-registry validation reject chain IDs that the frontend does not support, preventing

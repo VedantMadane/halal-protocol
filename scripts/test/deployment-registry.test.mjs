@@ -17,6 +17,7 @@ function deployment(overrides = {}) {
     deploymentTx: `0x${"1".repeat(64)}`,
     explorerUrl: "https://example.com/tx/0x1",
     sourceVerificationUrl: "https://example.com/address/0x1#code",
+    journalUrl: "https://example.com/journal/1",
     token: `0x${"1".repeat(40)}`,
     teamVesting: `0x${"2".repeat(40)}`,
     treasuryVesting: `0x${"3".repeat(40)}`,
@@ -60,4 +61,10 @@ test("rejects a chain the frontend does not support", async () => {
   const result = await runValidator(deployment(), "1");
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, /Unsupported deployment registry chain ID/);
+});
+
+test("requires a deployment journal", async () => {
+  const result = await runValidator(deployment({ journalUrl: undefined }));
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /needs a journalUrl/);
 });

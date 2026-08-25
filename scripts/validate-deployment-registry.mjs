@@ -65,10 +65,7 @@ for (const [chainId, deployment] of Object.entries(registry)) {
     throw new Error(`Deployment ${chainId} needs a deploymentTx hash.`);
   }
   for (const link of ["explorerUrl", "sourceVerificationUrl", "journalUrl"]) {
-    if (deployment[link] === undefined) {
-      if (link === "journalUrl") continue;
-      throw new Error(`Deployment ${chainId} needs a ${link}.`);
-    }
+    if (deployment[link] === undefined) throw new Error(`Deployment ${chainId} needs a ${link}.`);
     try {
       const parsed = new URL(deployment[link]);
       if (parsed.protocol !== "https:") throw new Error();

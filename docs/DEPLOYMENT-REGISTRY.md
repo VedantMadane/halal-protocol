@@ -48,9 +48,10 @@ The command writes one object keyed by the numeric chain ID:
 }
 ```
 
-The deployment transaction, HTTPS explorer URL, HTTPS source-verification URL, seven contract
-addresses, reserve symbol, and positive deployment block are required. The `network`, `release`,
-`commit`, and optional journal URL provide review context and do not affect runtime reads. The
+The deployment transaction, HTTPS explorer URL, HTTPS source-verification URL, HTTPS deployment
+journal URL, seven contract addresses, reserve symbol, and positive deployment block are required.
+The `network`, `release`, and `commit` fields provide review context and do not affect runtime reads.
+The
 `cpiAdapter` and `cpiSourceId` fields are optional, but operators must provide them together when
 the deployment uses the governed signed CPI adapter. The dApp then checks the adapter's immutable
 PSM and source ID, timelock ownership, and signer quorum before it enables signing actions. The
