@@ -4,6 +4,10 @@ Pick a bounded problem, read the linked design note, and open an issue before ch
 behavior. A useful contribution leaves a test, a reproducible command, or a documented decision
 that another reviewer can check.
 
+The current security review scope is [issue #16](https://github.com/fredrikblau/halal-protocol/issues/16).
+Start there if you want to inspect the PSM, CPI boundaries, reserve assumptions, or governance
+operations. Report fund-risking findings through [`SECURITY.md`](../SECURITY.md), not the issue.
+
 ## Choose a path
 
 | Interest | Start here | A finished contribution proves |
