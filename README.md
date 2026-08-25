@@ -34,12 +34,10 @@ Start with the [good first issues](https://github.com/fredrikblau/halal-protocol
 - Run `./scripts/local-demo.sh` to see the contracts and dApp together.
 - Follow the [local development walkthrough](docs/LOCAL-DEVELOPMENT.md) from a clean checkout.
 - Run `make verify` before opening a pull request.
-- Pick [issue #30](https://github.com/fredrikblau/halal-protocol/issues/30) to document how to extend
+- Pick [issue #35](https://github.com/fredrikblau/halal-protocol/issues/35) to document how to extend
   deployment-configuration regression tests.
-- Pick [issue #33](https://github.com/fredrikblau/halal-protocol/issues/33) to add browser coverage for
+- Pick [issue #36](https://github.com/fredrikblau/halal-protocol/issues/36) to add browser coverage for
   governance proposal validation errors.
-- Pick [issue #34](https://github.com/fredrikblau/halal-protocol/issues/34) to add a first-time local
-  deployment walkthrough.
 - Use [Discussions](https://github.com/fredrikblau/halal-protocol/discussions) for design questions.
 - Report security vulnerabilities through [`SECURITY.md`](SECURITY.md), not a public issue.
 
