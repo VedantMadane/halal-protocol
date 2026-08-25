@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.136 - 2026-08-26
+
+- Added browser coverage for malformed governance ETH values, asserting the user-facing validation
+  error and that no wallet transaction is requested.
+- Expanded the disposable dApp end-to-end suite to five deterministic scenarios.
+
 ## 0.1.0-alpha.135 - 2026-08-26
 
 - Added a worked deployment-configuration regression example with expected failure behavior and a

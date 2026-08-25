@@ -190,6 +190,23 @@ test("blocks an invalid governance action before any transaction is submitted", 
   expect(await page.evaluate(() => (window as Window & { __lastTransaction?: unknown }).__lastTransaction)).toBeUndefined();
 });
 
+test("blocks a malformed governance value before any transaction is submitted", async ({ page }) => {
+  await installAnvilProvider(page);
+  await page.goto("/governance/new");
+
+  const connectButton = page.getByTestId("rk-connect-button");
+  if (await connectButton.count()) await connectButton.click();
+  await expect(page.getByRole("button", { name: /0xf3.*2266/i })).toBeVisible();
+  await page.getByRole("button", { name: "Advanced (raw calls)" }).click();
+
+  await page.getByPlaceholder("Target address (0x…)").fill("0x0000000000000000000000000000000000000001");
+  await page.getByPlaceholder("ETH value (default 0)").fill("1e3");
+
+  await expect(page.getByText('Invalid ETH value: "1e3"')).toBeVisible();
+  await expect(page.getByRole("button", { name: "Submit proposal" })).toBeDisabled();
+  expect(await page.evaluate(() => (window as Window & { __lastTransaction?: unknown }).__lastTransaction)).toBeUndefined();
+});
+
 test("withdraws through the real HLC permit flow on disposable Anvil state", async ({ page }) => {
   await seedRedeemableHlc();
   await installAnvilProvider(page);
