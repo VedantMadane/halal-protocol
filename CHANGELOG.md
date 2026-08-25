@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.102 - 2026-08-25
+
+- Refreshed the contributor quickstart with two live, bounded `good first issue` tasks for frontend
+  accessibility testing and machine-readable operator monitoring examples.
+
 ## 0.1.0-alpha.101 - 2026-08-25
 
 - Synchronized project documentation with the verified 159-test Foundry suite, including the new
