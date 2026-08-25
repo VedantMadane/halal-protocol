@@ -74,6 +74,9 @@ Run `make app-e2e` to launch the same disposable environment and exercise the br
 through an HLC permit withdrawal. The test uses Anvil's funded development account and never
 contacts a public RPC or needs a private key.
 
+Permit transactions request a 400,000-gas ceiling. The PSM call performs an EIP-2612 approval and
+the accounting action in one transaction; some RPC estimators undercount that combined path.
+
 The project currently targets Node.js 22 or newer because pnpm 11 requires the Node 22 runtime.
 
 Regenerate contract ABIs after changing Solidity interfaces:

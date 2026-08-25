@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.88 - 2026-08-25
+
+- Added a 400,000-gas ceiling to frontend EIP-2612 PSM actions so RPC estimators cannot underfund
+  the combined permit and accounting transaction.
+
 ## 0.1.0-alpha.87 - 2026-08-25
 
 - Fixed the disposable browser wallet shim's gas ceiling so the E2E permit withdrawal covers the

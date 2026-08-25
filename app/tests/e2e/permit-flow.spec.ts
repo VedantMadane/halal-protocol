@@ -85,12 +85,7 @@ async function installAnvilProvider(page: Page) {
             jsonrpc: "2.0",
             id: Date.now(),
             method,
-            params:
-              method === "eth_sendTransaction" && params[0] && typeof params[0] === "object"
-                // Anvil's estimate omits the post-permit burn path; the disposable shim supplies
-                // a bounded ceiling so the test exercises the complete transaction.
-                ? [{ ...(params[0] as Record<string, unknown>), gas: "0x989680" }]
-                : params,
+            params,
           }),
         });
         const payload = (await response.json()) as { result?: unknown; error?: { message: string } };

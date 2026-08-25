@@ -29,6 +29,9 @@ const TRANSFER_PERMIT_SELECTOR = toFunctionSelector(
 const CANCEL_PERMIT_SELECTOR = toFunctionSelector(
   "function cancelRedeemableWithPermit(uint256,uint256,uint8,bytes32,bytes32)",
 );
+// Permit calls include an external EIP-2612 call before the accounting-aware HLC action. Some RPC
+// estimators undercount that path, so keep a bounded ceiling for the signed transactions.
+const PERMIT_GAS_LIMIT = 400_000n;
 
 export function TransferRedeemableForm() {
   const { deployment } = useDeployment();
@@ -161,6 +164,7 @@ export function TransferRedeemableForm() {
         abi: halalPsmAbi,
         functionName: "transferRedeemableWithPermit",
         args: [recipient, parsedAmount, permitDeadline, Number(v), r, s],
+        gas: PERMIT_GAS_LIMIT,
       });
     } catch (error) {
       setPermitError(getFriendlyErrorMessage(error));
@@ -206,6 +210,7 @@ export function TransferRedeemableForm() {
         abi: halalPsmAbi,
         functionName: "cancelRedeemableWithPermit",
         args: [parsedAmount, permitDeadline, Number(v), r, s],
+        gas: PERMIT_GAS_LIMIT,
       });
     } catch (error) {
       setPermitError(getFriendlyErrorMessage(error));

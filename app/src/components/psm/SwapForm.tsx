@@ -18,6 +18,9 @@ import { getFriendlyErrorMessage } from "@/lib/errors";
 type Mode = "deposit" | "withdraw";
 
 const DEADLINE_WINDOW = 15n * 60n;
+// Permit calls include an external EIP-2612 call before the PSM burns/transfers HLC. Some RPC
+// estimators undercount that path, so keep a bounded ceiling for the signed transaction.
+const PERMIT_GAS_LIMIT = 400_000n;
 const DEPOSIT_DEADLINE_SELECTOR = toFunctionSelector(
   "function depositWithMinHlcOutAndDeadline(uint256,uint256,uint256)",
 );
@@ -336,6 +339,7 @@ function SwapFormInner({
         abi: halalPsmAbi,
         functionName: "withdrawWithPermit",
         args: [parsedAmount, minOutput, deadline, Number(v), r, s],
+        gas: PERMIT_GAS_LIMIT,
       });
     } catch (error) {
       setPermitError(getFriendlyErrorMessage(error));
