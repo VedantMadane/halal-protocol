@@ -1,7 +1,10 @@
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
+import { resolve } from "node:path";
 
-const registryPath = fileURLToPath(new URL("../app/src/config/deployment-registry.json", import.meta.url));
+const registryPath = process.env.DEPLOYMENT_REGISTRY_PATH
+  ? resolve(process.env.DEPLOYMENT_REGISTRY_PATH)
+  : fileURLToPath(new URL("../app/src/config/deployment-registry.json", import.meta.url));
 const registry = JSON.parse(await readFile(registryPath, "utf8"));
 const addressPattern = /^0x[0-9a-fA-F]{40}$/;
 const requiredAddresses = ["token", "teamVesting", "treasuryVesting", "psm", "dao", "timelock", "reserveToken"];
@@ -22,6 +25,20 @@ for (const [chainId, deployment] of Object.entries(registry)) {
     const value = deployment[field];
     if (typeof value !== "string" || !addressPattern.test(value) || /^0x0{40}$/i.test(value)) {
       throw new Error(`Deployment ${chainId} has an invalid ${field} address.`);
+    }
+  }
+
+  const hasAdapter = deployment.cpiAdapter !== undefined || deployment.cpiSourceId !== undefined;
+  if (hasAdapter) {
+    if (typeof deployment.cpiAdapter !== "string" || !addressPattern.test(deployment.cpiAdapter) || /^0x0{40}$/i.test(deployment.cpiAdapter)) {
+      throw new Error(`Deployment ${chainId} has an invalid cpiAdapter address.`);
+    }
+    if (
+      typeof deployment.cpiSourceId !== "string" ||
+      !/^0x[0-9a-fA-F]{64}$/.test(deployment.cpiSourceId) ||
+      /^0x0{64}$/i.test(deployment.cpiSourceId)
+    ) {
+      throw new Error(`Deployment ${chainId} has an invalid cpiSourceId.`);
     }
   }
 

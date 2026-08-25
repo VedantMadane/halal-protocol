@@ -24,6 +24,8 @@ Required environment:
   RPC_URL EXPECTED_CHAIN_ID TOKEN TEAM_VESTING TREASURY_VESTING DAO PSM TIMELOCK
   RESERVE_TOKEN RESERVE_SYMBOL DEPLOYMENT_BLOCK TEAM_BENEFICIARY
   TREASURY_BENEFICIARY DEPLOYER_ADDRESS
+Optional adapter environment (provide both when using the governed CPI adapter):
+  CPI_ADAPTER EXPECTED_CPI_SOURCE_ID
 
 Options:
   --network <name>     Human-readable network name
@@ -90,6 +92,17 @@ if (!/^\d+$/.test(deploymentBlock) || BigInt(deploymentBlock) === 0n) {
   throw new Error("DEPLOYMENT_BLOCK must be a positive decimal string.");
 }
 
+const cpiAdapter = process.env.CPI_ADAPTER?.trim();
+const cpiSourceId = process.env.EXPECTED_CPI_SOURCE_ID?.trim();
+if (cpiAdapter !== undefined || cpiSourceId !== undefined) {
+  if (!cpiAdapter || !addressPattern.test(cpiAdapter) || /^0x0{40}$/i.test(cpiAdapter)) {
+    throw new Error("CPI_ADAPTER must be a non-zero Ethereum address when adapter metadata is provided.");
+  }
+  if (!cpiSourceId || !/^0x[0-9a-fA-F]{64}$/.test(cpiSourceId) || /^0x0{64}$/i.test(cpiSourceId)) {
+    throw new Error("EXPECTED_CPI_SOURCE_ID must be a non-zero bytes32 value when adapter metadata is provided.");
+  }
+}
+
 const deploymentTx = options["deployment-tx"];
 if (!deploymentTx || !/^0x[0-9a-fA-F]{64}$/.test(deploymentTx)) {
   throw new Error("--deployment-tx must be a 32-byte transaction hash.");
@@ -132,6 +145,7 @@ registry[chainId] = {
   ...addresses,
   reserveTokenSymbol,
   deploymentBlock,
+  ...(cpiAdapter ? { cpiAdapter: cpiAdapter.toLowerCase(), cpiSourceId: cpiSourceId.toLowerCase() } : {}),
 };
 
 await writeFile(registryFile, `${JSON.stringify(registry, null, 2)}\n`);

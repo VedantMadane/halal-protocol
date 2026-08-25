@@ -49,6 +49,10 @@ export interface HalalDeployment {
   reserveTokenSymbol: string;
   /** Block number of the deployment (HalalDAO creation). Bounds the ProposalCreated log scan. */
   deploymentBlock: bigint;
+  /** Optional signed CPI adapter. When present, `cpiSourceId` must also be configured. */
+  cpiAdapter?: Address;
+  /** Immutable source identity expected from the optional CPI adapter. */
+  cpiSourceId?: `0x${string}`;
 }
 
 interface DeploymentSource {
@@ -65,6 +69,8 @@ interface DeploymentSource {
   reserveToken?: string;
   reserveTokenSymbol?: string;
   deploymentBlock?: string;
+  cpiAdapter?: string;
+  cpiSourceId?: string;
 }
 
 interface DeploymentEnvironment {
@@ -77,6 +83,8 @@ interface DeploymentEnvironment {
   reserveToken: string | undefined;
   reserveTokenSymbol: string | undefined;
   deploymentBlock: string | undefined;
+  cpiAdapter: string | undefined;
+  cpiSourceId: string | undefined;
 }
 
 /** Returns a complete deployment only when every address and the deployment block validate. */
@@ -91,6 +99,8 @@ function deploymentFromSource(source: DeploymentSource): HalalDeployment | undef
     reserveToken: source.reserveToken,
     reserveTokenSymbol: source.reserveTokenSymbol,
     deploymentBlock: source.deploymentBlock === undefined ? undefined : String(source.deploymentBlock),
+    cpiAdapter: source.cpiAdapter,
+    cpiSourceId: source.cpiSourceId,
   };
   const addresses = [
     env.token,
@@ -105,6 +115,13 @@ function deploymentFromSource(source: DeploymentSource): HalalDeployment | undef
   if (!env.reserveTokenSymbol || !env.deploymentBlock || !/^\d+$/.test(env.deploymentBlock)) return undefined;
   const deploymentBlock = BigInt(env.deploymentBlock);
   if (deploymentBlock === 0n) return undefined;
+  const hasAdapter = env.cpiAdapter !== undefined || env.cpiSourceId !== undefined;
+  if (hasAdapter) {
+    if (!env.cpiAdapter || !isAddress(env.cpiAdapter) || env.cpiAdapter === zeroAddress) return undefined;
+    if (!env.cpiSourceId || !/^0x[0-9a-fA-F]{64}$/.test(env.cpiSourceId) || /^0x0{64}$/i.test(env.cpiSourceId)) {
+      return undefined;
+    }
+  }
 
   return {
     token: env.token as Address,
@@ -116,6 +133,9 @@ function deploymentFromSource(source: DeploymentSource): HalalDeployment | undef
     reserveToken: env.reserveToken as Address,
     reserveTokenSymbol: env.reserveTokenSymbol,
     deploymentBlock,
+    ...(hasAdapter
+      ? { cpiAdapter: env.cpiAdapter as Address, cpiSourceId: env.cpiSourceId as `0x${string}` }
+      : {}),
   };
 }
 
@@ -136,6 +156,8 @@ function configuredDeployment(chainId: number): HalalDeployment | undefined {
     reserveToken: process.env[`NEXT_PUBLIC_HLC_RESERVE_TOKEN_${suffix}`] || registered.reserveToken,
     reserveTokenSymbol: process.env[`NEXT_PUBLIC_HLC_RESERVE_SYMBOL_${suffix}`] || registered.reserveTokenSymbol,
     deploymentBlock: process.env[`NEXT_PUBLIC_HLC_DEPLOYMENT_BLOCK_${suffix}`] || registered.deploymentBlock,
+    cpiAdapter: process.env[`NEXT_PUBLIC_HLC_CPI_ADAPTER_${suffix}`] || registered.cpiAdapter,
+    cpiSourceId: process.env[`NEXT_PUBLIC_HLC_CPI_SOURCE_ID_${suffix}`] || registered.cpiSourceId,
   });
 }
 

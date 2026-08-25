@@ -1,8 +1,15 @@
 "use client";
 
 import { useReadContracts } from "wagmi";
-import { keccak256, toBytes, zeroAddress, zeroHash, type Address } from "viem";
-import { halalDaoAbi, halalPsmAbi, halalTimelockAbi, halalTokenAbi, halalVestingAbi } from "@/abis";
+import { keccak256, toBytes, zeroAddress, zeroHash, type Address, type ContractFunctionParameters } from "viem";
+import {
+  cpiReportAdapterAbi,
+  halalDaoAbi,
+  halalPsmAbi,
+  halalTimelockAbi,
+  halalTokenAbi,
+  halalVestingAbi,
+} from "@/abis";
 import { hasReadFailure, partialReadError } from "@/lib/readResults";
 import { useDeployment } from "./useDeployment";
 
@@ -22,29 +29,40 @@ const EXECUTOR_ROLE = keccak256(toBytes("EXECUTOR_ROLE"));
  */
 export function useDeploymentIntegrity() {
   const { deployment } = useDeployment();
+  const adapterContracts: readonly ContractFunctionParameters[] = deployment?.cpiAdapter
+    ? ([
+        { address: deployment.cpiAdapter, abi: cpiReportAdapterAbi, functionName: "psm" },
+        { address: deployment.cpiAdapter, abi: cpiReportAdapterAbi, functionName: "owner" },
+        { address: deployment.cpiAdapter, abi: cpiReportAdapterAbi, functionName: "sourceId" },
+        { address: deployment.cpiAdapter, abi: cpiReportAdapterAbi, functionName: "threshold" },
+        { address: deployment.cpiAdapter, abi: cpiReportAdapterAbi, functionName: "signerCount" },
+      ] as const)
+    : [];
+  const integrityContracts: readonly ContractFunctionParameters[] | undefined = deployment
+    ? [
+        { address: deployment.psm, abi: halalPsmAbi, functionName: "reserve" },
+        { address: deployment.psm, abi: halalPsmAbi, functionName: "hlc" },
+        { address: deployment.dao, abi: halalDaoAbi, functionName: "token" },
+        { address: deployment.dao, abi: halalDaoAbi, functionName: "timelock" },
+        { address: deployment.teamVesting, abi: halalVestingAbi, functionName: "token" },
+        { address: deployment.teamVesting, abi: halalVestingAbi, functionName: "dao" },
+        { address: deployment.treasuryVesting, abi: halalVestingAbi, functionName: "token" },
+        { address: deployment.treasuryVesting, abi: halalVestingAbi, functionName: "dao" },
+        { address: deployment.timelock, abi: halalTimelockAbi, functionName: "getMinDelay" },
+        { address: deployment.token, abi: halalTokenAbi, functionName: "hasRole", args: [MINTER_ROLE, deployment.psm] },
+        { address: deployment.token, abi: halalTokenAbi, functionName: "hasRole", args: [BURNER_ROLE, deployment.psm] },
+        { address: deployment.token, abi: halalTokenAbi, functionName: "hasRole", args: [zeroHash, deployment.timelock] },
+        { address: deployment.psm, abi: halalPsmAbi, functionName: "hasRole", args: [zeroHash, deployment.timelock] },
+        { address: deployment.psm, abi: halalPsmAbi, functionName: "hasRole", args: [PARAM_ROLE, deployment.timelock] },
+        { address: deployment.timelock, abi: halalTimelockAbi, functionName: "hasRole", args: [PROPOSER_ROLE, deployment.dao] },
+        { address: deployment.timelock, abi: halalTimelockAbi, functionName: "hasRole", args: [EXECUTOR_ROLE, zeroAddress] },
+        { address: deployment.timelock, abi: halalTimelockAbi, functionName: "hasRole", args: [zeroHash, deployment.timelock] },
+        ...adapterContracts,
+      ]
+    : undefined;
 
   const { data, isLoading, isError, error, refetch } = useReadContracts({
-    contracts: deployment
-      ? ([
-          { address: deployment.psm, abi: halalPsmAbi, functionName: "reserve" },
-          { address: deployment.psm, abi: halalPsmAbi, functionName: "hlc" },
-          { address: deployment.dao, abi: halalDaoAbi, functionName: "token" },
-          { address: deployment.dao, abi: halalDaoAbi, functionName: "timelock" },
-          { address: deployment.teamVesting, abi: halalVestingAbi, functionName: "token" },
-          { address: deployment.teamVesting, abi: halalVestingAbi, functionName: "dao" },
-          { address: deployment.treasuryVesting, abi: halalVestingAbi, functionName: "token" },
-          { address: deployment.treasuryVesting, abi: halalVestingAbi, functionName: "dao" },
-          { address: deployment.timelock, abi: halalTimelockAbi, functionName: "getMinDelay" },
-          { address: deployment.token, abi: halalTokenAbi, functionName: "hasRole", args: [MINTER_ROLE, deployment.psm] },
-          { address: deployment.token, abi: halalTokenAbi, functionName: "hasRole", args: [BURNER_ROLE, deployment.psm] },
-          { address: deployment.token, abi: halalTokenAbi, functionName: "hasRole", args: [zeroHash, deployment.timelock] },
-          { address: deployment.psm, abi: halalPsmAbi, functionName: "hasRole", args: [zeroHash, deployment.timelock] },
-          { address: deployment.psm, abi: halalPsmAbi, functionName: "hasRole", args: [PARAM_ROLE, deployment.timelock] },
-          { address: deployment.timelock, abi: halalTimelockAbi, functionName: "hasRole", args: [PROPOSER_ROLE, deployment.dao] },
-          { address: deployment.timelock, abi: halalTimelockAbi, functionName: "hasRole", args: [EXECUTOR_ROLE, zeroAddress] },
-          { address: deployment.timelock, abi: halalTimelockAbi, functionName: "hasRole", args: [zeroHash, deployment.timelock] },
-        ] as const)
-      : [],
+    contracts: integrityContracts,
     query: { enabled: deployment !== undefined, refetchInterval: 30_000 },
   });
 
@@ -68,6 +86,11 @@ export function useDeploymentIntegrity() {
   const timelockProposer = get<boolean>(14);
   const timelockExecutor = get<boolean>(15);
   const timelockSelfAdmin = get<boolean>(16);
+  const adapterPsm = get<Address>(17);
+  const adapterOwner = get<Address>(18);
+  const adapterSourceId = get<`0x${string}`>(19);
+  const adapterThreshold = get<bigint>(20);
+  const adapterSignerCount = get<bigint>(21);
   const expected = deployment;
 
   const readFailed = hasReadFailure(data);
@@ -90,7 +113,15 @@ export function useDeploymentIntegrity() {
     psmParam === true &&
     timelockProposer === true &&
     timelockExecutor === true &&
-    timelockSelfAdmin === true;
+    timelockSelfAdmin === true &&
+    (expected?.cpiAdapter === undefined ||
+      (adapterPsm?.toLowerCase() === expected.psm.toLowerCase() &&
+        adapterOwner?.toLowerCase() === expected.timelock.toLowerCase() &&
+        adapterSourceId?.toLowerCase() === expected.cpiSourceId?.toLowerCase() &&
+        adapterThreshold !== undefined &&
+        adapterSignerCount !== undefined &&
+        adapterThreshold > 0n &&
+        adapterThreshold <= adapterSignerCount));
 
   return {
     isVerified,

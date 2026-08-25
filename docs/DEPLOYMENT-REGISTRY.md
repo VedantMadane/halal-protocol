@@ -14,6 +14,7 @@ RPC_URL=... EXPECTED_CHAIN_ID=421614 \
 TOKEN=... TEAM_VESTING=... TREASURY_VESTING=... DAO=... PSM=... TIMELOCK=... \
 RESERVE_TOKEN=... RESERVE_SYMBOL=USDC DEPLOYMENT_BLOCK=... \
 TEAM_BENEFICIARY=... TREASURY_BENEFICIARY=... DEPLOYER_ADDRESS=... \
+CPI_ADAPTER=... EXPECTED_CPI_SOURCE_ID=0x... \
 node scripts/record-deployment-manifest.mjs --chain-id 421614 \
   --network arbitrum-sepolia --release v0.1.0-alpha.XX --commit "$(git rev-parse HEAD)" \
   --deployment-tx 0x... --explorer-url https://.../tx/0x... \
@@ -40,14 +41,19 @@ The command writes one object keyed by the numeric chain ID:
     "timelock": "0x...",
     "reserveToken": "0x...",
     "reserveTokenSymbol": "USDC",
-    "deploymentBlock": "123456789"
+    "deploymentBlock": "123456789",
+    "cpiAdapter": "0x...",
+    "cpiSourceId": "0x..."
   }
 }
 ```
 
 The deployment transaction, HTTPS explorer URL, HTTPS source-verification URL, seven contract
 addresses, reserve symbol, and positive deployment block are required. The `network`, `release`,
-`commit`, and optional journal URL provide review context and do not affect runtime reads.
+`commit`, and optional journal URL provide review context and do not affect runtime reads. The
+`cpiAdapter` and `cpiSourceId` fields are optional, but operators must provide them together when
+the deployment uses the governed signed CPI adapter. The dApp then checks the adapter's immutable
+PSM and source ID, timelock ownership, and signer quorum before it enables signing actions.
 Run `make registry-check` before opening a pull request. CI runs the same check. The dApp still
 accepts `NEXT_PUBLIC_HLC_*_<chainId>` environment variables as overrides for local experiments;
 those overrides do not change the checked-in public registry.

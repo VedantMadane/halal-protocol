@@ -30,8 +30,10 @@ reserve. This reserve is for local testing only and is not a real stablecoin or 
 | `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` | WalletConnect/Reown project ID; injected wallets work without it |
 
 Public deployments belong in the checked-in [`../app/src/config/deployment-registry.json`](src/config/deployment-registry.json).
-For local experiments, set all nine `NEXT_PUBLIC_HLC_*_<chainId>` variables in `.env.local`:
-the seven contract addresses, `RESERVE_SYMBOL`, and `DEPLOYMENT_BLOCK`. The accepted suffixes are
+For local experiments, set the nine core `NEXT_PUBLIC_HLC_*_<chainId>` variables in `.env.local`:
+the seven contract addresses, `RESERVE_SYMBOL`, and `DEPLOYMENT_BLOCK`. Add both optional
+`NEXT_PUBLIC_HLC_CPI_ADAPTER_<chainId>` and `NEXT_PUBLIC_HLC_CPI_SOURCE_ID_<chainId>` when using
+the governed signed adapter. The accepted suffixes are
 `31337`, `421614`, and `42161`. Addresses are validated at startup and incomplete configurations
 remain disabled. The deployment block bounds the governance event scan, so set it to the block where
 the DAO deployment was mined.
