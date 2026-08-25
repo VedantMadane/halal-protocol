@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.105 - 2026-08-25
+
+- Added an adapter-to-PSM integration regression proving out-of-range signed CPI reports revert
+  without advancing either report watermark.
+
 ## 0.1.0-alpha.104 - 2026-08-25
 
 - Added a dependency-free Prometheus textfile-style exporter example for read-only PSM health

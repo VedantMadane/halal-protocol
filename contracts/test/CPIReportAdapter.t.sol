@@ -188,6 +188,28 @@ contract CPIReportAdapterTest is Test {
         assertEq(psmAdapter.lastSubmittedTimestamp(), 0);
     }
 
+    function test_RevertWhen_SinkRejectsOutOfRangeReport() public {
+        MockERC20 reserve = new MockERC20("Mock DAI", "mDAI", 18);
+        HalalToken token = new HalalToken(address(this));
+        HalalPSM psm = new HalalPSM(address(reserve), address(token), address(this), address(0));
+        address[] memory signers = new address[](2);
+        signers[0] = signerOne;
+        signers[1] = signerTwo;
+        CPIReportAdapter psmAdapter = new CPIReportAdapter(address(psm), address(this), signers, 2, SOURCE_ID);
+        psm.grantRole(psm.UPDATER_ROLE(), address(psmAdapter));
+
+        uint256 reportedAt = block.timestamp - 1;
+        uint256 outOfRangeCpi = psm.MAX_CPI() + 1;
+        bytes[] memory signatures =
+            _signReportFor(psmAdapter, outOfRangeCpi, reportedAt, SIGNER_ONE_KEY, SIGNER_TWO_KEY);
+
+        vm.expectRevert(HalalPSM.RateOutOfBounds.selector);
+        psmAdapter.submitReport(outOfRangeCpi, reportedAt, signatures);
+
+        assertEq(psm.lastReportTimestamp(), 0);
+        assertEq(psmAdapter.lastSubmittedTimestamp(), 0);
+    }
+
     function test_EnumeratesSignerSetAfterRotation() public {
         uint256 replacementKey = 0xE11E;
         address replacement = vm.addr(replacementKey);
