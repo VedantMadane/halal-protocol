@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { validateReportState, validateSignatureSet, validateTypedData } from "../verify-cpi-report.mjs";
+import { validateAdapterSignerSet, validateReportState, validateSignatureSet, validateTypedData } from "../verify-cpi-report.mjs";
 
 const signerOne = "0x1111111111111111111111111111111111111111";
 const signerTwo = "0x2222222222222222222222222222222222222222";
@@ -35,6 +35,29 @@ test("requires sorted unique signers and one signature per signer", () => {
     /strictly ascending/,
   );
   assert.throws(() => validateSignatureSet(signerOne, signatures), /same nonzero/);
+});
+
+test("requires the adapter signer count to match its enumerated signer set", () => {
+  assert.deepEqual(
+    validateAdapterSignerSet({
+      threshold: "2",
+      signerCount: "2",
+      onChainSigners: [signerOne, signerTwo],
+    }),
+    [signerOne, signerTwo],
+  );
+  assert.throws(
+    () => validateAdapterSignerSet({ threshold: "2", signerCount: "3", onChainSigners: [signerOne, signerTwo] }),
+    /does not match/,
+  );
+  assert.throws(
+    () => validateAdapterSignerSet({ threshold: "3", signerCount: "2", onChainSigners: [signerOne, signerTwo] }),
+    /quorum is invalid/,
+  );
+  assert.throws(
+    () => validateAdapterSignerSet({ threshold: "2", signerCount: "2", onChainSigners: [signerOne, signerOne] }),
+    /duplicates/,
+  );
 });
 
 test("rejects a typed data file for another domain", () => {

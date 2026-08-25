@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.93 - 2026-08-25
+
+- Hardened the private-key-free CPI report verifier to reject invalid adapter quorums, duplicate
+  signer enumeration, and signer-count mismatches before signature recovery.
+
 ## 0.1.0-alpha.92 - 2026-08-25
 
 - Added a deployment-proposal issue form that requires chain, reserve, role, CPI, verification, and

@@ -105,6 +105,20 @@ export function validateSignatureSet(signerValues, signatureValues) {
   return { signers, signatures };
 }
 
+export function validateAdapterSignerSet({ threshold, signerCount, onChainSigners }) {
+  const thresholdValue = BigInt(threshold);
+  const signerCountValue = BigInt(signerCount);
+  if (signerCountValue === 0n || thresholdValue === 0n || thresholdValue > signerCountValue) {
+    throw new Error("adapter quorum is invalid");
+  }
+  if (BigInt(onChainSigners.length) !== signerCountValue) {
+    throw new Error("adapter signerCount does not match getSigners()");
+  }
+  const normalized = onChainSigners.map(normalizeAddress);
+  if (new Set(normalized).size !== normalized.length) throw new Error("adapter signer set contains duplicates");
+  return normalized;
+}
+
 /**
  * Checks the report against the live timestamp state that the adapter and PSM will enforce.
  * Keeping this pure makes the safety boundary testable without a wallet or an RPC process.
@@ -180,10 +194,13 @@ export function verifyReport({ typedDataPath, rpcUrl, adapter, signerValues, sig
   const threshold = BigInt(
     firstCastValue(runCast(["call", normalizedAdapter, "threshold()(uint256)", "--rpc-url", rpcUrl], castCommand), "threshold"),
   );
-  if (threshold !== BigInt(signers.length)) throw new Error("signature count does not match the adapter threshold");
+  const signerCount = BigInt(
+    firstCastValue(runCast(["call", normalizedAdapter, "signerCount()(uint256)", "--rpc-url", rpcUrl], castCommand), "signer count"),
+  );
   const onChainSigners = (runCast(["call", normalizedAdapter, "getSigners()(address[])", "--rpc-url", rpcUrl], castCommand).match(ADDRESS_IN_OUTPUT_PATTERN) ?? [])
     .map((signer) => signer.toLowerCase());
-  if (onChainSigners.length === 0) throw new Error("adapter returned an empty signer set");
+  validateAdapterSignerSet({ threshold, signerCount, onChainSigners });
+  if (threshold !== BigInt(signers.length)) throw new Error("signature count does not match the adapter threshold");
   for (const signer of signers) {
     if (!onChainSigners.includes(signer)) throw new Error(`signer is not configured on the adapter: ${signer}`);
   }
