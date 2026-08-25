@@ -52,6 +52,34 @@ The harness calls that helper, and the test proves nonzero distinct addresses pa
 identical addresses fail. A second test covers the production rule that neither beneficiary may be
 the temporary deployer.
 
+## Worked example: beneficiary separation
+
+Suppose `Deploy.s.sol` is changed so the team and treasury beneficiaries may be equal. The
+regression should be expressed at the boundary that the deployment script uses, not as a test of
+the private key or a live chain:
+
+```solidity
+function test_BeneficiariesMustBeDistinctAndNonzero() public view {
+    require(deployer.beneficiariesAreDistinct(address(0x1), address(0x2)));
+    require(!deployer.beneficiariesAreDistinct(address(0), address(0x2)));
+    require(!deployer.beneficiariesAreDistinct(address(0x1), address(0)));
+    require(!deployer.beneficiariesAreDistinct(address(0x1), address(0x1)));
+}
+```
+
+Before the production guard exists, the final assertion is the expected failure: the test exposes
+that two vesting schedules could accidentally share one beneficiary. Restore the guard in
+`Deploy.s.sol`, then run only this regression while iterating:
+
+```shell
+cd contracts
+forge test --match-contract DeployConfigTest --match-test test_BeneficiariesMustBeDistinctAndNonzero -vv
+```
+
+Once the focused test passes, run the complete deployment-config contract and then `make verify`.
+Keep the test's failure message or assertion close to the production helper so a future change
+cannot silently make the test pass without preserving the safety rule.
+
 ## Documentation count checklist
 
 Adding a Foundry test changes the count reported in the repository documentation. Search for the

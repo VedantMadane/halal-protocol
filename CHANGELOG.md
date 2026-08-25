@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.135 - 2026-08-26
+
+- Added a worked deployment-configuration regression example with expected failure behavior and a
+  focused Foundry command for contributors.
+- Clarified the boundary between pure deployment guards, local-demo defaults, and production safety.
+
 ## 0.1.0-alpha.134 - 2026-08-26
 
 - Added a five-minute contributor map to the architecture guide, linking the deposit, CPI,
