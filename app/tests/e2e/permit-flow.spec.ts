@@ -169,6 +169,27 @@ test("renders deployment health without a wallet provider", async ({ page }) => 
   await expect(page.getByRole("link", { name: "Open protocol dashboard" })).toHaveAttribute("href", "/");
 });
 
+test("blocks an invalid governance action before any transaction is submitted", async ({ page }) => {
+  await installAnvilProvider(page);
+  await page.goto("/governance/new");
+
+  const connectButton = page.getByTestId("rk-connect-button");
+  if (await connectButton.count()) await connectButton.click();
+  await expect(page.getByRole("button", { name: /0xf3.*2266/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "New Proposal" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Advanced (raw calls)" }).click();
+  await expect(page.getByText('Invalid target address: ""')).toBeVisible();
+
+  const submitButton = page.getByRole("button", { name: "Submit proposal" });
+  await expect(submitButton).toBeDisabled();
+
+  await page.getByPlaceholder("Target address (0x…)").fill("0x123");
+  await expect(page.getByText('Invalid target address: "0x123"')).toBeVisible();
+  await expect(submitButton).toBeDisabled();
+  expect(await page.evaluate(() => (window as Window & { __lastTransaction?: unknown }).__lastTransaction)).toBeUndefined();
+});
+
 test("withdraws through the real HLC permit flow on disposable Anvil state", async ({ page }) => {
   await seedRedeemableHlc();
   await installAnvilProvider(page);

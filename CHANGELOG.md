@@ -460,3 +460,8 @@ The project remains unaudited and is not production-ready. See [`SECURITY.md`](S
 - Added a canonical clean-checkout local development walkthrough covering the disposable Anvil
   smoke test, interactive demo, verification commands, and production custody boundary.
 - Linked the walkthrough from the README and contributor guide.
+## [0.1.0-alpha.118] - 2026-08-25
+
+- Added browser coverage proving the governance proposal form blocks malformed advanced actions
+  before any wallet transaction is submitted.
+- Expanded the end-to-end suite to four deterministic disposable-Anvil tests.
