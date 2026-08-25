@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## Unreleased
 
+- Added independent differential PSM arithmetic fuzzing across every supported reserve-decimal
+  count, CPI bound, and representable large input; the documented suite now has 132 tests.
 - Published `docs/OPERATOR-RUNBOOK.md` with launch acceptance, recurring monitoring, updater
   rotation, governance review, and incident-response procedures.
 - Updated the local demo and CI smoke test to bootstrap a disposable CPI updater and seed a fresh

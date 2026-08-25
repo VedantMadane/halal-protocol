@@ -29,3 +29,8 @@ forge test --match-path test/HalalPSMInvariant.t.sol -vvv
 
 The harness is complementary to the unit tests. It does not replace an independent audit,
 economic-model review, oracle integration review, or testing against adversarial reserve tokens.
+
+Focused arithmetic tests in `contracts/test/HalalPSMArithmetic.t.sol` compare the contract's
+conversion previews with independent `Math.mulDiv` reference formulas across every supported
+reserve-decimal count (0 through 77), CPI bounds, and large amounts. These checks cover the
+normalization branches but do not prove that an external reserve token is safe to use.

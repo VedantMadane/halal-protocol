@@ -16,8 +16,10 @@ narrow roles by governance.
   `scripts/verify-deployment.sh`.
 - [x] Publish an operator runbook for reserve health, CPI freshness, updater rotation, governance
   proposal review, and incident response ([`docs/OPERATOR-RUNBOOK.md`](OPERATOR-RUNBOOK.md)).
-- Extend adversarial testing with a broader reserve-token matrix, differential arithmetic checks,
-  and longer stateful runs on every release candidate.
+- [x] Add independent differential arithmetic checks across every supported reserve-decimal count
+  and CPI bound ([`contracts/test/HalalPSMArithmetic.t.sol`](../contracts/test/HalalPSMArithmetic.t.sol)).
+- Extend adversarial testing with a broader reserve-token matrix and longer stateful runs on every
+  release candidate.
 
 ## Next: make the system useful to real participants
 
