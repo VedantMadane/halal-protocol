@@ -40,6 +40,9 @@ For a first end-to-end run, follow the [local development walkthrough](docs/LOCA
 It explains the disposable Anvil workflow, the temporary frontend configuration, and the boundary
 between local-demo defaults and production deployment safety.
 
+For deployment environment guards, see the [deployment-config test guide](docs/DEPLOYMENT-CONFIG-TESTS.md)
+before changing `contracts/script/Deploy.s.sol` or `contracts/test/DeployConfig.t.sol`.
+
 From the repository root, `make verify` runs the complete contract and frontend verification
 workflow, including a configured production dApp smoke test on disposable Anvil state. The subtree
 commands below are useful for faster iteration.

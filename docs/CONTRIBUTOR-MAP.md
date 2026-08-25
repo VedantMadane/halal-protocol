@@ -19,7 +19,7 @@ operations. Report fund-risking findings through [`SECURITY.md`](../SECURITY.md)
 | Economic research | [`docs/ECONOMIC-MODEL.md`](ECONOMIC-MODEL.md), [`scripts/model-psm.mjs`](../scripts/model-psm.mjs) | A reproducible scenario, explicit assumptions, and a comparison with the Solidity rounding rules |
 | dApp UX | [`app/src/components/`](../app/src/components/), [`app/README.md`](../app/README.md) | A usable flow on the local demo, responsive states, and passing lint/build checks |
 | Governance design | [`docs/DAO-Guide.md`](DAO-Guide.md), [`contracts/script/Examples.s.sol`](../contracts/script/Examples.s.sol) | Decoded proposal actions, timing analysis, and tests for the timelock path |
-| Documentation | [`docs/DESIGN-DECISIONS.md`](DESIGN-DECISIONS.md) | A correction tied to current source code, with commands or links a reviewer can follow |
+| Documentation | [`docs/DESIGN-DECISIONS.md`](DESIGN-DECISIONS.md), [`deployment-config test guide`](DEPLOYMENT-CONFIG-TESTS.md) | A correction tied to current source code, with commands or links a reviewer can follow |
 
 ## Run the project
 

@@ -465,3 +465,8 @@ The project remains unaudited and is not production-ready. See [`SECURITY.md`](S
 - Added browser coverage proving the governance proposal form blocks malformed advanced actions
   before any wallet transaction is submitted.
 - Expanded the end-to-end suite to four deterministic disposable-Anvil tests.
+## [0.1.0-alpha.119] - 2026-08-25
+
+- Added a contributor guide for extending deployment-configuration regression tests, including the
+  production/local-demo boundary, focused commands, and documentation-count checklist.
+- Linked the guide from the contributor map and contribution instructions.
