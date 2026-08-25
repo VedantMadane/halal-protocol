@@ -88,7 +88,8 @@ RPC_URL="$LOCAL_RPC_URL" EXPECTED_CHAIN_ID=31337 \
   CPI_UPDATER="$LOCAL_UPDATER_ADDRESS" \
   "$ROOT_DIR/scripts/verify-deployment.sh"
 
-RPC_URL="$LOCAL_RPC_URL" PSM="$LOCAL_PSM" "$ROOT_DIR/scripts/check-psm-health.sh"
+RPC_URL="$LOCAL_RPC_URL" PSM="$LOCAL_PSM" CPI_UPDATER="$LOCAL_UPDATER_ADDRESS" \
+  "$ROOT_DIR/scripts/check-psm-health.sh"
 
 if [[ -e "$APP_ENV_FILE" ]]; then
   APP_ENV_BACKUP="$(mktemp)"

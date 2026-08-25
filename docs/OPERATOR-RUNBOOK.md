@@ -112,6 +112,15 @@ For a health-only check, run:
 RPC_URL=https://... PSM=0x... ./scripts/check-psm-health.sh
 ```
 
+For a deployment with a governed updater and a recorded source label, pass both expectations. The
+check then fails if governance removed the updater role or changed the source label:
+
+```shell
+RPC_URL=https://... PSM=0x... \
+CPI_UPDATER=0x... EXPECTED_CPI_SOURCE=https://... \
+./scripts/check-psm-health.sh
+```
+
 The script emits `key=value` records suitable for a cron wrapper, log shipper, or small exporter.
 Alert on a nonzero exit code and retain the emitted values:
 
@@ -120,6 +129,8 @@ Alert on a nonzero exit code and retain the emitted values:
 | `reason=timestamped_cpi_report_missing` | No timestamped source report has been accepted | The PSM rejects deposits; bootstrap a reviewed report through the updater |
 | `reason=timestamped_cpi_report_stale` | The latest report is older than `MAX_REPORT_AGE` | The PSM rejects deposits; investigate the source and relayer |
 | `reason=reserve_deficit` | Current reserve is below `reserveRequired()` | Stop public promotion, investigate reserve movements, and prepare a governance-approved top-up |
+| `reason=configured_cpi_updater_missing_role` | The expected updater no longer holds `UPDATER_ROLE` | Inspect role events and execute a reviewed rotation or restoration proposal |
+| `reason=cpi_source_mismatch` | The on-chain source label differs from the deployment record | Review the source-change proposal before accepting new reports |
 | `warning=normal_cpi_update_overdue` | `lastUpdated + minUpdateInterval` has passed | Check the updater queue and source publication schedule |
 
 The default `FAIL_ON_UPDATE_OVERDUE=true` makes overdue cadence an alert. Use

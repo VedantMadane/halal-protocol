@@ -2,7 +2,8 @@
 set -euo pipefail
 
 # Read-only recurring audit for a configured deployment. It verifies immutable wiring and then
-# checks CPI freshness, reserve coverage, and update cadence. It requires no private key.
+# checks CPI freshness, reserve coverage, update cadence, and optional CPI source/updater
+# expectations. It requires no private key.
 ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 
 for variable in RPC_URL EXPECTED_CHAIN_ID PSM; do
