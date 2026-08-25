@@ -2,13 +2,15 @@
 
 All notable changes to this project are documented here.
 
-## 0.1.0-alpha.61 - 2026-08-25
+## 0.1.0-alpha.62 - 2026-08-25
 
 - Added optional adapter metadata to deployment manifests and the dApp integrity gate, which now
   verifies the adapter's PSM, timelock owner, source ID, and signer quorum before signing.
 - Added registry-validator tests for valid adapter metadata and zero source IDs.
 - Extended the read-only adapter health check to verify the expected timelock owner and emit
   explicit owner-missing and owner-mismatch reasons.
+- Added a 31337-only adapter rehearsal that deploys a disposable PSM, signs a two-of-two report,
+  and verifies the report reaches the PSM without using a public RPC.
 
 ## 0.1.0-alpha.59 - 2026-08-25
 

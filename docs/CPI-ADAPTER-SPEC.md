@@ -149,6 +149,13 @@ signer set and threshold separately before submitting the returned arrays.
 The module remains unaudited. A deployment must not treat the presence of this source file or its
 tests as an approval to accept meaningful funds.
 
+### Local adapter rehearsal
+
+Run `make adapter-demo` to deploy a disposable PSM and adapter on Anvil chain `31337`, grant the
+adapter `UPDATER_ROLE` inside the local harness, sign a two-of-two EIP-712 report, and verify the
+accepted CPI rate. The harness bypasses DAO execution to keep the rehearsal short; it must not be
+used as a public deployment or as evidence that a production governance handoff has executed.
+
 ## Monitoring requirements
 
 Run the combined audit with the deployment's expected updater and source:

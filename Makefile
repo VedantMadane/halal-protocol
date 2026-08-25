@@ -1,4 +1,4 @@
-.PHONY: verify contracts-build contracts-test contracts-lint contracts-coverage app-lint app-build abis psm-health deployment-health economic-model oracle-test registry-check shell-check
+.PHONY: verify contracts-build contracts-test contracts-lint contracts-coverage app-lint app-build abis psm-health deployment-health economic-model oracle-test adapter-demo registry-check shell-check
 
 verify: registry-check shell-check oracle-test contracts-build contracts-test contracts-lint app-lint app-build
 
@@ -10,6 +10,9 @@ shell-check:
 
 oracle-test:
 	node --test scripts/test/*.test.mjs
+
+adapter-demo:
+	./scripts/local-adapter-demo.sh
 
 contracts-build:
 	cd contracts && forge build
