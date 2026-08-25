@@ -169,6 +169,21 @@ Use a dedicated updater account or reviewed consumer. Give it only `UPDATER_ROLE
 the signing key in a restricted custody system, and record the source publication timestamp with
 each submission. Prefer `updateCPIWithTimestamp` so replayed and delayed source data fails on-chain.
 
+For a quorum adapter, prepare the typed data with `scripts/prepare-cpi-report.mjs`, collect
+signatures through the approved custody process, and verify them before submitting. Use the signer
+addresses printed by `check-psm-health.sh` and keep them in ascending order:
+
+```shell
+node scripts/verify-cpi-report.mjs \
+  --typed-data /path/to/typed-data.json \
+  --rpc-url "$RPC_URL" --adapter 0x<adapter> \
+  --signers 0x<lowest-signer>,0x<next-signer> \
+  --signatures 0x<signature-for-lowest>,0x<signature-for-next>
+```
+
+Keep the verifier output with the report archive. It contains the adapter, source ID, signer list,
+and signature count, but no private key material.
+
 Before each submission, verify:
 
 1. the report came from the documented source;

@@ -152,6 +152,24 @@ and optional old-updater revocation as zero-value DAO actions. The script requir
 immutable PSM binding, owner, and source ID, then prints calldata without broadcasting. Review the
 signer set and threshold separately before submitting the returned arrays.
 
+### Signature verification
+
+After each signer returns a signature, verify the typed data and recovered addresses before
+submitting the report:
+
+```shell
+node scripts/verify-cpi-report.mjs \
+  --typed-data /path/to/typed-data.json \
+  --rpc-url "$RPC_URL" --adapter 0x<adapter> \
+  --signers 0x<lowest-signer>,0x<next-signer> \
+  --signatures 0x<signature-for-lowest>,0x<signature-for-next>
+```
+
+Read the signer addresses from the deployment health output or `CPIReportAdapter.getSigners()`.
+The verifier reads the live adapter's chain ID, source ID, threshold, and signer set through the
+RPC. It keeps private keys out of the process, requires one 65-byte signature per configured signer
+in strict address order, and delegates EIP-712 recovery to Foundry's `cast wallet verify`.
+
 The module remains unaudited. A deployment must not treat the presence of this source file or its
 tests as an approval to accept meaningful funds.
 
@@ -159,9 +177,10 @@ tests as an approval to accept meaningful funds.
 
 Run `make adapter-demo` to deploy a disposable PSM and adapter on Anvil chain `31337`, grant the
 adapter `UPDATER_ROLE` inside the local harness, sign a two-of-two EIP-712 report, and run the
-read-only health check, including signer enumeration. The harness bypasses DAO execution to keep
-the rehearsal short; it must not be used as a public deployment or as evidence that a production
-governance handoff has executed.
+read-only health check, including signer enumeration, then verify a separately prepared quorum
+payload against the live adapter. The harness bypasses DAO execution to keep the rehearsal short;
+it must not be used as a public deployment or as evidence that a production governance handoff has
+executed.
 
 ## Monitoring requirements
 

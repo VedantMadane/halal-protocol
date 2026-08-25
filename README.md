@@ -53,6 +53,7 @@ conservative accounting model:
 | Can an operator audit a deployment without a wallet? | [`scripts/check-deployment-health.sh`](scripts/check-deployment-health.sh) combines wiring and PSM health checks |
 | Can I model CPI-driven reserve needs reproducibly? | [`docs/ECONOMIC-MODEL.md`](docs/ECONOMIC-MODEL.md) and `make economic-model` |
 | Can I reproduce an official CPI report payload? | [`scripts/parse-bls-cpi.mjs`](scripts/parse-bls-cpi.mjs) and [`docs/CPI-ADAPTER-SPEC.md`](docs/CPI-ADAPTER-SPEC.md) |
+| Can I verify quorum signatures without private keys? | [`scripts/verify-cpi-report.mjs`](scripts/verify-cpi-report.mjs) recovers each EIP-712 signer through Foundry |
 | Does governance decode CPI adapter actions? | The dApp includes the generated `CPIReportAdapter` ABI for signer, threshold, ownership, and report actions |
 | Can the active CPI signer set be audited? | `CPIReportAdapter.getSigners()` and `check-psm-health.sh` expose the current addresses after each rotation |
 | Are public deployment addresses reviewable? | [`docs/DEPLOYMENT-REGISTRY.md`](docs/DEPLOYMENT-REGISTRY.md) and the checked-in registry |

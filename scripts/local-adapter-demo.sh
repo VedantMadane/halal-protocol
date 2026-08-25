@@ -62,4 +62,28 @@ echo "$HEALTH_OUTPUT" | grep -q '^status=healthy$'
 echo "$HEALTH_OUTPUT" | grep -q '^cpi_adapter_signer_0='
 echo "$HEALTH_OUTPUT" | grep -q '^cpi_adapter_signer_1='
 
+REPORT_INPUT="$(mktemp)"
+TYPED_DATA="$(mktemp)"
+node -e 'const fs=require("fs"); const [out,adapter,source]=process.argv.slice(1); fs.writeFileSync(out, JSON.stringify({chainId:"31337",adapter,sourceId:source,cpi:"1.000000",reportedAt:String(Math.floor(Date.now()/1000))}));' \
+  "$REPORT_INPUT" "$ADAPTER_ADDRESS" "$SOURCE_ID"
+node "$ROOT_DIR/scripts/prepare-cpi-report.mjs" --input "$REPORT_INPUT" --typed-data-out "$TYPED_DATA" >/dev/null
+SIGNER_ONE_ADDRESS="$(cast wallet address --private-key "$SIGNER_ONE_KEY")"
+SIGNER_TWO_ADDRESS="$(cast wallet address --private-key "$SIGNER_TWO_KEY")"
+SIGNATURE_ONE="$(cast wallet sign --data --from-file "$TYPED_DATA" --private-key "$SIGNER_ONE_KEY")"
+SIGNATURE_TWO="$(cast wallet sign --data --from-file "$TYPED_DATA" --private-key "$SIGNER_TWO_KEY")"
+SIGNER_ONE_LOWER="${SIGNER_ONE_ADDRESS,,}"
+SIGNER_TWO_LOWER="${SIGNER_TWO_ADDRESS,,}"
+if [[ "$SIGNER_ONE_LOWER" < "$SIGNER_TWO_LOWER" ]]; then
+  REPORT_SIGNERS="$SIGNER_ONE_ADDRESS,$SIGNER_TWO_ADDRESS"
+  REPORT_SIGNATURES="$SIGNATURE_ONE,$SIGNATURE_TWO"
+else
+  REPORT_SIGNERS="$SIGNER_TWO_ADDRESS,$SIGNER_ONE_ADDRESS"
+  REPORT_SIGNATURES="$SIGNATURE_TWO,$SIGNATURE_ONE"
+fi
+VERIFY_OUTPUT="$(node "$ROOT_DIR/scripts/verify-cpi-report.mjs" \
+  --typed-data "$TYPED_DATA" --rpc-url "$LOCAL_RPC_URL" --adapter "$ADAPTER_ADDRESS" \
+  --signers "$REPORT_SIGNERS" --signatures "$REPORT_SIGNATURES")"
+echo "$VERIFY_OUTPUT"
+echo "$VERIFY_OUTPUT" | grep -q '"status":"verified"'
+
 echo "Local CPI adapter rehearsal passed on chain 31337."

@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.65 - 2026-08-25
+
+- Added a private-key-free EIP-712 CPI report verifier that checks signer ordering and recovers
+  each signature through Foundry before a quorum report is submitted.
+
 ## 0.1.0-alpha.64 - 2026-08-25
 
 - Added enumerable CPI adapter signer views and rotation-safe bookkeeping, plus health-check output
