@@ -16,7 +16,9 @@ done
 command -v cast >/dev/null || { echo "cast is required (install Foundry first)" >&2; exit 1; }
 
 call() {
-  cast call "$1" "$2" "${@:3}" --rpc-url "$RPC_URL"
+  # Foundry may append a human-readable scientific-notation rendering to large integers.
+  # Keep the canonical first field so exact checks remain stable across cast versions.
+  cast call "$1" "$2" "${@:3}" --rpc-url "$RPC_URL" | awk 'NR == 1 { print $1; exit }'
 }
 
 address_call() {
@@ -45,7 +47,6 @@ expect_true() {
 expect_positive() {
   local label="$1"
   local actual="$2"
-  # `cast` may render large uints as `[1.728e5]` rather than plain decimal.
   if [[ -z "$actual" || "$actual" =~ ^\[?0+(\.0+)?([eE][+-]?0+)?\]?$ ]]; then
     echo "FAILED: $label (expected a positive integer, got $actual)" >&2
     exit 1
@@ -98,6 +99,12 @@ treasury_allocation="$(call "$TOKEN" 'TREASURY_ALLOCATION()(uint256)')"
 # releases occur. Checking balances would make a valid deployment fail on every later audit.
 expect_equal "team vesting allocation" "$(call "$TEAM_VESTING" 'totalAllocation()(uint256)')" "$team_allocation"
 expect_equal "treasury vesting allocation" "$(call "$TREASURY_VESTING" 'totalAllocation()(uint256)')" "$treasury_allocation"
+expect_equal "team vesting cliff" "$(call "$TEAM_VESTING" 'cliff()(uint64)')" "31536000"
+expect_equal "team vesting duration" "$(call "$TEAM_VESTING" 'duration()(uint64)')" "126144000"
+expect_equal "team vesting revocability" "$(call "$TEAM_VESTING" 'revocable()(bool)')" "true"
+expect_equal "treasury vesting cliff" "$(call "$TREASURY_VESTING" 'cliff()(uint64)')" "0"
+expect_equal "treasury vesting duration" "$(call "$TREASURY_VESTING" 'duration()(uint64)')" "94608000"
+expect_equal "treasury vesting revocability" "$(call "$TREASURY_VESTING" 'revocable()(bool)')" "false"
 
 minter_role="$(call "$TOKEN" 'MINTER_ROLE()(bytes32)')"
 admin_role="$(call "$TOKEN" 'DEFAULT_ADMIN_ROLE()(bytes32)')"

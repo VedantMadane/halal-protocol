@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## Unreleased
 
+- Hardened deployment assertions and repeat verification to enforce the intended team and treasury
+  vesting cliffs, durations, and revocability policies.
 - Made the deployment verifier safe to rerun after vesting releases by checking immutable vesting
   allocations instead of requiring the contracts' live token balances to remain untouched.
 - Extended the stateful PSM invariant harness to exercise mixed user actions across governance CPI

@@ -73,6 +73,6 @@ Set `RPC_URL`, `EXPECTED_CHAIN_ID`, `TIMELOCK`, `TOKEN`, `TEAM_VESTING`, `TREASU
 `PSM`, and `RESERVE_TOKEN`; optionally set `DEPLOYER_ADDRESS` and `CPI_UPDATER` to check those role
 assignments too. The verifier checks the RPC chain identity, that every supplied address has
 contract bytecode, the DAO's token/timelock links, the PSM and vesting links, immutable vesting
-allocations, role wiring (including the timelock's self-admin and permissionless executor), and a
+allocations and the intended vesting policy, role wiring (including the timelock's self-admin and permissionless executor), and a
 nonzero timelock delay. It remains valid after vesting releases, is read-only, and does not require a private key or
 `--broadcast`.

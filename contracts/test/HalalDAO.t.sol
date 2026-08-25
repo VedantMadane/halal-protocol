@@ -24,6 +24,12 @@ contract HalalDAOTest is Deployers {
 
     function test_InitialState() public view {
         assertEq(token.balanceOf(address(teamVesting)) + token.balanceOf(address(treasuryVesting)), 10_000_000e18);
+        assertEq(teamVesting.cliff(), 365 days);
+        assertEq(teamVesting.duration(), 4 * 365 days);
+        assertTrue(teamVesting.revocable());
+        assertEq(treasuryVesting.cliff(), 0);
+        assertEq(treasuryVesting.duration(), 3 * 365 days);
+        assertFalse(treasuryVesting.revocable());
     }
 
     function test_RolesTransferredToDAO() public view {

@@ -208,7 +208,9 @@ contract DeployHalalSystem is Script {
         if (
             !token.genesisMinted() || token.balanceOf(address(teamVesting)) != token.TEAM_ALLOCATION()
                 || token.balanceOf(address(treasuryVesting)) != token.TREASURY_ALLOCATION()
-                || !token.hasRole(token.MINTER_ROLE(), address(psm))
+                || teamVesting.cliff() != 365 days || teamVesting.duration() != 4 * 365 days || !teamVesting.revocable()
+                || treasuryVesting.cliff() != 0 || treasuryVesting.duration() != 3 * 365 days
+                || treasuryVesting.revocable() || !token.hasRole(token.MINTER_ROLE(), address(psm))
                 || !token.hasRole(token.DEFAULT_ADMIN_ROLE(), address(timelock))
                 || token.hasRole(token.MINTER_ROLE(), deployer) || token.hasRole(token.DEFAULT_ADMIN_ROLE(), deployer)
                 || !timelock.hasRole(timelock.PROPOSER_ROLE(), address(dao))
