@@ -14,6 +14,7 @@ import { getFriendlyErrorMessage } from "@/lib/errors";
 import { DeploymentIntegrityBanner } from "@/components/DeploymentIntegrityBanner";
 import { PsmSafetyAlert } from "@/components/psm/PsmSafetyAlert";
 import { usePsmSafety } from "@/hooks/usePsmSafety";
+import { CpiAdapterCard } from "@/components/dashboard/CpiAdapterCard";
 
 export default function PsmPage() {
   const { isDeployed } = useDeployment();
@@ -77,6 +78,7 @@ export default function PsmPage() {
                 reserveSymbol={psm.reserveSymbol}
                 isLoading={psm.isLoading}
               />
+              <CpiAdapterCard />
             </div>
           </div>
         </div>

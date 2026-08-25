@@ -75,6 +75,10 @@ instructions live in [`../contracts`](../contracts) and [`../docs`](../docs). Go
 generated ABIs, including the optional CPI report adapter, so reviewers can inspect signer rotation,
 threshold changes, and ownership actions before voting.
 
+When a deployment configures a CPI adapter, the dashboard and PSM page also show its live owner,
+source ID, quorum, signer addresses, and last submitted report. Treat a failed or mismatched adapter
+read as a reason to stop and review the deployment before signing.
+
 The PSM page pauses new deposits when the deployment has no verifiable timestamped CPI report, the
 report is older than the contract's `MAX_REPORT_AGE`, or the reserve is below `reserveRequired()`.
 Withdrawals remain available so users can use the contract's recovery path when their own

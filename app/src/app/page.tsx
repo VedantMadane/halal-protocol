@@ -14,6 +14,7 @@ import { useVestingSchedule } from "@/hooks/useVesting";
 import { formatTokenGrouped } from "@/lib/format";
 import { getFriendlyErrorMessage } from "@/lib/errors";
 import { DeploymentIntegrityBanner } from "@/components/DeploymentIntegrityBanner";
+import { CpiAdapterCard } from "@/components/dashboard/CpiAdapterCard";
 
 export default function DashboardPage() {
   const { deployment, isDeployed } = useDeployment();
@@ -83,6 +84,8 @@ export default function DashboardPage() {
               isLoading={psm.isLoading}
             />
           </div>
+
+          {deployment?.cpiAdapter && <CpiAdapterCard />}
 
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <VestingSummaryCard label="Team" schedule={team.schedule} isLoading={team.isLoading} />

@@ -56,6 +56,7 @@ conservative accounting model:
 | Can I verify quorum signatures without private keys? | [`scripts/verify-cpi-report.mjs`](scripts/verify-cpi-report.mjs) recovers each EIP-712 signer through Foundry |
 | Does governance decode CPI adapter actions? | The dApp includes the generated `CPIReportAdapter` ABI for signer, threshold, ownership, and report actions |
 | Can the active CPI signer set be audited? | `CPIReportAdapter.getSigners()` and `check-psm-health.sh` expose the current addresses after each rotation |
+| Does the dApp show adapter custody state? | The dashboard and PSM page show the live adapter owner, source ID, quorum, signers, and last submitted report |
 | Are public deployment addresses reviewable? | [`docs/DEPLOYMENT-REGISTRY.md`](docs/DEPLOYMENT-REGISTRY.md) and the checked-in registry |
 | Are generated frontend interfaces kept in sync? | ABI regeneration is a required CI check |
 | Is the security posture stated plainly? | [`SECURITY.md`](SECURITY.md) and [`docs/THREAT-MODEL.md`](docs/THREAT-MODEL.md) |

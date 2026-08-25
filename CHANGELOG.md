@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.66 - 2026-08-25
+
+- Added a read-only CPI adapter card to the dashboard and PSM page, exposing live owner, source ID,
+  quorum, signer addresses, and last-report state for reviewer visibility.
+
 ## 0.1.0-alpha.65 - 2026-08-25
 
 - Added a private-key-free EIP-712 CPI report verifier that checks signer ordering and recovers
