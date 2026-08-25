@@ -52,6 +52,10 @@ export interface HalalDeployment {
 }
 
 interface DeploymentSource {
+  deploymentTx?: string;
+  explorerUrl?: string;
+  sourceVerificationUrl?: string;
+  journalUrl?: string;
   token?: string;
   teamVesting?: string;
   treasuryVesting?: string;

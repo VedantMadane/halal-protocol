@@ -39,6 +39,22 @@ for (const [chainId, deployment] of Object.entries(registry)) {
       throw new Error(`Deployment ${chainId} has a non-string ${optional} field.`);
     }
   }
+
+  if (typeof deployment.deploymentTx !== "string" || !/^0x[0-9a-fA-F]{64}$/.test(deployment.deploymentTx)) {
+    throw new Error(`Deployment ${chainId} needs a deploymentTx hash.`);
+  }
+  for (const link of ["explorerUrl", "sourceVerificationUrl", "journalUrl"]) {
+    if (deployment[link] === undefined) {
+      if (link === "journalUrl") continue;
+      throw new Error(`Deployment ${chainId} needs a ${link}.`);
+    }
+    try {
+      const parsed = new URL(deployment[link]);
+      if (parsed.protocol !== "https:") throw new Error();
+    } catch {
+      throw new Error(`Deployment ${chainId} has an invalid ${link}.`);
+    }
+  }
 }
 
 console.log(`Deployment registry valid: ${Object.keys(registry).length} deployment(s)`);

@@ -29,6 +29,10 @@ Options:
   --network <name>     Human-readable network name
   --release <tag>      Release tag containing the deployment
   --commit <sha>       Commit containing the deployment
+  --deployment-tx <h>  Deployment transaction hash
+  --explorer-url <url> Explorer page for the deployment
+  --source-url <url>   Explorer source-verification page
+  --journal-url <url>  Public deployment journal or evidence page
   --output <path>      Registry path (defaults to the checked-in registry)
   --help               Show this help
 `);
@@ -46,7 +50,7 @@ function parseArgs(args) {
       throw new Error(`Invalid argument: ${argument}`);
     }
     const name = argument.slice(2);
-    if (!["chain-id", "network", "release", "commit", "output"].includes(name)) {
+    if (!["chain-id", "network", "release", "commit", "deployment-tx", "explorer-url", "source-url", "journal-url", "output"].includes(name)) {
       throw new Error(`Unknown option: ${argument}`);
     }
     options[name] = args[index + 1];
@@ -86,6 +90,26 @@ if (!/^\d+$/.test(deploymentBlock) || BigInt(deploymentBlock) === 0n) {
   throw new Error("DEPLOYMENT_BLOCK must be a positive decimal string.");
 }
 
+const deploymentTx = options["deployment-tx"];
+if (!deploymentTx || !/^0x[0-9a-fA-F]{64}$/.test(deploymentTx)) {
+  throw new Error("--deployment-tx must be a 32-byte transaction hash.");
+}
+
+function requiredHttpsUrl(optionName) {
+  const value = options[optionName];
+  try {
+    const parsed = new URL(value);
+    if (parsed.protocol !== "https:") throw new Error();
+  } catch {
+    throw new Error(`--${optionName} must be an HTTPS URL.`);
+  }
+  return value;
+}
+
+const explorerUrl = requiredHttpsUrl("explorer-url");
+const sourceVerificationUrl = requiredHttpsUrl("source-url");
+const journalUrl = options["journal-url"] ? requiredHttpsUrl("journal-url") : undefined;
+
 console.log(`Verifying deployment on chain ${chainId} before updating the registry...`);
 execFileSync("bash", [verifierPath], { env: process.env, stdio: "inherit" });
 
@@ -101,6 +125,10 @@ for (const field of ["network", "release", "commit"]) {
 }
 registry[chainId] = {
   ...metadata,
+  deploymentTx,
+  explorerUrl,
+  sourceVerificationUrl,
+  ...(journalUrl ? { journalUrl } : {}),
   ...addresses,
   reserveTokenSymbol,
   deploymentBlock,
