@@ -39,12 +39,32 @@ test("rounds ratios in integer space", () => {
 test("rejects a different series, missing point, or invalid period", () => {
   assert.throws(() => parseBlsResponse({ ...payload, status: "REQUEST_FAILED" }), /did not succeed/);
   assert.throws(
+    () => parseBlsResponse({ ...payload, Results: { series: [payload.Results.series[0], payload.Results.series[0]] } }),
+    /exactly CUUR0000SA0/,
+  );
+  assert.throws(
     () => parseBlsResponse({ ...payload, Results: { series: [{ seriesID: "CUSR0000SA0", data: payload.Results.series[0].data }] } }),
     /exactly CUUR0000SA0/,
   );
   assert.throws(
     () => parseBlsResponse({ ...payload, Results: { series: [{ ...payload.Results.series[0], data: [] }] } }),
     /exactly one data point/,
+  );
+  assert.throws(
+    () => parseBlsResponse({ ...payload, Results: { series: [{ ...payload.Results.series[0], data: [payload.Results.series[0].data[0], payload.Results.series[0].data[0]] }] } }),
+    /exactly one data point/,
+  );
+  assert.throws(
+    () => parseBlsResponse({ ...payload, Results: { series: [{ ...payload.Results.series[0], data: [null] }] } }),
+    /data point must be an object/,
+  );
+  assert.throws(
+    () => parseBlsResponse({ ...payload, Results: { series: [{ ...payload.Results.series[0], data: [{ ...payload.Results.series[0].data[0], year: "26" }] }] } }),
+    /monthly period/,
+  );
+  assert.throws(
+    () => parseBlsResponse({ ...payload, Results: { series: [{ ...payload.Results.series[0], data: [{ ...payload.Results.series[0].data[0], value: "not-a-number" }] }] } }),
+    /BLS value must be a nonnegative decimal string/,
   );
   assert.throws(
     () => parseBlsResponse({ ...payload, Results: { series: [{ ...payload.Results.series[0], data: [{ ...payload.Results.series[0].data[0], period: "A01" }] }] } }),

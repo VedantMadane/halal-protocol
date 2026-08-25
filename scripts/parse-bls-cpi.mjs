@@ -30,6 +30,9 @@ export function parseBlsResponse(payload) {
   const data = series[0].data;
   if (!Array.isArray(data) || data.length !== 1) throw new Error("BLS response must contain exactly one data point");
   const point = data[0];
+  if (point === null || typeof point !== "object" || Array.isArray(point)) {
+    throw new Error("BLS data point must be an object");
+  }
   if (typeof point.year !== "string" || !/^\d{4}$/.test(point.year) || !/^M(?:0[1-9]|1[0-2])$/.test(point.period)) {
     throw new Error("BLS data point must identify a monthly period");
   }

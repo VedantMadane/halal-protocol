@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.109 - 2026-08-25
+
+- Hardened BLS CPI response parsing with explicit rejection of ambiguous series/data-point
+  cardinality, non-object records, malformed years, and invalid index values.
+
 ## 0.1.0-alpha.108 - 2026-08-25
 
 - Replaced the closed contributor quickstart link with three live, tagged good-first issues covering
