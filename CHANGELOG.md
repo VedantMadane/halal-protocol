@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.74 - 2026-08-25
+
+- Added EIP-2612 permit entrypoints for bounded PSM deposits, withdrawals, and redeemable-credit
+  transfers, while retaining approval-based paths for tokens and wallets without permit support.
+- Added Foundry coverage for signed reserve and HLC approvals and regenerated the frontend PSM ABI.
+
 ## 0.1.0-alpha.73 - 2026-08-25
 
 - Corrected the Scorecard SARIF uploader pin to the immutable commit behind the CodeQL release tag.

@@ -8,7 +8,9 @@ import { MockFeeOnTransferERC20 } from "./mocks/MockFeeOnTransferERC20.sol";
 import { MockOutgoingFeeERC20 } from "./mocks/MockOutgoingFeeERC20.sol";
 import { MockReentrantERC20 } from "./mocks/MockReentrantERC20.sol";
 import { MockFalseReturnERC20 } from "./mocks/MockFalseReturnERC20.sol";
+import { MockPermitERC20 } from "./mocks/MockPermitERC20.sol";
 import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
+import { IERC20Permit } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Permit.sol";
 
 contract HalalPSMTest is Deployers {
     address internal alice = makeAddr("alice");
@@ -58,6 +60,31 @@ contract HalalPSMTest is Deployers {
 
         assertEq(reserve.balanceOf(address(psm)), 0);
         assertEq(token.balanceOf(alice), 0);
+    }
+
+    function test_DepositWithPermitUsesSignedReserveApproval() public {
+        (address permitAlice, uint256 permitAliceKey) = makeAddrAndKey("permitDepositAlice");
+        MockPermitERC20 permitReserve = new MockPermitERC20("Permit DAI", "pDAI", 18);
+        HalalPSM permitPsm = new HalalPSM(address(permitReserve), address(token), address(this), address(this));
+        vm.startPrank(address(timelock));
+        token.grantRole(token.MINTER_ROLE(), address(permitPsm));
+        vm.stopPrank();
+        permitReserve.mint(permitAlice, 1_000e18);
+        permitPsm.updateCPI(1_000_000);
+
+        uint256 amount = 100e18;
+        uint256 deadline = block.timestamp + 1 hours;
+        (uint8 v, bytes32 r, bytes32 s) = _permitSignature(
+            address(permitReserve), permitAlice, address(permitPsm), amount, deadline, permitAliceKey
+        );
+
+        vm.prank(permitAlice);
+        permitPsm.depositWithPermit(amount, amount, deadline, v, r, s);
+
+        assertEq(token.balanceOf(permitAlice), amount);
+        assertEq(permitPsm.redeemableBalance(permitAlice), amount);
+        assertEq(permitReserve.balanceOf(address(permitPsm)), amount);
+        assertEq(permitReserve.nonces(permitAlice), 1);
     }
 
     function test_DeadlineBoundedDepositRejectsStaleExecution() public {
@@ -121,6 +148,27 @@ contract HalalPSMTest is Deployers {
         vm.expectRevert(HalalPSM.DeadlineExpired.selector);
         psm.withdrawWithMinReserveOutAndDeadline(1_000e18, quotedOutput, deadline);
         vm.stopPrank();
+    }
+
+    function test_WithdrawWithPermitUsesSignedHlcApproval() public {
+        (address permitAlice, uint256 permitAliceKey) = makeAddrAndKey("permitWithdrawAlice");
+        reserve.mint(permitAlice, 1_000e18);
+        vm.startPrank(permitAlice);
+        reserve.approve(address(psm), 1_000e18);
+        psm.deposit(100e18);
+        vm.stopPrank();
+
+        uint256 amount = 100e18;
+        uint256 deadline = block.timestamp + 1 hours;
+        (uint8 v, bytes32 r, bytes32 s) =
+            _permitSignature(address(token), permitAlice, address(psm), amount, deadline, permitAliceKey);
+
+        vm.prank(permitAlice);
+        psm.withdrawWithPermit(amount, amount, deadline, v, r, s);
+
+        assertEq(token.balanceOf(permitAlice), 0);
+        assertEq(psm.redeemableBalance(permitAlice), 0);
+        assertEq(reserve.balanceOf(permitAlice), 1_000e18);
     }
 
     function testFuzz_RoundTripNeverOverpays(uint128 reserveAmount) public {
@@ -860,6 +908,29 @@ contract HalalPSMTest is Deployers {
         assertEq(psm.reserveSurplus(), 400e18);
     }
 
+    function test_TransferRedeemableWithPermitUsesSignedHlcApproval() public {
+        (address permitAlice, uint256 permitAliceKey) = makeAddrAndKey("permitTransferAlice");
+        address recipient = makeAddr("permitTransferRecipient");
+        reserve.mint(permitAlice, 1_000e18);
+        vm.startPrank(permitAlice);
+        reserve.approve(address(psm), 1_000e18);
+        psm.deposit(100e18);
+        vm.stopPrank();
+
+        uint256 amount = 40e18;
+        uint256 deadline = block.timestamp + 1 hours;
+        (uint8 v, bytes32 r, bytes32 s) =
+            _permitSignature(address(token), permitAlice, address(psm), amount, deadline, permitAliceKey);
+
+        vm.prank(permitAlice);
+        psm.transferRedeemableWithPermit(recipient, amount, deadline, v, r, s);
+
+        assertEq(token.balanceOf(permitAlice), 60e18);
+        assertEq(token.balanceOf(recipient), amount);
+        assertEq(psm.redeemableBalance(permitAlice), 60e18);
+        assertEq(psm.redeemableBalance(recipient), amount);
+    }
+
     function test_RedeemableBalanceTracksDepositsAndWithdrawals() public {
         vm.startPrank(alice);
         psm.deposit(1_000e18);
@@ -881,5 +952,32 @@ contract HalalPSMTest is Deployers {
         vm.expectRevert(HalalPSM.InsufficientRedeemableBalance.selector);
         psm.withdraw(600e18);
         vm.stopPrank();
+    }
+
+    function _permitSignature(
+        address permitToken,
+        address owner,
+        address spender,
+        uint256 value,
+        uint256 deadline,
+        uint256 privateKey
+    ) internal view returns (uint8 v, bytes32 r, bytes32 s) {
+        bytes32 digest = keccak256(
+            abi.encodePacked(
+                "\x19\x01",
+                IERC20Permit(permitToken).DOMAIN_SEPARATOR(),
+                keccak256(
+                    abi.encode(
+                        keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)"),
+                        owner,
+                        spender,
+                        value,
+                        IERC20Permit(permitToken).nonces(owner),
+                        deadline
+                    )
+                )
+            )
+        );
+        return vm.sign(privateKey, digest);
     }
 }

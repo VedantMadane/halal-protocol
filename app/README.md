@@ -74,6 +74,12 @@ Regenerate contract ABIs after changing Solidity interfaces:
 pnpm gen:abis
 ```
 
+Integrators can use the PSM's `depositWithPermit`, `withdrawWithPermit`, and
+`transferRedeemableWithPermit` methods when the reserve token and wallet support EIP-2612. Each
+method combines the signed approval with a slippage-bounded action and a caller-supplied deadline.
+Approval-based methods remain available for smart-contract wallets and reserve tokens without
+permit support.
+
 The frontend is a read/write client for deployed contracts. Contract sources and deployment
 instructions live in [`../contracts`](../contracts) and [`../docs`](../docs). Governance actions use
 generated ABIs, including the optional CPI report adapter, so reviewers can inspect signer rotation,

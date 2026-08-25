@@ -3,6 +3,7 @@ pragma solidity 0.8.24;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import { IERC20Permit } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Permit.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
@@ -149,6 +150,22 @@ contract HalalPSM is AccessControl, ReentrancyGuard {
         _deposit(reserveAmount, minHlcOut);
     }
 
+    /// @notice Deposits with an EIP-2612 reserve-token permit, output bound, and execution deadline.
+    /// The reserve token must implement IERC20Permit; callers can use the approval-based entrypoints
+    /// for tokens that do not support permits or for smart-contract wallets.
+    function depositWithPermit(
+        uint256 reserveAmount,
+        uint256 minHlcOut,
+        uint256 deadline,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) external nonReentrant {
+        _checkDeadline(deadline);
+        _tryPermit(address(reserve), reserveAmount, deadline, v, r, s);
+        _deposit(reserveAmount, minHlcOut);
+    }
+
     function _deposit(uint256 reserveAmount, uint256 minHlcOut) internal {
         _checkDepositSafety();
         if (reserveAmount == 0) revert ZeroAmount();
@@ -190,10 +207,49 @@ contract HalalPSM is AccessControl, ReentrancyGuard {
         _withdraw(hlcAmount, minReserveOut);
     }
 
+    /// @notice Withdraws with an EIP-2612 HLC permit, output bound, and execution deadline.
+    /// HLC implements IERC20Permit; the approval-based withdrawal entrypoints remain available for
+    /// smart-contract wallets that cannot sign permits.
+    function withdrawWithPermit(
+        uint256 hlcAmount,
+        uint256 minReserveOut,
+        uint256 deadline,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) external nonReentrant {
+        _checkDeadline(deadline);
+        _tryPermit(address(hlc), hlcAmount, deadline, v, r, s);
+        _withdraw(hlcAmount, minReserveOut);
+    }
+
     /// @notice Transfers PSM-issued HLC and its redemption credit in one atomic operation. The
     /// caller must approve this contract for `hlcAmount`; a plain ERC20 transfer cannot move the
     /// credit because the token has no knowledge of this PSM's per-address accounting.
     function transferRedeemable(address to, uint256 hlcAmount) external nonReentrant {
+        if (to == address(0)) revert ZeroAddress();
+        if (hlcAmount == 0) revert ZeroAmount();
+        if (redeemableBalance[msg.sender] < hlcAmount) revert InsufficientRedeemableBalance();
+
+        bool ok = hlc.transferFrom(msg.sender, to, hlcAmount);
+        if (!ok) revert TransferFailed();
+        redeemableBalance[msg.sender] -= hlcAmount;
+        redeemableBalance[to] += hlcAmount;
+        emit RedeemableTransferred(msg.sender, to, hlcAmount);
+    }
+
+    /// @notice Transfers PSM-issued HLC and its redemption credit with an EIP-2612 HLC permit.
+    /// The recipient receives the same accounting-aware credit as transferRedeemable.
+    function transferRedeemableWithPermit(
+        address to,
+        uint256 hlcAmount,
+        uint256 deadline,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) external nonReentrant {
+        _checkDeadline(deadline);
+        _tryPermit(address(hlc), hlcAmount, deadline, v, r, s);
         if (to == address(0)) revert ZeroAddress();
         if (hlcAmount == 0) revert ZeroAmount();
         if (redeemableBalance[msg.sender] < hlcAmount) revert InsufficientRedeemableBalance();
@@ -391,6 +447,13 @@ contract HalalPSM is AccessControl, ReentrancyGuard {
     function _checkDeadline(uint256 deadline) internal view {
         // forge-lint: disable-next-line(block-timestamp)
         if (block.timestamp > deadline) revert DeadlineExpired();
+    }
+
+    /// @dev A permit can be submitted by anyone and may have been consumed before this call is
+    /// mined. Ignore a failed permit and let the following transferFrom decide whether an allowance
+    /// already exists; this keeps a valid action tolerant to permit frontrunning.
+    function _tryPermit(address permitToken, uint256 amount, uint256 deadline, uint8 v, bytes32 r, bytes32 s) internal {
+        try IERC20Permit(permitToken).permit(msg.sender, address(this), amount, deadline, v, r, s) { } catch { }
     }
 
     function _checkDepositSafety() internal view {

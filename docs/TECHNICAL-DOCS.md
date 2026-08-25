@@ -3,7 +3,7 @@
 **Version**: 1.1.0
 **Date**: August 24, 2026
 **Network**: Arbitrum (Sepolia & Mainnet)
-**Status**: Unaudited reference implementation | 154 tests passing (151 unit/configuration + 3 invariants) | Not production-ready
+**Status**: Unaudited reference implementation | 157 tests passing (154 unit/configuration + 3 invariants) | Not production-ready
 
 ---
 
@@ -190,7 +190,7 @@ EOF
 ```bash
 # 1. Test locally
 forge test -vvv
-# Expected: 154/154 tests passing ✓
+# Expected: 157/157 tests passing ✓
 
 # 2. Fund wallet with testnet ETH on Arbitrum Sepolia
 # Visit: https://sepoliafaucet.com
@@ -365,7 +365,10 @@ delay, voting period, proposal threshold, or quorum requires deploying and wirin
 | HalalPSM | `withdrawWithMinReserveOut(uint256,uint256)` | Anyone | Public, slippage-bounded |
 | HalalPSM | `depositWithMinHlcOutAndDeadline(uint256,uint256,uint256)` | Anyone | Public, slippage- and deadline-bounded; preferred for new integrations |
 | HalalPSM | `withdrawWithMinReserveOutAndDeadline(uint256,uint256,uint256)` | Anyone | Public, slippage- and deadline-bounded; preferred for new integrations |
+| HalalPSM | `depositWithPermit(uint256,uint256,uint256,uint8,bytes32,bytes32)` | Anyone | EIP-2612 reserve approval + bounded deposit; reserve token must support permits |
+| HalalPSM | `withdrawWithPermit(uint256,uint256,uint256,uint8,bytes32,bytes32)` | Anyone | EIP-2612 HLC approval + bounded withdrawal |
 | HalalPSM | `transferRedeemable(address,uint256)` | Anyone | Moves PSM HLC and its redemption credit atomically |
+| HalalPSM | `transferRedeemableWithPermit(address,uint256,uint256,uint8,bytes32,bytes32)` | Anyone | EIP-2612 HLC approval + atomic credit transfer |
 | HalalPSM | `cancelRedeemable(uint256)` | Anyone | Irreversibly burns HLC and retires matching credit |
 | HalalPSM | `depositReserve()` | DAO | Proposal |
 | HalalPSM | `withdrawReserve(address,uint256)` | DAO | Proposal; only reserve surplus |
@@ -463,7 +466,10 @@ function depositWithMinHlcOut(uint256 reserveAmount, uint256 minHlcOut) external
 function withdrawWithMinReserveOut(uint256 hlcAmount, uint256 minReserveOut) external
 function depositWithMinHlcOutAndDeadline(uint256 reserveAmount, uint256 minHlcOut, uint256 deadline) external
 function withdrawWithMinReserveOutAndDeadline(uint256 hlcAmount, uint256 minReserveOut, uint256 deadline) external
+function depositWithPermit(uint256 reserveAmount, uint256 minHlcOut, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external
+function withdrawWithPermit(uint256 hlcAmount, uint256 minReserveOut, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external
 function transferRedeemable(address to, uint256 hlcAmount) external
+function transferRedeemableWithPermit(address to, uint256 hlcAmount, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external
 function cancelRedeemable(uint256 hlcAmount) external // Burns HLC; returns no reserve
 // `deposit(uint256)` and `withdraw(uint256)` remain as unbounded compatibility methods.
 function depositReserve(uint256 amount) external onlyRole(PARAM_ROLE)
@@ -533,9 +539,9 @@ forge coverage
 ✓ test_TimelockPreventsImmediateExecution
 ✓ test_TeamVestingRevocable
 ✓ test_TreasuryVestingNonRevocable
-✓ 151 unit/configuration tests plus 3 stateful PSM invariants covering the core contracts and governance flows
+✓ 154 unit/configuration tests plus 3 stateful PSM invariants covering the core contracts and governance flows
 
-Total: 154 tests passing ✓
+Total: 157 tests passing ✓
 ```
 
 ### Verify on Arbiscan
@@ -553,7 +559,7 @@ Total: 154 tests passing ✓
 
 ### Before Deployment
 
-- [ ] All 154 tests passing locally, including the stateful invariants
+- [ ] All 157 tests passing locally, including the stateful invariants
 - [ ] Gas estimates reviewed & acceptable
 - [ ] No compiler warnings
 - [ ] Code review completed
