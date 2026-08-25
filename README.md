@@ -30,7 +30,7 @@ No external RPC key or real funds are needed for the demo.
 Most stablecoins target a nominal unit of a reserve asset. Halal explores a different target:
 keeping HLC's reserve-asset redemption rate moving with consumer-price inflation, so one HLC is
 intended to represent roughly stable purchasing power over time. That idea is paired with a
-  conservative accounting model:
+conservative accounting model:
 
 - Only reserve deposited through the PSM creates a redeemable HLC claim; the fixed team and treasury
   allocations are explicitly separate and not reserve-backed.
@@ -44,6 +44,7 @@ intended to represent roughly stable purchasing power over time. That idea is pa
 | Reviewer question | Evidence in this repository |
 | --- | --- |
 | Does the accounting have stateful coverage? | 128 Foundry tests, including 3 PSM invariants and fuzzing |
+| Do invariants cover CPI changes? | [`docs/INVARIANTS.md`](docs/INVARIANTS.md) models governance rate changes and reserve top-ups |
 | Can a deployment be checked without a private key? | [`scripts/verify-deployment.sh`](scripts/verify-deployment.sh) |
 | Can I inspect the full system locally? | [`./scripts/local-demo.sh`](scripts/local-demo.sh) on a disposable Anvil chain |
 | Are generated frontend interfaces kept in sync? | ABI regeneration is a required CI check |
