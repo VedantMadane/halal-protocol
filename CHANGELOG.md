@@ -2,6 +2,19 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.141 - 2026-08-26
+
+- Removed stale links to completed contributor tasks from the README contribution funnel.
+- Added active issue #41 with a bounded first contribution for deployment-health shell regression
+  coverage.
+
+## 0.1.0-alpha.140 - 2026-08-26
+
+- Refreshed the README contributor funnel so it links only to active work instead of completed
+  starter issues.
+- Added issue #41 with a bounded, reproducible first contribution for deployment-health regression
+  coverage.
+
 ## 0.1.0-alpha.139 - 2026-08-26
 
 - Made combined deployment-health failures machine-readable with explicit reasons for missing

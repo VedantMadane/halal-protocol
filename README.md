@@ -34,17 +34,11 @@ Start with the [good first issues](https://github.com/fredrikblau/halal-protocol
 - Run `./scripts/local-demo.sh` to see the contracts and dApp together.
 - Follow the [local development walkthrough](docs/LOCAL-DEVELOPMENT.md) from a clean checkout.
 - Run `make verify` before opening a pull request.
-- Pick [issue #35](https://github.com/fredrikblau/halal-protocol/issues/35) to document how to extend
-  deployment-configuration regression tests.
-- Pick [issue #36](https://github.com/fredrikblau/halal-protocol/issues/36) to add browser coverage for
-  governance proposal validation errors.
-- Pick [issue #37](https://github.com/fredrikblau/halal-protocol/issues/37) to add a five-minute
-  architecture map for newcomers.
-- Pick [issue #38](https://github.com/fredrikblau/halal-protocol/issues/38) to cover the dApp's
-  no-deployment health state in Playwright.
-- Pick [issue #39](https://github.com/fredrikblau/halal-protocol/issues/39) to document monitoring
-  integration with deployment-health exit codes.
+- Pick the active [good first issue](https://github.com/fredrikblau/halal-protocol/issues/41) to add
+  shell regression coverage for the deployment-health failure contract.
 - Help coordinate the first carefully gated [Arbitrum Sepolia deployment](https://github.com/fredrikblau/halal-protocol/issues/40).
+- Review the bounded [security challenge](https://github.com/fredrikblau/halal-protocol/issues/16) or
+  [production CPI adapter design](https://github.com/fredrikblau/halal-protocol/issues/17).
 - Use [Discussions](https://github.com/fredrikblau/halal-protocol/discussions) for design questions.
 - Report security vulnerabilities through [`SECURITY.md`](SECURITY.md), not a public issue.
 
