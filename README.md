@@ -32,6 +32,7 @@ No external RPC key or real funds are needed for the demo.
 Start with the [good first issues](https://github.com/fredrikblau/halal-protocol/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22):
 
 - Run `./scripts/local-demo.sh` to see the contracts and dApp together.
+- Follow the [local development walkthrough](docs/LOCAL-DEVELOPMENT.md) from a clean checkout.
 - Run `make verify` before opening a pull request.
 - Pick [issue #30](https://github.com/fredrikblau/halal-protocol/issues/30) to document how to extend
   deployment-configuration regression tests.

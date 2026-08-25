@@ -455,3 +455,8 @@ The project remains unaudited and is not production-ready. See [`SECURITY.md`](S
 - Made the read-only deployment verifier reject deployer-controlled vesting beneficiaries by
   default, while documenting the explicit disposable-local-demo exception.
 - Refreshed the README contributor links and corrected the contracts test-suite count.
+## [0.1.0-alpha.117] - 2026-08-25
+
+- Added a canonical clean-checkout local development walkthrough covering the disposable Anvil
+  smoke test, interactive demo, verification commands, and production custody boundary.
+- Linked the walkthrough from the README and contributor guide.

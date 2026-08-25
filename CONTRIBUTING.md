@@ -36,6 +36,10 @@ A PR won't be merged with a red CI run.
 
 ## Running the test suites
 
+For a first end-to-end run, follow the [local development walkthrough](docs/LOCAL-DEVELOPMENT.md).
+It explains the disposable Anvil workflow, the temporary frontend configuration, and the boundary
+between local-demo defaults and production deployment safety.
+
 From the repository root, `make verify` runs the complete contract and frontend verification
 workflow, including a configured production dApp smoke test on disposable Anvil state. The subtree
 commands below are useful for faster iteration.
