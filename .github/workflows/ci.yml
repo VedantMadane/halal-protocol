@@ -132,6 +132,10 @@ jobs:
           node scripts/model-psm.mjs --months=24 --monthly-inflation-bps=50 --apply-topups=true > /tmp/halal-economic-model-topups.csv
           grep -q '^24,.*,+0,' /tmp/halal-economic-model-topups.csv
 
+      - name: Signed CPI adapter rehearsal
+        working-directory: .
+        run: make adapter-demo
+
   abi:
     name: Verify generated ABIs
     needs: changes
