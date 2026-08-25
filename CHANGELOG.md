@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.85 - 2026-08-25
+
+- Fixed disposable app smoke cleanup so its background Next.js process cannot block the browser
+  E2E server on port 3001.
+
 ## 0.1.0-alpha.84 - 2026-08-25
 
 - Fixed client-side loading of per-chain `NEXT_PUBLIC_HLC_*` deployment overrides in Next.js.

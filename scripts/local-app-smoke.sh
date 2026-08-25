@@ -17,7 +17,9 @@ APP_ENV_BACKUP=""
 APP_ENV_CREATED="false"
 
 cleanup() {
-  if [[ -n "$APP_PID" ]]; then kill "$APP_PID" 2>/dev/null || true; fi
+  if [[ -n "$APP_PID" ]]; then
+    kill -- -"$APP_PID" 2>/dev/null || kill "$APP_PID" 2>/dev/null || true
+  fi
   if [[ -n "$ANVIL_PID" ]]; then kill "$ANVIL_PID" 2>/dev/null || true; fi
   if [[ -n "$APP_ENV_BACKUP" && -f "$APP_ENV_BACKUP" ]]; then
     mv -f "$APP_ENV_BACKUP" "$APP_ENV_FILE"
@@ -93,14 +95,12 @@ if [[ "${KEEP_SERVER:-false}" == "true" ]]; then
   # Playwright owns the lifetime of this process. Keep the server in the foreground so its
   # termination reaches this shell's cleanup trap and removes the disposable Anvil state.
   cd "$ROOT_DIR/app"
-  pnpm start --hostname 127.0.0.1 --port "$APP_PORT" >/tmp/halal-app-smoke-next.log 2>&1
+  exec pnpm start --hostname 127.0.0.1 --port "$APP_PORT" >/tmp/halal-app-smoke-next.log 2>&1
   exit 0
 fi
 
-(
-  cd "$ROOT_DIR/app"
-  pnpm start --hostname 127.0.0.1 --port "$APP_PORT"
-) >/tmp/halal-app-smoke-next.log 2>&1 &
+setsid pnpm --dir "$ROOT_DIR/app" start --hostname 127.0.0.1 --port "$APP_PORT" \
+  >/tmp/halal-app-smoke-next.log 2>&1 &
 APP_PID=$!
 
 for attempt in {1..60}; do
