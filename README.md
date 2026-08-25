@@ -33,9 +33,12 @@ Start with the [good first issues](https://github.com/fredrikblau/halal-protocol
 
 - Run `./scripts/local-demo.sh` to see the contracts and dApp together.
 - Run `make verify` before opening a pull request.
-- Pick [issue #26](https://github.com/fredrikblau/halal-protocol/issues/26) to extend wallet-free
-  browser coverage to a configured CPI adapter. It is a bounded frontend/test-harness task with no
-  contract behavior changes.
+- Pick [issue #27](https://github.com/fredrikblau/halal-protocol/issues/27) to add wallet-free
+  browser coverage for a CPI adapter watermark mismatch.
+- Pick [issue #28](https://github.com/fredrikblau/halal-protocol/issues/28) to harden the deterministic
+  BLS CPI parser against malformed or ambiguous source payloads.
+- Pick [issue #29](https://github.com/fredrikblau/halal-protocol/issues/29) to add a bounded
+  non-standard reserve-token fixture to the PSM test matrix.
 - Use [Discussions](https://github.com/fredrikblau/halal-protocol/discussions) for design questions.
 - Report security vulnerabilities through [`SECURITY.md`](SECURITY.md), not a public issue.
 

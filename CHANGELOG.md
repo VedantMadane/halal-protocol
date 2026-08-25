@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.108 - 2026-08-25
+
+- Replaced the closed contributor quickstart link with three live, tagged good-first issues covering
+  adapter health failures, BLS parser validation, and reserve-token edge cases.
+
 ## 0.1.0-alpha.107 - 2026-08-25
 
 - Extended the disposable app/browser smoke fixture with a configured signed CPI adapter and
