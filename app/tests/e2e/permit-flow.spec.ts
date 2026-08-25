@@ -1,9 +1,12 @@
 import { test, expect, type Page } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import { createPublicClient, createWalletClient, http, parseSignature, parseUnits, recoverTypedDataAddress } from "viem";
+import { privateKeyToAccount } from "viem/accounts";
 
 const RPC_URL = "http://127.0.0.1:18545";
 const ANVIL_ACCOUNT = "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266" as const;
+const ANVIL_UPDATER_KEY = "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d" as const;
+const ANVIL_UPDATER_ACCOUNT = privateKeyToAccount(ANVIL_UPDATER_KEY);
 const LOCAL_CHAIN = {
   id: 31_337,
   name: "Anvil (Local)",
@@ -30,6 +33,16 @@ const PSM_ABI = [
     inputs: [{ name: "reserveAmount", type: "uint256" }],
     outputs: [],
   },
+  {
+    type: "function",
+    name: "updateCPIWithTimestamp",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "reportedCPI", type: "uint256" },
+      { name: "reportedAt", type: "uint256" },
+    ],
+    outputs: [],
+  },
 ] as const;
 
 function readLocalEnv(): Record<string, string> {
@@ -48,6 +61,17 @@ function readLocalEnv(): Record<string, string> {
 async function seedRedeemableHlc() {
   const env = readLocalEnv();
   const account = ANVIL_ACCOUNT;
+  const updaterWallet = createWalletClient({ account: ANVIL_UPDATER_ACCOUNT, chain: LOCAL_CHAIN, transport: http(RPC_URL) });
+  const updaterPublicClient = createPublicClient({ chain: LOCAL_CHAIN, transport: http(RPC_URL) });
+  const block = await updaterPublicClient.getBlock({ blockTag: "latest" });
+  const reportHash = await updaterWallet.writeContract({
+    account: ANVIL_UPDATER_ACCOUNT,
+    address: env.NEXT_PUBLIC_HLC_PSM_31337 as `0x${string}`,
+    abi: PSM_ABI,
+    functionName: "updateCPIWithTimestamp",
+    args: [1_000_000n, block.timestamp - 1n],
+  });
+  await updaterPublicClient.waitForTransactionReceipt({ hash: reportHash });
   const wallet = createWalletClient({ account, chain: LOCAL_CHAIN, transport: http(RPC_URL) });
   const publicClient = createPublicClient({ chain: LOCAL_CHAIN, transport: http(RPC_URL) });
   const reserveAmount = parseUnits("1000", 18);
@@ -122,6 +146,8 @@ test("renders deployment health without a wallet provider", async ({ page }) => 
   await expect(page.getByText("Contract wiring and roles")).toBeVisible();
   await expect(page.getByText("CPI report freshness")).toBeVisible();
   await expect(page.getByText("PSM reserve coverage")).toBeVisible();
+  await expect(page.getByText("Signed CPI adapter")).toBeVisible();
+  await expect(page.getByText(/2 of 2 configured signers; adapter and PSM watermarks match/)).toBeVisible();
   await expect(page.getByRole("link", { name: "Open protocol dashboard" })).toHaveAttribute("href", "/");
 });
 

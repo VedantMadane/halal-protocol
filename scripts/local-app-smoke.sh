@@ -67,9 +67,24 @@ value_from_env() {
 }
 
 PSM_ADDRESS="$(value_from_env NEXT_PUBLIC_HLC_PSM_31337)"
-REPORT_AT="$(cast block latest --field timestamp --rpc-url "$LOCAL_RPC_URL")"
-cast send "$PSM_ADDRESS" 'updateCPIWithTimestamp(uint256,uint256)' 1000000 "$REPORT_AT" \
-  --private-key "$UPDATER_KEY" --rpc-url "$LOCAL_RPC_URL" >/dev/null
+TIMELOCK_ADDRESS="$(value_from_env NEXT_PUBLIC_HLC_TIMELOCK_31337)"
+SIGNER_ONE_KEY="$(cast wallet derive --insecure --accounts 3 "$LOCAL_MNEMONIC" | awk '/Private key:/ { key=$3 } END { print key }')"
+SIGNER_TWO_KEY="$(cast wallet derive --insecure --accounts 4 "$LOCAL_MNEMONIC" | awk '/Private key:/ { key=$3 } END { print key }')"
+SIGNER_ONE_ADDRESS="$(cast wallet address --private-key "$SIGNER_ONE_KEY")"
+SIGNER_TWO_ADDRESS="$(cast wallet address --private-key "$SIGNER_TWO_KEY")"
+SOURCE_ID="$(cast keccak 'local-app-cpi-v1')"
+
+(
+  cd "$ROOT_DIR/contracts"
+  PRIVATE_KEY="$DEPLOYER_KEY" EXPECTED_CHAIN_ID=31337 PSM="$PSM_ADDRESS" \
+    ADAPTER_OWNER="$TIMELOCK_ADDRESS" CPI_SOURCE_ID="$SOURCE_ID" CPI_THRESHOLD=2 \
+    CPI_SIGNER_1="$SIGNER_ONE_ADDRESS" CPI_SIGNER_2="$SIGNER_TWO_ADDRESS" \
+    forge script script/DeployCPIReportAdapter.s.sol:DeployCPIReportAdapter \
+    --rpc-url "$LOCAL_RPC_URL" --broadcast --non-interactive
+) 2>&1 | tee -a "$DEPLOY_LOG"
+
+ADAPTER_ADDRESS="$(awk '/CPI report adapter:/ { print $NF; exit }' "$DEPLOY_LOG")"
+test -n "$ADAPTER_ADDRESS"
 
 if [[ -e "$APP_ENV_FILE" ]]; then
   APP_ENV_BACKUP="$(mktemp)"
@@ -84,6 +99,8 @@ DEPLOYMENT_BLOCK="$(cast block latest --field number --rpc-url "$LOCAL_RPC_URL")
   grep 'NEXT_PUBLIC_HLC_' "$DEPLOY_LOG" \
     | sed -e 's/^ *//' -e 's/= /=/' \
     | sed "s/^NEXT_PUBLIC_HLC_DEPLOYMENT_BLOCK_31337=.*/NEXT_PUBLIC_HLC_DEPLOYMENT_BLOCK_31337=$DEPLOYMENT_BLOCK/"
+  echo "NEXT_PUBLIC_HLC_CPI_ADAPTER_31337=$ADAPTER_ADDRESS"
+  echo "NEXT_PUBLIC_HLC_CPI_SOURCE_ID_31337=$SOURCE_ID"
 } > "$APP_ENV_FILE"
 
 (

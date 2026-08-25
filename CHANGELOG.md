@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.107 - 2026-08-25
+
+- Extended the disposable app/browser smoke fixture with a configured signed CPI adapter and
+  health-page assertions for quorum and matching report watermarks.
+
 ## 0.1.0-alpha.106 - 2026-08-25
 
 - Refreshed the contributor quickstart with a live good-first issue for configured CPI adapter
