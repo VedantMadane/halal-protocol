@@ -8,6 +8,18 @@ The current security review scope is [issue #16](https://github.com/fredrikblau/
 Start there if you want to inspect the PSM, CPI boundaries, reserve assumptions, or governance
 operations. Report fund-risking findings through [`SECURITY.md`](../SECURITY.md), not the issue.
 
+## Good first issues
+
+Choose the task that matches your interests; each issue includes a bounded scope, acceptance
+criteria, and a safe local verification path:
+
+- [Deployment review worksheet (#42)](https://github.com/fredrikblau/halal-protocol/issues/42) —
+  documentation and operator evidence.
+- [Standalone PSM health-check tests (#43)](https://github.com/fredrikblau/halal-protocol/issues/43) —
+  Node test coverage for fail-closed monitoring output.
+- [Local CPI report walkthrough (#44)](https://github.com/fredrikblau/halal-protocol/issues/44) —
+  copy-paste documentation for the disposable adapter rehearsal.
+
 ## Choose a path
 
 | Interest | Start here | A finished contribution proves |

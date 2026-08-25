@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.143 - 2026-08-26
+
+- Added two clearly scoped `good first issue` contributor paths for standalone health-check tests
+  (#43) and a local CPI report walkthrough (#44).
+- Linked all three newcomer tasks from the contributor map and README.
+
 ## 0.1.0-alpha.142 - 2026-08-26
 
 - Added automated coverage for healthy disposable adapter output and machine-readable deployment-health
