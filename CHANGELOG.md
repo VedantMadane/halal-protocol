@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.97 - 2026-08-25
+
+- Added a reserve-token compatibility matrix that separates tested transfer and decimal behavior
+  from operator due diligence for hostile, frozen, or issuer-controlled tokens.
+
 ## 0.1.0-alpha.96 - 2026-08-25
 
 - Added a dependency-free cron/systemd health-wrapper example that preserves read-only checks,

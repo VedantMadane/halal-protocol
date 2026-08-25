@@ -31,6 +31,26 @@ controls, upgradeability, decimals, and the issuer's admin powers before deploym
 accounts for balance deltas and rejects unsupported decimals, but it cannot make a hostile or frozen
 reserve token safe.
 
+Use this compatibility matrix as a review starting point. “Covered” means the repository has a
+focused test; it is not a certification of an arbitrary issuer token. Review the referenced tests
+against the exact token implementation and repeat the checks on the intended chain before launch.
+
+| Reserve-token behavior | Repository evidence | Launch interpretation |
+| --- | --- | --- |
+| 0–17 decimals | [Arithmetic differential tests](../contracts/test/HalalPSMArithmetic.t.sol) fuzz this range; [6-decimal round-trip tests](../contracts/test/HalalPSM.t.sol) cover a common case | Covered for the tested arithmetic and rounding boundaries; confirm the issuer's actual `decimals()` behavior |
+| 18 decimals | The default PSM fixture and [standard deposit/withdraw tests](../contracts/test/HalalPSM.t.sol) use 18 decimals | Covered for the reference ERC-20 behavior |
+| 19–77 decimals | The arithmetic tests fuzz through 77; [24-decimal tests](../contracts/test/HalalPSM.t.sol) exercise high-decimal scaling and precision | Covered for arithmetic within the constructor limit; check liquidity and rounding economics |
+| More than 77 decimals | The constructor rejects 78 decimals with `UnsupportedDecimals` in [the PSM tests](../contracts/test/HalalPSM.t.sol) | Unsupported; do not deploy this PSM with the token |
+| Fee on incoming transfers | [Balance-delta deposit tests](../contracts/test/HalalPSM.t.sol) cover fee-adjusted minting and zero-receipt rejection | Mechanically covered for the tested fee model; document the real fee, slippage limits, and whether the economics are acceptable |
+| Fee or extra debit on outgoing transfers | [Withdrawal and reserve-floor tests](../contracts/test/HalalPSM.t.sol) cover recipient deltas and floor protection | Mechanically covered for the tested fee model; validate recipient receipts and reserve solvency under the issuer's rules |
+| False-returning or reverting transfers | [Safe-transfer regression tests](../contracts/test/HalalPSM.t.sol) use a token that returns `false` | Covered for this failure mode; arbitrary non-standard call behavior still needs review |
+| Reentrancy or callback behavior | [Admin-transfer reentrancy test](../contracts/test/HalalPSM.t.sol) verifies the guard | Covered for the supplied callback mock; review hooks, callbacks, and upgrade paths on the real token |
+| Pausable, blacklistable, upgradeable, or issuer-controlled token | Threat-model discussion of the [reserve dependency](THREAT-MODEL.md) | Operator due diligence only; the PSM cannot make a frozen, censored, malicious, or later-upgraded token safe |
+
+The matrix does not approve any particular reserve asset. Record the token address, implementation
+and proxy details, admin powers, fee policy, pause/blacklist policy, and test evidence in the
+deployment journal. If the token's behavior changes, treat it as a new launch review.
+
 ### 1.2 Deploy and verify
 
 Use a dedicated deployer key and set an explicit chain ID. The production script reads its
