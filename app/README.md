@@ -95,6 +95,10 @@ report is older than the contract's `MAX_REPORT_AGE`, or the reserve is below `r
 Withdrawals remain available so users can use the contract's recovery path when their own
 redemption credit can still be serviced.
 
+The redeemable-credit transfer form offers an HLC EIP-2612 permit flow when the wallet supports
+typed-data signing. The form submits the signed transfer in one transaction and keeps the two-step
+approval flow available as a fallback.
+
 The dashboard also shows the six most recent `CPIUpdated` events from the configured deployment
 block. Each row includes the block, transaction hash, rate change, and whether the updater or a
 governance override submitted it. A failed event read appears as an error instead of an incomplete

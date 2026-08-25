@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.77 - 2026-08-25
+
+- Added the HLC permit transfer path to the dApp's redeemable-credit form, with a standard approval
+  fallback for wallets that cannot sign typed data.
+- Added frontend build coverage for the typed-data signing and signature encoding flow.
+
 ## 0.1.0-alpha.76 - 2026-08-25
 
 - Fixed the release checksum file so downloaded assets verify from the same directory.

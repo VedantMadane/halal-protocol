@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { isAddress, parseUnits, zeroAddress } from "viem";
-import { useAccount } from "wagmi";
+import { isAddress, parseSignature, parseUnits, zeroAddress } from "viem";
+import { useAccount, useBlock, useChainId, useReadContract, useSignTypedData } from "wagmi";
 import { halalPsmAbi, halalTokenAbi } from "@/abis";
 import { useDeployment } from "@/hooks/useDeployment";
 import { useDeploymentIntegrity } from "@/hooks/useDeploymentIntegrity";
@@ -26,13 +26,25 @@ function safeParseHlc(value: string): bigint | undefined {
 export function TransferRedeemableForm() {
   const { deployment } = useDeployment();
   const deploymentIntegrity = useDeploymentIntegrity();
-  const { isConnected } = useAccount();
+  const { address, isConnected } = useAccount();
+  const chainId = useChainId();
+  const { data: latestBlock } = useBlock({ watch: true });
   const user = usePsmUserState();
   const [recipient, setRecipient] = useState("");
   const [amount, setAmount] = useState("");
   const approveTx = useTxState();
   const transferTx = useTxState();
   const cancelTx = useTxState();
+  const [permitError, setPermitError] = useState<string>();
+  const { signTypedDataAsync, isPending: isSigningPermit } = useSignTypedData();
+
+  const { data: permitNonce } = useReadContract({
+    address: deployment?.token,
+    abi: halalTokenAbi,
+    functionName: "nonces",
+    args: address ? [address] : undefined,
+    query: { enabled: !!deployment && !!address },
+  });
 
   useEffect(() => {
     if (approveTx.isConfirmed || transferTx.isConfirmed || cancelTx.isConfirmed) user.refetch();
@@ -60,6 +72,7 @@ export function TransferRedeemableForm() {
   const needsApproval =
     canAct && user.hlcAllowance !== undefined && user.hlcAllowance < (parsedAmount as bigint);
   const canSubmit = isConnected && validRecipient && canAct;
+  const permitDeadline = latestBlock?.timestamp !== undefined ? latestBlock.timestamp + 15n * 60n : undefined;
 
   function handleMax() {
     if (user.redeemableBalance === undefined || user.hlcBalance === undefined) return;
@@ -87,6 +100,58 @@ export function TransferRedeemableForm() {
     });
   }
 
+  async function handleTransferWithPermit() {
+    if (
+      !canSubmit ||
+      parsedAmount === undefined ||
+      !isAddress(recipient) ||
+      !address ||
+      permitNonce === undefined ||
+      permitDeadline === undefined
+    ) {
+      return;
+    }
+
+    setPermitError(undefined);
+    try {
+      const signature = await signTypedDataAsync({
+        domain: {
+          name: "Halal",
+          version: "1",
+          chainId,
+          verifyingContract: deployment!.token,
+        },
+        types: {
+          Permit: [
+            { name: "owner", type: "address" },
+            { name: "spender", type: "address" },
+            { name: "value", type: "uint256" },
+            { name: "nonce", type: "uint256" },
+            { name: "deadline", type: "uint256" },
+          ],
+        },
+        primaryType: "Permit",
+        message: {
+          owner: address,
+          spender: deployment!.psm,
+          value: parsedAmount,
+          nonce: permitNonce,
+          deadline: permitDeadline,
+        },
+      });
+      const { v, r, s } = parseSignature(signature);
+      if (v === undefined) throw new Error("Wallet returned an incomplete permit signature.");
+      transferTx.writeContract({
+        address: deployment!.psm,
+        abi: halalPsmAbi,
+        functionName: "transferRedeemableWithPermit",
+        args: [recipient, parsedAmount, permitDeadline, Number(v), r, s],
+      });
+    } catch (error) {
+      setPermitError(getFriendlyErrorMessage(error));
+    }
+  }
+
   function handleCancel() {
     if (!isConnected || !canAct || parsedAmount === undefined) return;
     cancelTx.writeContract({
@@ -111,6 +176,12 @@ export function TransferRedeemableForm() {
       {user.isError && (
         <Alert tone="danger" title="Wallet data could not be loaded">
           {getFriendlyErrorMessage(user.error)} Refresh the page or check your network before submitting.
+        </Alert>
+      )}
+
+      {permitError && (
+        <Alert tone="danger" title="Permit transfer was not signed">
+          {permitError} You can approve HLC first and submit the transfer with the fallback path.
         </Alert>
       )}
 
@@ -172,9 +243,24 @@ export function TransferRedeemableForm() {
       ) : !hasBalance ? (
         <Button className="w-full" disabled>Insufficient redeemable HLC</Button>
       ) : needsApproval ? (
-        <Button className="w-full" onClick={handleApprove} loading={approveTx.isPending || approveTx.isConfirming}>
-          Approve HLC
-        </Button>
+        <div className="space-y-2">
+          <Button
+            className="w-full"
+            onClick={handleTransferWithPermit}
+            disabled={permitNonce === undefined || permitDeadline === undefined}
+            loading={isSigningPermit || transferTx.isPending || transferTx.isConfirming}
+          >
+            Sign & transfer in one transaction
+          </Button>
+          <Button
+            className="w-full"
+            variant="secondary"
+            onClick={handleApprove}
+            loading={approveTx.isPending || approveTx.isConfirming}
+          >
+            Approve HLC first
+          </Button>
+        </div>
       ) : (
         <div className="space-y-2">
           <Button
