@@ -76,8 +76,9 @@ generated ABIs, including the optional CPI report adapter, so reviewers can insp
 threshold changes, and ownership actions before voting.
 
 When a deployment configures a CPI adapter, the dashboard and PSM page also show its live owner,
-source ID, quorum, signer addresses, and last submitted report. Treat a failed or mismatched adapter
-read as a reason to stop and review the deployment before signing.
+source ID, quorum, signer addresses, and last submitted report. The card also compares the adapter's
+last-submitted watermark with the PSM's accepted-report watermark. Treat a failed read or a watermark
+mismatch as a reason to stop and review the deployment before signing.
 
 The PSM page pauses new deposits when the deployment has no verifiable timestamped CPI report, the
 report is older than the contract's `MAX_REPORT_AGE`, or the reserve is below `reserveRequired()`.

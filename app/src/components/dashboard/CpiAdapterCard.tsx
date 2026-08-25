@@ -6,11 +6,13 @@ import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { useCpiAdapter } from "@/hooks/useCpiAdapter";
 import { useDeployment } from "@/hooks/useDeployment";
+import { usePsmState } from "@/hooks/usePsm";
 import { formatDate, shortAddress } from "@/lib/format";
 
 export function CpiAdapterCard() {
   const { deployment } = useDeployment();
   const adapter = useCpiAdapter();
+  const psm = usePsmState();
 
   if (!deployment?.cpiAdapter) return null;
 
@@ -28,24 +30,28 @@ export function CpiAdapterCard() {
     adapter.psm?.toLowerCase() === deployment.psm.toLowerCase() &&
     adapter.owner?.toLowerCase() === deployment.timelock.toLowerCase() &&
     adapter.sourceId?.toLowerCase() === deployment.cpiSourceId?.toLowerCase();
-  const isVerified = !adapter.isError && quorumValid && wiringValid;
+  const reportSyncKnown = adapter.lastSubmittedTimestamp !== undefined && psm.lastReportTimestamp !== undefined;
+  const reportSyncValid = reportSyncKnown && adapter.lastSubmittedTimestamp === psm.lastReportTimestamp;
+  const isLoading = adapter.isLoading || psm.isLoading;
+  const isError = adapter.isError || psm.isError;
+  const isVerified = !isError && quorumValid && wiringValid && reportSyncValid;
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>CPI report adapter</CardTitle>
-        {adapter.isLoading ? (
+        {isLoading ? (
           <Skeleton className="h-6 w-20" />
-        ) : adapter.isError ? (
+        ) : isError ? (
           <Badge tone="danger">Read failed</Badge>
         ) : (
           <Badge tone={isVerified ? "primary" : "danger"}>{isVerified ? "Verified quorum" : "Review wiring"}</Badge>
         )}
       </CardHeader>
       <CardBody className="space-y-4">
-        {adapter.isError ? (
-          <Alert tone="danger">The live adapter state could not be read. Do not sign a CPI report until the RPC is healthy.</Alert>
-        ) : adapter.isLoading ? (
+        {isError ? (
+          <Alert tone="danger">The live adapter or PSM state could not be read. Do not sign a CPI report until the RPC is healthy.</Alert>
+        ) : isLoading ? (
           <div className="space-y-3">
             <Skeleton className="h-5 w-48" />
             <Skeleton className="h-5 w-64" />
@@ -70,6 +76,10 @@ export function CpiAdapterCard() {
                 <dt className="text-muted">Last submitted report</dt>
                 <dd className="font-medium">{formatDate(adapter.lastSubmittedTimestamp)}</dd>
               </div>
+              <div>
+                <dt className="text-muted">PSM report watermark</dt>
+                <dd className="font-medium">{formatDate(psm.lastReportTimestamp)}</dd>
+              </div>
             </dl>
             <div className="rounded-xl bg-background-subtle p-3">
               <div className="flex items-center justify-between gap-3 text-xs">
@@ -88,8 +98,8 @@ export function CpiAdapterCard() {
               </div>
             </div>
             <p className="text-xs text-muted">
-              The adapter authenticates the configured signer quorum. The source policy and signer custody still require
-              independent operational review.
+              The adapter authenticates the configured signer quorum, and its report watermark should match the PSM.
+              Source policy and signer custody still require independent operational review.
             </p>
           </>
         )}

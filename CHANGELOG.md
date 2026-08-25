@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.67 - 2026-08-25
+
+- Added CPI adapter authorization tests for duplicate signatures, chain separation, signer removal,
+  and stale-report rejection at the PSM boundary.
+- The dApp now compares the adapter's report watermark with the PSM's accepted-report watermark and
+  marks a deployment for review when they diverge.
+
 ## 0.1.0-alpha.66 - 2026-08-25
 
 - Added a read-only CPI adapter card to the dashboard and PSM page, exposing live owner, source ID,

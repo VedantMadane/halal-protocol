@@ -106,6 +106,26 @@ contract CPIReportAdapterTest is Test {
         adapter.submitReport(1_000_000, reportedAt, signatures);
     }
 
+    function test_RevertWhen_SameSignerIsSubmittedTwice() public {
+        uint256 reportedAt = block.timestamp - 1;
+        bytes memory signature = _signature(1_000_000, reportedAt, SIGNER_ONE_KEY);
+        bytes[] memory signatures = new bytes[](2);
+        signatures[0] = signature;
+        signatures[1] = signature;
+
+        vm.expectRevert(CPIReportAdapter.SignaturesNotSorted.selector);
+        adapter.submitReport(1_000_000, reportedAt, signatures);
+    }
+
+    function test_RevertWhen_SignatureWasCreatedOnAnotherChain() public {
+        uint256 reportedAt = block.timestamp - 1;
+        bytes[] memory signatures = _signReport(1_000_000, reportedAt, SIGNER_ONE_KEY, SIGNER_TWO_KEY);
+
+        vm.chainId(31_338);
+        vm.expectRevert(CPIReportAdapter.UnauthorizedSigner.selector);
+        adapter.submitReport(1_000_000, reportedAt, signatures);
+    }
+
     function test_RevertWhen_ReportTimestampDoesNotIncrease() public {
         uint256 reportedAt = block.timestamp - 1;
         bytes[] memory signatures = _signReport(1_000_000, reportedAt, SIGNER_ONE_KEY, SIGNER_TWO_KEY);
@@ -136,6 +156,36 @@ contract CPIReportAdapterTest is Test {
         bytes[] memory signatures = _signReport(1_010_000, reportedAt, SIGNER_ONE_KEY, replacementKey);
         adapter.submitReport(1_010_000, reportedAt, signatures);
         assertEq(sink.lastCPI(), 1_010_000);
+    }
+
+    function test_RevertWhen_RemovedSignerSubmitsReport() public {
+        adapter.removeSigner(signerThree);
+        uint256 reportedAt = block.timestamp - 1;
+        bytes[] memory signatures = _signReport(1_000_000, reportedAt, SIGNER_TWO_KEY, SIGNER_THREE_KEY);
+
+        vm.expectRevert(CPIReportAdapter.UnauthorizedSigner.selector);
+        adapter.submitReport(1_000_000, reportedAt, signatures);
+    }
+
+    function test_RevertWhen_SinkRejectsStaleReport() public {
+        MockERC20 reserve = new MockERC20("Mock DAI", "mDAI", 18);
+        HalalToken token = new HalalToken(address(this));
+        HalalPSM psm = new HalalPSM(address(reserve), address(token), address(this), address(0));
+        address[] memory signers = new address[](2);
+        signers[0] = signerOne;
+        signers[1] = signerTwo;
+        CPIReportAdapter psmAdapter = new CPIReportAdapter(address(psm), address(this), signers, 2, SOURCE_ID);
+        psm.grantRole(psm.UPDATER_ROLE(), address(psmAdapter));
+
+        vm.warp(block.timestamp + 91 days);
+        uint256 reportedAt = block.timestamp - psm.MAX_REPORT_AGE() - 1;
+        bytes[] memory signatures = _signReportFor(psmAdapter, 1_000_000, reportedAt, SIGNER_ONE_KEY, SIGNER_TWO_KEY);
+
+        vm.expectRevert(HalalPSM.ReportTooOld.selector);
+        psmAdapter.submitReport(1_000_000, reportedAt, signatures);
+
+        assertEq(psm.lastReportTimestamp(), 0);
+        assertEq(psmAdapter.lastSubmittedTimestamp(), 0);
     }
 
     function test_EnumeratesSignerSetAfterRotation() public {
