@@ -60,7 +60,7 @@ interface DeploymentSource {
   timelock?: string;
   reserveToken?: string;
   reserveTokenSymbol?: string;
-  deploymentBlock?: string | number;
+  deploymentBlock?: string;
 }
 
 interface DeploymentEnvironment {

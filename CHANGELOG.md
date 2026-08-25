@@ -4,6 +4,7 @@ All notable changes to this project are documented here.
 
 ## Unreleased
 
+- Added a verifier-backed deployment manifest recorder and strict string handling for deployment block heights.
 - Added a checked-in deployment registry with strict validation and per-field environment overrides,
   so public dApp addresses can ship with chain, release, commit, and deployment-block evidence.
 - Allowed the first fresh CPI report immediately after deployment while retaining the step,

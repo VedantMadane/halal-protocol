@@ -6,8 +6,19 @@ Keeping it empty protects users from an address list that no one has verified.
 
 ## Record a deployment
 
-After deploying and running `scripts/verify-deployment.sh`, add one object keyed by the numeric
-chain ID:
+After deploying, set the verifier variables and run the recorder. It runs the read-only verifier
+before it changes the registry:
+
+```sh
+RPC_URL=... EXPECTED_CHAIN_ID=421614 \
+TOKEN=... TEAM_VESTING=... TREASURY_VESTING=... DAO=... PSM=... TIMELOCK=... \
+RESERVE_TOKEN=... RESERVE_SYMBOL=USDC DEPLOYMENT_BLOCK=... \
+TEAM_BENEFICIARY=... TREASURY_BENEFICIARY=... DEPLOYER_ADDRESS=... \
+node scripts/record-deployment-manifest.mjs --chain-id 421614 \
+  --network arbitrum-sepolia --release v0.1.0-alpha.XX --commit "$(git rev-parse HEAD)"
+```
+
+The command writes one object keyed by the numeric chain ID:
 
 ```json
 {

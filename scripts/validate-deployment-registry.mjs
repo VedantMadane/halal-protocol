@@ -29,8 +29,8 @@ for (const [chainId, deployment] of Object.entries(registry)) {
     throw new Error(`Deployment ${chainId} needs a reserveTokenSymbol.`);
   }
 
-  const deploymentBlock = String(deployment.deploymentBlock ?? "");
-  if (!/^\d+$/.test(deploymentBlock) || BigInt(deploymentBlock) === 0n) {
+  const deploymentBlock = deployment.deploymentBlock;
+  if (typeof deploymentBlock !== "string" || !/^\d+$/.test(deploymentBlock) || BigInt(deploymentBlock) === 0n) {
     throw new Error(`Deployment ${chainId} needs a positive deploymentBlock.`);
   }
 
