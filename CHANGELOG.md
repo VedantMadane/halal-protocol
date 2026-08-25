@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.129 - 2026-08-26
+
+- Added fail-closed health alerts for duplicate CPI adapter signers and signer-owner overlap,
+  including on legacy deployments.
+- Documented the new monitoring signals and operator responses.
+
 ## 0.1.0-alpha.128 - 2026-08-26
 
 - Extended the read-only PSM health check to flag duplicate CPI adapter signers and signer-owner
