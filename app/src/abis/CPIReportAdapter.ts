@@ -36,6 +36,19 @@ export const cpiReportAdapterAbi = [
   },
   {
     "type": "function",
+    "name": "MAX_SIGNERS",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "REPORT_TYPEHASH",
     "inputs": [],
     "outputs": [
@@ -563,6 +576,11 @@ export const cpiReportAdapterAbi = [
   {
     "type": "error",
     "name": "SignerNotConfigured",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "SignerSetTooLarge",
     "inputs": []
   },
   {

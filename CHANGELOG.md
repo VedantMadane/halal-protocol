@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.113 - 2026-08-25
+
+- Regenerated the checked-in CPI adapter frontend ABI after the signer-set liveness hardening,
+  restoring the hosted ABI-sync CI gate.
+
 ## 0.1.0-alpha.112 - 2026-08-25
 
 - Bounded CPI adapter signer-set growth at 64 members to keep ECDSA verification work and report
