@@ -38,6 +38,12 @@ Start with the [good first issues](https://github.com/fredrikblau/halal-protocol
   deployment-configuration regression tests.
 - Pick [issue #36](https://github.com/fredrikblau/halal-protocol/issues/36) to add browser coverage for
   governance proposal validation errors.
+- Pick [issue #37](https://github.com/fredrikblau/halal-protocol/issues/37) to add a five-minute
+  architecture map for newcomers.
+- Pick [issue #38](https://github.com/fredrikblau/halal-protocol/issues/38) to cover the dApp's
+  no-deployment health state in Playwright.
+- Pick [issue #39](https://github.com/fredrikblau/halal-protocol/issues/39) to document monitoring
+  integration with deployment-health exit codes.
 - Use [Discussions](https://github.com/fredrikblau/halal-protocol/discussions) for design questions.
 - Report security vulnerabilities through [`SECURITY.md`](SECURITY.md), not a public issue.
 
