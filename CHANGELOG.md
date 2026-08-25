@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.101 - 2026-08-25
+
+- Synchronized project documentation with the verified 159-test Foundry suite, including the new
+  redemption-boundary regression.
+
 ## 0.1.0-alpha.100 - 2026-08-25
 
 - Extended the read-only CPI health check to compare the adapter and PSM report watermarks, making
