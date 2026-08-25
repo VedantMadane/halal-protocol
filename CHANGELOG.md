@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.104 - 2026-08-25
+
+- Added a dependency-free Prometheus textfile-style exporter example for read-only PSM health
+  output, preserving unhealthy exit codes and exposing adapter watermark drift.
+
 ## 0.1.0-alpha.103 - 2026-08-25
 
 - Added an accessible overall health status region and browser assertions for the health-page

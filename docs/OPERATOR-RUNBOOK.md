@@ -217,6 +217,50 @@ private keys in this wrapper: `check-deployment-health.sh` is read-only. Alert o
 include the emitted `reason` in the incident record. At minimum, exercise the wrapper against a
 stale CPI report and a reserve deficit before enabling automatic alerts.
 
+For a Prometheus textfile collector or another pull-based monitor, the same records can be mapped
+without `jq` or a network service. This example intentionally preserves the health command's exit
+code; the collector can publish the metrics while the scheduler still treats an unhealthy check as
+a failed job:
+
+```bash
+#!/usr/bin/env bash
+set -u
+
+set +e
+health_output="$(
+  RPC_URL="$HALAL_RPC_URL" PSM="$HALAL_PSM" \
+  CPI_ADAPTER="${HALAL_CPI_ADAPTER:-}" \
+  EXPECTED_CPI_ADAPTER_OWNER="${HALAL_TIMELOCK:-}" \
+  ./scripts/check-psm-health.sh 2>&1
+)"
+health_exit=$?
+set -e
+
+printf '%s\n' "$health_output" | awk -F= '
+  $1 == "status" { status = $2 }
+  $1 == "reason" { reason = $2 }
+  $1 == "reserve_surplus" { reserve = $2 }
+  $1 == "last_report_timestamp" { report = $2 }
+  $1 == "cpi_adapter_last_submitted_timestamp" { adapter = $2 }
+  END {
+    healthy = (status == "healthy" ? 1 : 0)
+    watermark_match = (adapter != "" && adapter == report ? 1 : 0)
+    printf "halal_psm_health %d\n", healthy
+    if (reserve != "") printf "halal_psm_reserve_surplus %s\n", reserve
+    if (report != "") printf "halal_psm_last_report_timestamp %s\n", report
+    if (adapter != "") printf "halal_cpi_adapter_watermark_match %d\n", watermark_match
+    if (reason != "") printf "halal_psm_health_reason{reason=\"%s\"} 1\n", reason
+  }
+'
+
+exit "$health_exit"
+```
+
+Alert when `halal_psm_health == 0`, `halal_psm_reserve_surplus < 0`, or
+`halal_cpi_adapter_watermark_match == 0` when an adapter is configured. The last condition is the
+machine-readable form of `reason=cpi_adapter_watermark_mismatch`; it detects an unintended updater,
+an incomplete handoff, or an inconsistent deployment state.
+
 ## 3. CPI updater operations
 
 Use a dedicated updater account or reviewed consumer. Give it only `UPDATER_ROLE` on the PSM, keep
