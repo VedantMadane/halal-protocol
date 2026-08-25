@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.100 - 2026-08-25
+
+- Extended the read-only CPI health check to compare the adapter and PSM report watermarks, making
+  unintended updater paths and incomplete adapter handoffs visible to operators.
+
 ## 0.1.0-alpha.99 - 2026-08-25
 
 - Added a security regression test proving that transferred PSM credit cannot unlock a recipient's

@@ -75,11 +75,13 @@ if [[ -n "${CPI_ADAPTER:-}" ]]; then
   adapter_source_id="$(call_at "$CPI_ADAPTER" 'sourceId()(bytes32)' | tr '[:upper:]' '[:lower:]')"
   adapter_threshold="$(call_at "$CPI_ADAPTER" 'threshold()(uint256)')"
   adapter_signer_count="$(call_at "$CPI_ADAPTER" 'signerCount()(uint256)')"
+  adapter_last_submitted="$(call_at "$CPI_ADAPTER" 'lastSubmittedTimestamp()(uint256)')"
   echo "cpi_adapter=$CPI_ADAPTER"
   echo "cpi_adapter_owner=$adapter_owner"
   echo "cpi_adapter_source_id=$adapter_source_id"
   echo "cpi_adapter_threshold=$adapter_threshold"
   echo "cpi_adapter_signer_count=$adapter_signer_count"
+  echo "cpi_adapter_last_submitted_timestamp=$adapter_last_submitted"
   if [[ "$adapter_signer_count" =~ ^[0-9]+$ ]]; then
     for (( signer_index = 0; signer_index < adapter_signer_count; signer_index++ )); do
       signer_address="$(call_at "$CPI_ADAPTER" 'signerAt(uint256)(address)' "$signer_index" | tr '[:upper:]' '[:lower:]')"
@@ -105,6 +107,11 @@ if [[ -n "${CPI_ADAPTER:-}" ]]; then
   if [[ "$adapter_threshold" == "0" || "$adapter_signer_count" == "0" || "$adapter_threshold" -gt "$adapter_signer_count" ]]; then
     echo "status=unhealthy"
     echo "reason=cpi_adapter_quorum_invalid"
+    failure=1
+  fi
+  if [[ "$adapter_last_submitted" != "$last_report" ]]; then
+    echo "status=unhealthy"
+    echo "reason=cpi_adapter_watermark_mismatch"
     failure=1
   fi
 fi

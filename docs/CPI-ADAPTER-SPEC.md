@@ -241,11 +241,15 @@ Alert on these conditions:
 - `cpi_adapter_psm_mismatch`;
 - `cpi_adapter_source_id_mismatch`;
 - `cpi_adapter_quorum_invalid`;
+- `cpi_adapter_watermark_mismatch`;
 - overdue normal CPI cadence;
 - unexpected `RoleGranted`, `RoleRevoked`, or `SourceUpdated` events.
 
 The operator must retain the source response, parser version, report timestamp, CPI value, PSM
 transaction hash, and the health-check output for each accepted report.
+The adapter's `lastSubmittedTimestamp` must equal the PSM's `lastReportTimestamp`; a mismatch
+indicates a different updater, an incomplete handoff, or an unexpected state transition that
+requires investigation.
 
 ## Acceptance tests
 
