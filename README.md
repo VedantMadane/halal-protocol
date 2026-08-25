@@ -109,6 +109,8 @@ walkthrough, and the exact API surface — see:
   and the exact scope of those guarantees.
 - [`docs/ECONOMIC-MODEL.md`](docs/ECONOMIC-MODEL.md) — a dependency-free CPI and reserve-adequacy
   scenario model with machine-readable output.
+- [`docs/CONTRIBUTOR-MAP.md`](docs/CONTRIBUTOR-MAP.md) — concrete contribution paths for security,
+  oracle integrations, monitoring, economics, governance, dApp UX, and documentation.
 - [`docs/ROADMAP.md`](docs/ROADMAP.md) — the risk-ordered path from unaudited reference
   implementation to independently reviewed testnet and production readiness.
 
