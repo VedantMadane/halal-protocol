@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.83 - 2026-08-25
+
+- Added a safe default `make` help target that lists the verification, demo, and development
+  commands for new contributors.
+
 ## 0.1.0-alpha.82 - 2026-08-25
 
 - Added `cancelRedeemableWithPermit` so claim retirement can combine HLC approval and the

@@ -1,4 +1,9 @@
-.PHONY: verify contracts-build contracts-test contracts-lint contracts-coverage app-lint app-build app-smoke abis psm-health deployment-health economic-model oracle-test adapter-demo registry-check shell-check
+.DEFAULT_GOAL := help
+
+.PHONY: help verify contracts-build contracts-test contracts-lint contracts-coverage app-lint app-build app-smoke abis psm-health deployment-health economic-model oracle-test adapter-demo registry-check shell-check
+
+help:
+	@printf '%s\n' 'Halal development commands:' '' '  make verify             Run the complete local verification suite' '  make contracts-test     Run the Foundry contract tests' '  make app-build          Build the Next.js dApp' '  make app-smoke           Deploy disposable Anvil state and smoke-test the dApp' '  make adapter-demo        Rehearse signed CPI reporting on disposable Anvil state' '  make economic-model      Run the deterministic reserve-adequacy model' '' 'Read CONTRIBUTING.md before changing contracts/src/.'
 
 verify: registry-check shell-check oracle-test adapter-demo contracts-build contracts-test contracts-lint app-lint app-smoke
 
