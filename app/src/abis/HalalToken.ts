@@ -1151,6 +1151,11 @@ export const halalTokenAbi = [
   },
   {
     "type": "error",
+    "name": "GenesisRecipientsNotDistinct",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "InvalidAccountNonce",
     "inputs": [
       {
