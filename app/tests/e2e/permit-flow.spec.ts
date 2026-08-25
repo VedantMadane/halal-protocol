@@ -117,10 +117,12 @@ test("renders deployment health without a wallet provider", async ({ page }) => 
   await expect(page.getByRole("heading", { name: "Deployment health" })).toBeVisible();
   await expect(page.getByText("Read-only checks from the selected chain.")).toBeVisible();
   await expect(page.getByText("Deployment checks")).toBeVisible();
+  await expect(page.getByRole("status", { name: "Overall deployment health" })).toContainText(/Healthy|Review|Blocking|Checking/);
   await expect(page.getByText("Chain ID:").locator("..")).toContainText("31337");
   await expect(page.getByText("Contract wiring and roles")).toBeVisible();
   await expect(page.getByText("CPI report freshness")).toBeVisible();
   await expect(page.getByText("PSM reserve coverage")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Open protocol dashboard" })).toHaveAttribute("href", "/");
 });
 
 test("withdraws through the real HLC permit flow on disposable Anvil state", async ({ page }) => {

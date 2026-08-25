@@ -32,7 +32,9 @@ export function HealthStatusCard({
     <Card>
       <CardHeader>
         <CardTitle>Deployment checks</CardTitle>
-        <Badge tone={STATUS_TONES[overall]}>{STATUS_LABELS[overall]}</Badge>
+        <div role="status" aria-label="Overall deployment health">
+          <Badge tone={STATUS_TONES[overall]}>{STATUS_LABELS[overall]}</Badge>
+        </div>
       </CardHeader>
       <CardBody className="space-y-3">
         {checks.map((check) => (

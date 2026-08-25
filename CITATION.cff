@@ -5,7 +5,7 @@ title: "Halal (HLC)"
 abstract: >-
   An unaudited, CPI-indexed, DAO-governed stablecoin reference implementation with Solidity
   contracts, Foundry tests, and a Next.js dApp.
-version: 0.1.0-alpha.102
+version: 0.1.0-alpha.103
 date-released: 2026-08-25
 repository-code: "https://github.com/fredrikblau/halal-protocol"
 license: MIT

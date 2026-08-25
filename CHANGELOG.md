@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.103 - 2026-08-25
+
+- Added an accessible overall health status region and browser assertions for the health-page
+  heading, status, read-only checks, and dashboard navigation.
+
 ## 0.1.0-alpha.102 - 2026-08-25
 
 - Refreshed the contributor quickstart with two live, bounded `good first issue` tasks for frontend
