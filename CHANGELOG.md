@@ -4,12 +4,15 @@ All notable changes to this project are documented here.
 
 ## Unreleased
 
+- Added vesting regression coverage for partial-release revocation and full-vesting revocation,
+  confirming that the DAO receives only unvested tokens and released balances remain accounted for;
+  the documented suite now has 135 tests.
 - Added wallet-free read-only dApp onboarding: the first configured deployment (or
   `NEXT_PUBLIC_READ_CHAIN_ID`) is browsable before a wallet connects, while signing remains gated
   by wallet connection and deployment integrity.
 - Added a contributor map with bounded paths for security, reserve tokens, oracle integrations,
   monitoring, economics, governance, dApp UX, and documentation; refreshed contribution and
-  citation metadata for the current 133-test release.
+  citation metadata for the current 135-test release.
 - Added a dependency-free CPI and reserve-adequacy scenario model with CSV output and optional
   modeled top-ups (`make economic-model`).
 - Added a CI smoke test that confirms the model reports a deficit without top-ups and full reserve

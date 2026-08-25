@@ -90,6 +90,36 @@ contract HalalVestingTest is Deployers {
         assertEq(teamVesting.releasable(), vested);
     }
 
+    function test_RevokeAfterPartialReleaseReturnsOnlyUnvestedTokens() public {
+        vm.warp(block.timestamp + 365 days + 365 days);
+        uint256 vested = teamVesting.vestedAmount(uint64(block.timestamp));
+        teamVesting.release();
+
+        vm.warp(block.timestamp + 365 days);
+        uint256 vestedAtRevoke = teamVesting.vestedAmount(uint64(block.timestamp));
+
+        vm.prank(address(timelock));
+        teamVesting.revoke();
+
+        assertEq(teamVesting.released(), vested);
+        assertEq(teamVesting.revokedVestedAmount(), vestedAtRevoke);
+        assertEq(token.balanceOf(address(timelock)), 6_000_000e18 - vestedAtRevoke);
+        assertEq(teamVesting.releasable(), vestedAtRevoke - vested);
+    }
+
+    function test_RevokeWhenFullyVestedReturnsNothing() public {
+        vm.warp(block.timestamp + 4 * 365 days + 1);
+        teamVesting.release();
+
+        vm.prank(address(timelock));
+        teamVesting.revoke();
+
+        assertEq(teamVesting.released(), 6_000_000e18);
+        assertEq(teamVesting.revokedVestedAmount(), 6_000_000e18);
+        assertEq(token.balanceOf(address(timelock)), 0);
+        assertEq(teamVesting.releasable(), 0);
+    }
+
     function test_TreasuryVestingNonRevocable() public {
         vm.prank(address(timelock));
         vm.expectRevert(HalalVesting.NotRevocable.selector);
