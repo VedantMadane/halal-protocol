@@ -34,8 +34,8 @@ Start with the [good first issues](https://github.com/fredrikblau/halal-protocol
 - Run `./scripts/local-demo.sh` to see the contracts and dApp together.
 - Follow the [local development walkthrough](docs/LOCAL-DEVELOPMENT.md) from a clean checkout.
 - Run `make verify` before opening a pull request.
-- Pick the active [good first issue](https://github.com/fredrikblau/halal-protocol/issues/41) to add
-  shell regression coverage for the deployment-health failure contract.
+- Pick the active [good first issue](https://github.com/fredrikblau/halal-protocol/issues/42) to create
+  a deployment-review worksheet from the existing verifier and operator evidence.
 - Help coordinate the first carefully gated [Arbitrum Sepolia deployment](https://github.com/fredrikblau/halal-protocol/issues/40).
 - Review the bounded [security challenge](https://github.com/fredrikblau/halal-protocol/issues/16) or
   [production CPI adapter design](https://github.com/fredrikblau/halal-protocol/issues/17).

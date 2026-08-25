@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.142 - 2026-08-26
+
+- Added automated coverage for healthy disposable adapter output and machine-readable deployment-health
+  failure reasons.
+- Replaced the completed health-check starter task with active issue #42 for a deployment-review
+  worksheet, keeping the contributor funnel current.
+
 ## 0.1.0-alpha.141 - 2026-08-26
 
 - Removed stale links to completed contributor tasks from the README contribution funnel.
