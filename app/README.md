@@ -44,6 +44,11 @@ overrides. The app reads the first configured deployment before a wallet connect
 public network. The header labels this state `Read-only`; users must connect a wallet before
 approval, swaps, votes, or other signing actions become available.
 
+When a registry entry includes `explorerUrl`, `sourceVerificationUrl`, or `journalUrl`, the dashboard
+shows those links in its read-only Deployment evidence card alongside the deployment block and
+transaction hash. Local environment overrides intentionally show a local-configuration state until
+an operator publishes reviewable public evidence.
+
 `NEXT_PUBLIC_HLC_DEPLOYMENT_BLOCK_<chainId>` must be the positive block number where the deployment
 was mined. The app rejects `0` and incomplete address sets so it does not scan governance history
 from an unbounded starting point.

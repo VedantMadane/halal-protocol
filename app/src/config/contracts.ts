@@ -31,6 +31,11 @@ import deploymentRegistry from "./deployment-registry.json";
  */
 
 export interface HalalDeployment {
+  /** Optional evidence links published with a checked-in deployment registry entry. */
+  deploymentTx?: string;
+  explorerUrl?: string;
+  sourceVerificationUrl?: string;
+  journalUrl?: string;
   /** HalalToken (HLC) — ERC20Votes + ERC20Permit + AccessControl. */
   token: Address;
   /** HalalVesting instance for the team allocation (6M HLC, 4yr, 1yr cliff, revocable). */
@@ -124,6 +129,10 @@ function deploymentFromSource(source: DeploymentSource): HalalDeployment | undef
   }
 
   return {
+    ...(source.deploymentTx ? { deploymentTx: source.deploymentTx } : {}),
+    ...(source.explorerUrl ? { explorerUrl: source.explorerUrl } : {}),
+    ...(source.sourceVerificationUrl ? { sourceVerificationUrl: source.sourceVerificationUrl } : {}),
+    ...(source.journalUrl ? { journalUrl: source.journalUrl } : {}),
     token: env.token as Address,
     teamVesting: env.teamVesting as Address,
     treasuryVesting: env.treasuryVesting as Address,

@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.131 - 2026-08-26
+
+- Exposed deployment-registry evidence in the dApp dashboard, including deployment transaction,
+  source-verification, and journal links when published.
+- Replaced stale coding-agent guidance with an accurate map of the current contracts, tooling,
+  safety boundaries, and contributor workflow.
+
 ## 0.1.0-alpha.130 - 2026-08-26
 
 - Added a regression test proving that stale CPI data blocks new deposits while preserving an

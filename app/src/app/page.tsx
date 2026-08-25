@@ -16,9 +16,10 @@ import { getFriendlyErrorMessage } from "@/lib/errors";
 import { DeploymentIntegrityBanner } from "@/components/DeploymentIntegrityBanner";
 import { CpiAdapterCard } from "@/components/dashboard/CpiAdapterCard";
 import { CpiHistoryCard } from "@/components/dashboard/CpiHistoryCard";
+import { DeploymentEvidenceCard } from "@/components/dashboard/DeploymentEvidenceCard";
 
 export default function DashboardPage() {
-  const { deployment, isDeployed } = useDeployment();
+  const { deployment, isDeployed, chainId } = useDeployment();
   const token = useTokenInfo();
   const psm = usePsmState();
   const team = useVestingSchedule(deployment?.teamVesting);
@@ -36,6 +37,7 @@ export default function DashboardPage() {
       ) : (
         <div className="space-y-6">
           <DeploymentIntegrityBanner />
+          {deployment && <DeploymentEvidenceCard deployment={deployment} chainId={chainId} />}
           {(token.isError || psm.isError || team.isError || treasury.isError) && (
             <Alert tone="danger" title="Some protocol data could not be loaded">
               {getFriendlyErrorMessage(token.error ?? psm.error ?? team.error ?? treasury.error)} Refresh the page or check your network.
