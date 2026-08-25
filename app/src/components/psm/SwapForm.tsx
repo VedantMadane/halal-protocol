@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { formatUnits, parseUnits } from "viem";
-import { useAccount, useReadContract, useSimulateContract } from "wagmi";
+import { formatUnits, parseUnits, toFunctionSelector } from "viem";
+import { useAccount, useBlock, useBytecode, useReadContract, useSimulateContract } from "wagmi";
 import { erc20Abi, halalPsmAbi, halalTokenAbi } from "@/abis";
 import { useDeployment } from "@/hooks/useDeployment";
 import { useDeploymentIntegrity } from "@/hooks/useDeploymentIntegrity";
@@ -16,6 +16,14 @@ import { formatCPIRate, formatToken, formatTokenGrouped } from "@/lib/format";
 import { getFriendlyErrorMessage } from "@/lib/errors";
 
 type Mode = "deposit" | "withdraw";
+
+const DEADLINE_WINDOW = 15n * 60n;
+const DEPOSIT_DEADLINE_SELECTOR = toFunctionSelector(
+  "function depositWithMinHlcOutAndDeadline(uint256,uint256,uint256)",
+);
+const WITHDRAW_DEADLINE_SELECTOR = toFunctionSelector(
+  "function withdrawWithMinReserveOutAndDeadline(uint256,uint256,uint256)",
+);
 
 function safeParseUnits(value: string, decimals: number): bigint | undefined {
   if (!value || !/^\d*\.?\d*$/.test(value)) return undefined;
@@ -102,6 +110,20 @@ function SwapFormInner({
     abi: erc20Abi,
     functionName: "symbol",
   });
+  const { data: psmBytecode } = useBytecode({
+    address: deploymentPsm,
+    query: { enabled: deploymentVerified },
+  });
+  const { data: latestBlock } = useBlock({ watch: true });
+
+  // Existing deployments are immutable and predate the deadline entrypoints. Inspecting runtime
+  // bytecode lets the UI adopt the safer API automatically without sending an unknown selector to
+  // an older PSM. An absent or unreadable bytecode response deliberately falls back to compatibility.
+  const runtimeBytecode = psmBytecode?.toLowerCase() ?? "";
+  const supportsDeadlineActions =
+    runtimeBytecode.includes(DEPOSIT_DEADLINE_SELECTOR.slice(2).toLowerCase()) &&
+    runtimeBytecode.includes(WITHDRAW_DEADLINE_SELECTOR.slice(2).toLowerCase());
+  const deadline = latestBlock?.timestamp !== undefined ? latestBlock.timestamp + DEADLINE_WINDOW : undefined;
 
   const reserveMetadataReady = reserveDecimals !== undefined;
   // Reserve amounts use the reserve token's native precision; HLC is always 18 decimals.
@@ -192,8 +214,18 @@ function SwapFormInner({
   const actionSimulation = useSimulateContract({
     address: deploymentPsm,
     abi: halalPsmAbi,
-    functionName: mode === "deposit" ? "depositWithMinHlcOut" : "withdrawWithMinReserveOut",
-    args: [parsedAmount ?? 0n, minOutput ?? 0n],
+    functionName:
+      mode === "deposit"
+        ? supportsDeadlineActions
+          ? "depositWithMinHlcOutAndDeadline"
+          : "depositWithMinHlcOut"
+        : supportsDeadlineActions
+          ? "withdrawWithMinReserveOutAndDeadline"
+          : "withdrawWithMinReserveOut",
+    args:
+      supportsDeadlineActions
+        ? [parsedAmount ?? 0n, minOutput ?? 0n, deadline ?? 0n]
+        : [parsedAmount ?? 0n, minOutput ?? 0n],
     query: {
       enabled:
         deploymentVerified &&
@@ -202,6 +234,7 @@ function SwapFormInner({
         parsedAmount !== undefined &&
         parsedAmount > 0n &&
         minOutput !== undefined &&
+        (!supportsDeadlineActions || deadline !== undefined) &&
         !needsApproval &&
         !insufficientBalance,
     },

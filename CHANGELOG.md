@@ -7,6 +7,8 @@ All notable changes to this project are documented here.
 - Added deadline-bounded PSM deposit and withdrawal entrypoints so new integrations can combine
   slippage protection with an explicit maximum execution time; the existing entrypoints remain for
   compatibility with already-deployed immutable PSMs.
+- Updated the dApp to detect deadline-capable PSM bytecode and use a 15-minute execution deadline
+  automatically, while retaining the bounded compatibility path for older immutable deployments.
 - Added a concise protocol rationale and evidence-at-a-glance section to the landing README for
   reviewers, contributors, and potential integrators.
 - Made the production deployment script require `EXPECTED_CHAIN_ID` and fail closed before
