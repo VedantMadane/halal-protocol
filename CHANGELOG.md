@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.70 - 2026-08-25
+
+- Added a disposable Anvil-backed production dApp smoke test that writes a temporary deployment
+  environment, builds the configured app, checks all primary routes, and restores the developer's
+  environment on exit.
+- CI now runs that configured smoke test for app, script, and Makefile changes.
+
 ## 0.1.0-alpha.69 - 2026-08-25
 
 - Added a read-only CPI update history card to the dashboard, sourced from the PSM event log with

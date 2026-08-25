@@ -32,7 +32,8 @@ A PR won't be merged with a red CI run.
 ## Running the test suites
 
 From the repository root, `make verify` runs the complete contract and frontend verification
-workflow. The subtree commands below are useful for faster iteration.
+workflow, including a configured production dApp smoke test on disposable Anvil state. The subtree
+commands below are useful for faster iteration.
 
 ### Contracts (`contracts/`)
 
@@ -58,6 +59,9 @@ pnpm install
 pnpm gen:abis       # regenerate interfaces after Solidity changes
 pnpm lint
 pnpm build   # production build; also run `pnpm dev` locally for interactive testing
+
+# From the repository root, run the configured production route smoke test:
+cd .. && make app-smoke
 ```
 
 ## Code style

@@ -1,6 +1,6 @@
-.PHONY: verify contracts-build contracts-test contracts-lint contracts-coverage app-lint app-build abis psm-health deployment-health economic-model oracle-test adapter-demo registry-check shell-check
+.PHONY: verify contracts-build contracts-test contracts-lint contracts-coverage app-lint app-build app-smoke abis psm-health deployment-health economic-model oracle-test adapter-demo registry-check shell-check
 
-verify: registry-check shell-check oracle-test adapter-demo contracts-build contracts-test contracts-lint app-lint app-build
+verify: registry-check shell-check oracle-test adapter-demo contracts-build contracts-test contracts-lint app-lint app-smoke
 
 registry-check:
 	node scripts/validate-deployment-registry.mjs
@@ -31,6 +31,9 @@ app-lint:
 
 app-build:
 	cd app && pnpm build
+
+app-smoke:
+	./scripts/local-app-smoke.sh
 
 abis:
 	cd app && pnpm gen:abis

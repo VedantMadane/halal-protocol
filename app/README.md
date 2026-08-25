@@ -62,6 +62,10 @@ pnpm lint
 pnpm build
 ```
 
+From the repository root, `make app-smoke` deploys a disposable Anvil instance, builds the app with
+the generated addresses, and requests the dashboard, governance, PSM, and vesting routes. The
+script restores any existing `app/.env.local` file when it exits.
+
 The project currently targets Node.js 22 or newer because pnpm 11 requires the Node 22 runtime.
 
 Regenerate contract ABIs after changing Solidity interfaces:

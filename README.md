@@ -61,6 +61,7 @@ conservative accounting model:
 | Can I inspect the CPI timeline? | The dashboard reads recent `CPIUpdated` events with block, transaction, source, and rate-change context |
 | Are public deployment addresses reviewable? | [`docs/DEPLOYMENT-REGISTRY.md`](docs/DEPLOYMENT-REGISTRY.md) and the checked-in registry |
 | Are generated frontend interfaces kept in sync? | ABI regeneration is a required CI check |
+| Does CI exercise a configured dApp? | `scripts/local-app-smoke.sh` deploys disposable Anvil state, builds with live addresses, and checks the main routes |
 | Is the security posture stated plainly? | [`SECURITY.md`](SECURITY.md) and [`docs/THREAT-MODEL.md`](docs/THREAT-MODEL.md) |
 | Is the production CPI integration boundary defined? | [`docs/CPI-ADAPTER-SPEC.md`](docs/CPI-ADAPTER-SPEC.md) and [issue #17](https://github.com/fredrikblau/halal-protocol/issues/17) |
 
@@ -148,7 +149,8 @@ docs/        Design and governance documentation (see above).
 
 ## Quickstart
 
-From the repository root, `make verify` runs the full contract and frontend verification suite.
+From the repository root, `make verify` runs the full contract and frontend verification suite,
+including a configured production dApp smoke test on disposable Anvil state.
 The individual commands below are useful when working on one subtree.
 
 ### Contracts
