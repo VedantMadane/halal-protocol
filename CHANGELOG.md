@@ -449,3 +449,9 @@ The project remains unaudited and is not production-ready. See [`SECURITY.md`](S
 - Made the production deployment script reject team or treasury beneficiaries equal to the
   temporary deployer, reducing accidental custody centralization during deployment.
 - Added deployment-config regression coverage and clarified the local-demo exception.
+
+## [0.1.0-alpha.116] - 2026-08-25
+
+- Made the read-only deployment verifier reject deployer-controlled vesting beneficiaries by
+  default, while documenting the explicit disposable-local-demo exception.
+- Refreshed the README contributor links and corrected the contracts test-suite count.

@@ -104,6 +104,7 @@ jobs:
             TEAM_BENEFICIARY="$(cast wallet address --private-key "$LOCAL_PRIVATE_KEY")" \
             TREASURY_BENEFICIARY="$(cast wallet address --private-key "$LOCAL_PRIVATE_KEY")" \
             DEPLOYER_ADDRESS="$(cast wallet address --private-key "$LOCAL_PRIVATE_KEY")" \
+            ALLOW_DEPLOYER_BENEFICIARY=true \
             CPI_UPDATER="$LOCAL_UPDATER_ADDRESS" \
             ../scripts/verify-deployment.sh
           PSM_ADDRESS="$(value_from_env NEXT_PUBLIC_HLC_PSM_31337)"

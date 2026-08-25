@@ -8,7 +8,7 @@ the [root README](../README.md) and [`../docs/`](../docs).
 ## Layout
 
 - `src/` — the five core contracts plus the optional CPI report adapter.
-- `test/` — Foundry test suite (160 tests at the time of writing: 157 unit/configuration tests plus 3 stateful
+- `test/` — Foundry test suite (164 tests at the time of writing: 161 unit/configuration tests plus 3 stateful
   PSM invariants; run `forge test` to confirm).
 - `script/Deploy.s.sol` — full deployment script (token, vesting, DAO, timelock, role wiring).
 - `script/DeployCPIReportAdapter.s.sol` — chain-guarded optional adapter deployment; it does not
@@ -81,7 +81,9 @@ Optionally set `CPI_UPDATER` to check that role too. The verifier checks the RPC
 chain identity, that every supplied address has contract bytecode, the DAO's token/timelock links,
 the PSM and vesting links, immutable vesting allocations and the intended vesting policy, role wiring
 (including the timelock's self-admin and permissionless executor), and a
-nonzero timelock delay. It remains valid after vesting releases, is read-only, and does not require a private key or
+nonzero timelock delay. It also rejects a team or treasury beneficiary equal to the deployer unless
+`ALLOW_DEPLOYER_BENEFICIARY=true` is set explicitly for the disposable local demo. It remains valid
+after vesting releases, is read-only, and does not require a private key or
 `--broadcast`.
 
 For recurring monitoring, run the health check with only the RPC and PSM address:

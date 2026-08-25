@@ -85,6 +85,7 @@ RPC_URL="$LOCAL_RPC_URL" EXPECTED_CHAIN_ID=31337 \
   TEAM_BENEFICIARY="$(cast wallet address --private-key "$LOCAL_PRIVATE_KEY")" \
   TREASURY_BENEFICIARY="$(cast wallet address --private-key "$LOCAL_PRIVATE_KEY")" \
   DEPLOYER_ADDRESS="$(cast wallet address --private-key "$LOCAL_PRIVATE_KEY")" \
+  ALLOW_DEPLOYER_BENEFICIARY=true \
   CPI_UPDATER="$LOCAL_UPDATER_ADDRESS" \
   "$ROOT_DIR/scripts/verify-deployment.sh"
 

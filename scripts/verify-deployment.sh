@@ -3,7 +3,8 @@ set -euo pipefail
 
 # Read-only post-deployment verifier. Required: RPC_URL, EXPECTED_CHAIN_ID, TIMELOCK, TOKEN,
 # TEAM_VESTING, TREASURY_VESTING, DAO, PSM, RESERVE_TOKEN, TEAM_BENEFICIARY, TREASURY_BENEFICIARY,
-# and DEPLOYER_ADDRESS. Optional: CPI_UPDATER.
+# and DEPLOYER_ADDRESS. Optional: CPI_UPDATER and ALLOW_DEPLOYER_BENEFICIARY=true for the
+# disposable local demo only.
 
 required_vars=(
   RPC_URL EXPECTED_CHAIN_ID TIMELOCK TOKEN TEAM_VESTING TREASURY_VESTING DAO PSM RESERVE_TOKEN
@@ -79,6 +80,18 @@ RESERVE_TOKEN="${RESERVE_TOKEN,,}"
 TEAM_BENEFICIARY="${TEAM_BENEFICIARY,,}"
 TREASURY_BENEFICIARY="${TREASURY_BENEFICIARY,,}"
 DEPLOYER_ADDRESS="${DEPLOYER_ADDRESS,,}"
+
+if [[ "${ALLOW_DEPLOYER_BENEFICIARY:-false}" != "true" && "${ALLOW_DEPLOYER_BENEFICIARY:-false}" != "false" ]]; then
+  echo "ALLOW_DEPLOYER_BENEFICIARY must be true or false" >&2
+  exit 1
+fi
+
+if [[ "${ALLOW_DEPLOYER_BENEFICIARY:-false}" != "true" && (
+  "$TEAM_BENEFICIARY" == "$DEPLOYER_ADDRESS" || "$TREASURY_BENEFICIARY" == "$DEPLOYER_ADDRESS"
+) ]]; then
+  echo "FAILED: production beneficiaries must not equal the deployer (set ALLOW_DEPLOYER_BENEFICIARY=true only for the disposable local demo)" >&2
+  exit 1
+fi
 
 expect_contract "timelock" "$TIMELOCK"
 expect_contract "token" "$TOKEN"

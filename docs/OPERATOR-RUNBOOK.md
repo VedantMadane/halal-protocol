@@ -81,7 +81,7 @@ DEPLOYER_ADDRESS=0x... CPI_UPDATER=0x... \
 ./scripts/verify-deployment.sh
 ```
 
-The verifier checks bytecode, chain identity, immutable wiring, vesting policy, token roles,
+The verifier checks bytecode, chain identity, immutable wiring, vesting policy, beneficiary custody boundaries, token roles,
 timelock roles, PSM roles, and the absence of deployer privileges. Stop the launch if it fails.
 Verify every contract's source and constructor arguments on the target explorer after the verifier
 passes. Explorer verification does not replace the verifier.
