@@ -16,4 +16,8 @@ done
 echo "== Deployment wiring =="
 "$ROOT_DIR/scripts/verify-deployment.sh"
 echo "== PSM health =="
+if [[ -n "${CPI_ADAPTER:-}" && -z "${EXPECTED_CPI_ADAPTER_OWNER:-}" ]]; then
+  EXPECTED_CPI_ADAPTER_OWNER="${TIMELOCK,,}"
+  export EXPECTED_CPI_ADAPTER_OWNER
+fi
 "$ROOT_DIR/scripts/check-psm-health.sh"

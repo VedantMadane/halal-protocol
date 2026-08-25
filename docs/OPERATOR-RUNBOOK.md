@@ -113,12 +113,14 @@ RPC_URL=https://... PSM=0x... ./scripts/check-psm-health.sh
 ```
 
 For a deployment with a governed adapter and recorded source metadata, pass the adapter and both
-source expectations. The check then fails if governance removed the updater role, changed the source
-label, pointed the adapter at another PSM, or changed its quorum:
+source expectations. Include the timelock as the expected adapter owner. The check then fails if
+governance removed the updater role, changed the source label, pointed the adapter at another PSM,
+changed its owner, or changed its quorum:
 
 ```shell
 RPC_URL=https://... PSM=0x... \
 CPI_UPDATER=0x... CPI_ADAPTER=0x... \
+EXPECTED_CPI_ADAPTER_OWNER=0x<timelock> \
 EXPECTED_CPI_SOURCE=https://... EXPECTED_CPI_SOURCE_ID=0x... \
 ./scripts/check-psm-health.sh
 ```
@@ -134,6 +136,8 @@ Alert on a nonzero exit code and retain the emitted values:
 | `reason=configured_cpi_updater_missing_role` | The expected updater no longer holds `UPDATER_ROLE` | Inspect role events and execute a reviewed rotation or restoration proposal |
 | `reason=cpi_source_mismatch` | The on-chain source label differs from the deployment record | Review the source-change proposal before accepting new reports |
 | `reason=cpi_adapter_psm_mismatch` | The adapter does not target the monitored PSM | Stop updates and inspect the adapter deployment and role grant |
+| `reason=cpi_adapter_owner_expectation_missing` | Adapter monitoring lacks the expected timelock owner | Add the deployment timelock as `EXPECTED_CPI_ADAPTER_OWNER` |
+| `reason=cpi_adapter_owner_mismatch` | The adapter owner differs from the expected timelock | Stop updates and review ownership transfer events |
 | `reason=cpi_adapter_source_id_mismatch` | The adapter's signed-report source ID differs from the deployment record | Rotate to the reviewed adapter for the documented source series |
 | `reason=cpi_adapter_quorum_invalid` | The adapter threshold cannot be met by its configured signers | Stop updates and repair the adapter through governance |
 | `warning=normal_cpi_update_overdue` | `lastUpdated + minUpdateInterval` has passed | Check the updater queue and source publication schedule |

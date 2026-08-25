@@ -2,8 +2,8 @@
 set -euo pipefail
 
 # Read-only PSM health check for cron, CI, and monitoring agents.
-# Required: RPC_URL and PSM. Optional: CPI_UPDATER, CPI_ADAPTER, EXPECTED_CPI_SOURCE,
-# EXPECTED_CPI_SOURCE_ID, and FAIL_ON_UPDATE_OVERDUE (default: true).
+# Required: RPC_URL and PSM. Optional: CPI_UPDATER, CPI_ADAPTER, EXPECTED_CPI_ADAPTER_OWNER,
+# EXPECTED_CPI_SOURCE, EXPECTED_CPI_SOURCE_ID, and FAIL_ON_UPDATE_OVERDUE (default: true).
 
 for variable in RPC_URL PSM; do
   if [[ -z "${!variable:-}" ]]; then
@@ -65,11 +65,18 @@ fi
 
 if [[ -n "${CPI_ADAPTER:-}" ]]; then
   CPI_ADAPTER="${CPI_ADAPTER,,}"
+  if [[ -z "${EXPECTED_CPI_ADAPTER_OWNER:-}" ]]; then
+    echo "status=unhealthy"
+    echo "reason=cpi_adapter_owner_expectation_missing"
+    failure=1
+  fi
   adapter_psm="$(call_at "$CPI_ADAPTER" 'psm()(address)' | tr '[:upper:]' '[:lower:]')"
+  adapter_owner="$(call_at "$CPI_ADAPTER" 'owner()(address)' | tr '[:upper:]' '[:lower:]')"
   adapter_source_id="$(call_at "$CPI_ADAPTER" 'sourceId()(bytes32)' | tr '[:upper:]' '[:lower:]')"
   adapter_threshold="$(call_at "$CPI_ADAPTER" 'threshold()(uint256)')"
   adapter_signer_count="$(call_at "$CPI_ADAPTER" 'signerCount()(uint256)')"
   echo "cpi_adapter=$CPI_ADAPTER"
+  echo "cpi_adapter_owner=$adapter_owner"
   echo "cpi_adapter_source_id=$adapter_source_id"
   echo "cpi_adapter_threshold=$adapter_threshold"
   echo "cpi_adapter_signer_count=$adapter_signer_count"
@@ -77,6 +84,11 @@ if [[ -n "${CPI_ADAPTER:-}" ]]; then
   if [[ "$adapter_psm" != "${PSM,,}" ]]; then
     echo "status=unhealthy"
     echo "reason=cpi_adapter_psm_mismatch"
+    failure=1
+  fi
+  if [[ -n "${EXPECTED_CPI_ADAPTER_OWNER:-}" && "$adapter_owner" != "${EXPECTED_CPI_ADAPTER_OWNER,,}" ]]; then
+    echo "status=unhealthy"
+    echo "reason=cpi_adapter_owner_mismatch"
     failure=1
   fi
   if [[ -n "${EXPECTED_CPI_SOURCE_ID:-}" && "$adapter_source_id" != "${EXPECTED_CPI_SOURCE_ID,,}" ]]; then
