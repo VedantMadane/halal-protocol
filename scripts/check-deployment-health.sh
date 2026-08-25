@@ -9,12 +9,22 @@ ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 for variable in RPC_URL EXPECTED_CHAIN_ID PSM; do
   if [[ -z "${!variable:-}" ]]; then
     echo "Missing required environment variable: $variable" >&2
+    echo "status=unhealthy"
+    echo "reason=missing_required_environment_variable"
+    echo "missing_variable=$variable"
     exit 1
   fi
 done
 
 echo "== Deployment wiring =="
-"$ROOT_DIR/scripts/verify-deployment.sh"
+if wiring_output="$("$ROOT_DIR/scripts/verify-deployment.sh" 2>&1)"; then
+  printf '%s\n' "$wiring_output"
+else
+  printf '%s\n' "$wiring_output" >&2
+  echo "status=unhealthy"
+  echo "reason=deployment_wiring_check_failed"
+  exit 1
+fi
 echo "== PSM health =="
 if [[ -n "${CPI_ADAPTER:-}" && -z "${EXPECTED_CPI_ADAPTER_OWNER:-}" ]]; then
   EXPECTED_CPI_ADAPTER_OWNER="${TIMELOCK,,}"

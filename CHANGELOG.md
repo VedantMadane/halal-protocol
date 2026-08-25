@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.139 - 2026-08-26
+
+- Made combined deployment-health failures machine-readable with explicit reasons for missing
+  configuration and failed wiring verification.
+- Preserved the original verifier diagnostics while making cron, CI, and alert wrappers able to
+  distinguish failure classes without parsing human-readable text.
+
 ## 0.1.0-alpha.138 - 2026-08-26
 
 - Added reproducible local monitoring examples for the healthy adapter path and fail-closed missing

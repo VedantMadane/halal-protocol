@@ -169,6 +169,12 @@ code and retain the emitted values:
 | `reason=cpi_adapter_watermark_mismatch` | The adapter and PSM accepted-report timestamps differ | Stop updates and inspect for an unintended updater, incomplete handoff, or inconsistent deployment state |
 | `warning=normal_cpi_update_overdue` | `lastUpdated + minUpdateInterval` has passed | Check the updater queue and source publication schedule |
 
+The combined `check-deployment-health.sh` command also emits a machine-readable reason when it
+cannot reach PSM health: `reason=missing_required_environment_variable` includes
+`missing_variable=<name>`, while a failed wiring audit emits
+`reason=deployment_wiring_check_failed`. Preserve the preceding diagnostic lines, but route alerts
+using the `reason` field rather than parsing human-readable `FAILED:` text.
+
 The default `FAIL_ON_UPDATE_OVERDUE=true` makes overdue cadence an alert. Use
 `FAIL_ON_UPDATE_OVERDUE=false` only when a separate alerting rule handles cadence:
 
