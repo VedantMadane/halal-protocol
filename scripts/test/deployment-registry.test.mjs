@@ -32,10 +32,10 @@ function deployment(overrides = {}) {
   };
 }
 
-async function runValidator(entry) {
+async function runValidator(entry, chainId = "31337") {
   const directory = await mkdtemp(join(tmpdir(), "halal-registry-"));
   const path = join(directory, "registry.json");
-  await writeFile(path, `${JSON.stringify({ "31337": entry })}\n`);
+  await writeFile(path, `${JSON.stringify({ [chainId]: entry })}\n`);
   const result = spawnSync(process.execPath, [validator], {
     cwd: root,
     env: { ...process.env, DEPLOYMENT_REGISTRY_PATH: path },
@@ -54,4 +54,10 @@ test("rejects a zero CPI source ID", async () => {
   const result = await runValidator(deployment({ cpiSourceId: `0x${"0".repeat(64)}` }));
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, /invalid cpiSourceId/);
+});
+
+test("rejects a chain the frontend does not support", async () => {
+  const result = await runValidator(deployment(), "1");
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /Unsupported deployment registry chain ID/);
 });

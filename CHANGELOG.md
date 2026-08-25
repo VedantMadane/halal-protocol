@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.132 - 2026-08-26
+
+- Made deployment-registry validation reject chain IDs that the frontend does not support, preventing
+  apparently valid entries from being silently ignored by the dApp.
+- Added regression coverage and documented the supported-network boundary.
+
 ## 0.1.0-alpha.131 - 2026-08-26
 
 - Exposed deployment-registry evidence in the dApp dashboard, including deployment transaction,

@@ -53,7 +53,10 @@ addresses, reserve symbol, and positive deployment block are required. The `netw
 `commit`, and optional journal URL provide review context and do not affect runtime reads. The
 `cpiAdapter` and `cpiSourceId` fields are optional, but operators must provide them together when
 the deployment uses the governed signed CPI adapter. The dApp then checks the adapter's immutable
-PSM and source ID, timelock ownership, and signer quorum before it enables signing actions.
+PSM and source ID, timelock ownership, and signer quorum before it enables signing actions. The
+registry validator currently accepts only chain IDs supported by the dApp: `31337` (local Anvil),
+`421614` (Arbitrum Sepolia), and `42161` (Arbitrum One). Add a chain to the frontend configuration
+and its validation tests before registering another network.
 Run `make registry-check` before opening a pull request. CI runs the same check. The dApp still
 accepts `NEXT_PUBLIC_HLC_*_<chainId>` environment variables as overrides for local experiments;
 those overrides do not change the checked-in public registry.

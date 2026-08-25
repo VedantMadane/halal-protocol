@@ -8,6 +8,7 @@ const registryPath = process.env.DEPLOYMENT_REGISTRY_PATH
 const registry = JSON.parse(await readFile(registryPath, "utf8"));
 const addressPattern = /^0x[0-9a-fA-F]{40}$/;
 const requiredAddresses = ["token", "teamVesting", "treasuryVesting", "psm", "dao", "timelock", "reserveToken"];
+const supportedChainIds = new Set(["31337", "421614", "42161"]);
 
 if (!registry || Array.isArray(registry) || typeof registry !== "object") {
   throw new Error("Deployment registry must contain a JSON object keyed by chain ID.");
@@ -16,6 +17,9 @@ if (!registry || Array.isArray(registry) || typeof registry !== "object") {
 for (const [chainId, deployment] of Object.entries(registry)) {
   if (!/^\d+$/.test(chainId) || Number(chainId) <= 0) {
     throw new Error(`Invalid deployment registry chain ID: ${chainId}`);
+  }
+  if (!supportedChainIds.has(chainId)) {
+    throw new Error(`Unsupported deployment registry chain ID: ${chainId}. Add the chain to the frontend before registering it.`);
   }
   if (!deployment || typeof deployment !== "object" || Array.isArray(deployment)) {
     throw new Error(`Deployment ${chainId} must be a JSON object.`);
