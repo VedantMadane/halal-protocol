@@ -36,6 +36,7 @@ export function useDeploymentIntegrity() {
         { address: deployment.cpiAdapter, abi: cpiReportAdapterAbi, functionName: "sourceId" },
         { address: deployment.cpiAdapter, abi: cpiReportAdapterAbi, functionName: "threshold" },
         { address: deployment.cpiAdapter, abi: cpiReportAdapterAbi, functionName: "signerCount" },
+        { address: deployment.cpiAdapter, abi: cpiReportAdapterAbi, functionName: "getSigners" },
       ] as const)
     : [];
   const integrityContracts: readonly ContractFunctionParameters[] | undefined = deployment
@@ -91,6 +92,7 @@ export function useDeploymentIntegrity() {
   const adapterSourceId = get<`0x${string}`>(19);
   const adapterThreshold = get<bigint>(20);
   const adapterSignerCount = get<bigint>(21);
+  const adapterSigners = get<Address[]>(22);
   const expected = deployment;
 
   const readFailed = hasReadFailure(data);
@@ -120,8 +122,10 @@ export function useDeploymentIntegrity() {
         adapterSourceId?.toLowerCase() === expected.cpiSourceId?.toLowerCase() &&
         adapterThreshold !== undefined &&
         adapterSignerCount !== undefined &&
+        adapterSigners !== undefined &&
         adapterThreshold > 0n &&
-        adapterThreshold <= adapterSignerCount));
+        adapterThreshold <= adapterSignerCount &&
+        BigInt(adapterSigners.length) === adapterSignerCount));
 
   return {
     isVerified,

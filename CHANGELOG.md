@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.90 - 2026-08-25
+
+- Hardened the shared deployment-integrity check to verify that the configured CPI adapter's
+  enumerated signer set matches its reported signer count.
+
 ## 0.1.0-alpha.89 - 2026-08-25
 
 - Added a wallet-free `/health` operator view that checks deployment wiring, CPI freshness, reserve
