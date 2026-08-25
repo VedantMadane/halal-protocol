@@ -1,6 +1,20 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          // The dApp does not need to be embedded or access device sensors.
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "Permissions-Policy", value: "camera=(), geolocation=(), microphone=()" },
+        ],
+      },
+    ];
+  },
   webpack: (config, { webpack }) => {
     // RainbowKit's default wallet set (pulled in transitively even though we pass an explicit
     // `wallets` list to getDefaultConfig -- see src/config/wagmi.ts) includes a Coinbase "Base

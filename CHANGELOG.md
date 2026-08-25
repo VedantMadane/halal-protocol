@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.79 - 2026-08-25
+
+- Corrected the contributor guide's Foundry test-suite count to match the current 157-test suite.
+- Added baseline browser security headers to the Next.js dApp (frame, MIME-sniffing, referrer, and
+  device-permission restrictions).
+
 ## 0.1.0-alpha.78 - 2026-08-25
 
 - Added the HLC permit path to the dApp withdrawal form, with runtime selector detection for older

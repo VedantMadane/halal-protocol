@@ -62,6 +62,10 @@ pnpm lint
 pnpm build
 ```
 
+The production build emits baseline security headers that prevent framing and MIME confusion,
+limit referrer leakage, and deny unused camera, microphone, and geolocation permissions. A host
+should still provide HTTPS and any deployment-specific content-security policy or RPC controls.
+
 From the repository root, `make app-smoke` deploys a disposable Anvil instance, builds the app with
 the generated addresses, and requests the dashboard, governance, PSM, and vesting routes. The
 script restores any existing `app/.env.local` file when it exits.
