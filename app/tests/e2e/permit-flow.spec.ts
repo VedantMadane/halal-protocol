@@ -115,8 +115,12 @@ test("withdraws through the real HLC permit flow on disposable Anvil state", asy
   await page.locator("input[placeholder='0.0']").first().fill("100");
   await expect(page.getByRole("button", { name: "Sign & withdraw in one transaction" })).toBeVisible();
   await page.getByRole("button", { name: "Sign & withdraw in one transaction" }).click();
-  const transactionHash = await page.evaluate(() => (window as Window & { __lastTransaction?: string }).__lastTransaction);
-  expect(transactionHash).toBeTruthy();
+  const transactionHash = await expect
+    .poll(() => page.evaluate(() => (window as Window & { __lastTransaction?: string }).__lastTransaction), {
+      timeout: 30_000,
+    })
+    .toBeTruthy()
+    .then(() => page.evaluate(() => (window as Window & { __lastTransaction?: string }).__lastTransaction));
   const publicClient = createPublicClient({ chain: LOCAL_CHAIN, transport: http(RPC_URL) });
   const receipt = await publicClient.waitForTransactionReceipt({ hash: transactionHash as `0x${string}` });
   expect(receipt.status, `permit transaction reverted: ${transactionHash}`).toBe("success");

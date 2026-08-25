@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.86 - 2026-08-25
+
+- Made the browser permit test wait for the asynchronous wallet transaction hash before checking
+  the Anvil receipt in slower CI runners.
+
 ## 0.1.0-alpha.85 - 2026-08-25
 
 - Fixed disposable app smoke cleanup so its background Next.js process cannot block the browser
