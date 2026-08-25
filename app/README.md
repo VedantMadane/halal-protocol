@@ -12,7 +12,7 @@ pnpm dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000). The app shows a clear “not deployed” state
-until a complete deployment configuration is provided for the connected chain.
+until a complete deployment configuration is provided for the selected read-only or wallet chain.
 
 For a fully working local demo, run `../scripts/local-demo.sh` from the repository root. It starts
 Anvil, deploys the contracts, writes `.env.local`, and launches this app with a faucet-backed `mDAI`
@@ -23,6 +23,7 @@ reserve. This reserve is for local testing only and is not a real stablecoin or 
 | Variable | Purpose |
 | --- | --- |
 | `NEXT_PUBLIC_APP_URL` | Optional canonical public URL used for Open Graph/Twitter preview metadata |
+| `NEXT_PUBLIC_READ_CHAIN_ID` | Optional chain ID for wallet-free read-only browsing; otherwise the first configured deployment is selected |
 | `NEXT_PUBLIC_RPC_URL_31337` | Optional Anvil RPC URL; defaults to `http://127.0.0.1:8545` |
 | `NEXT_PUBLIC_RPC_URL_421614` | Optional Arbitrum Sepolia RPC URL; falls back to the public chain endpoint |
 | `NEXT_PUBLIC_RPC_URL_42161` | Optional Arbitrum One RPC URL; falls back to the public chain endpoint |
@@ -33,6 +34,11 @@ the seven contract addresses, `RESERVE_SYMBOL`, and `DEPLOYMENT_BLOCK`. The acce
 `31337`, `421614`, and `42161`. Addresses are validated at startup and incomplete configurations
 remain disabled. The deployment block bounds the governance event scan, so set it to the block where
 the DAO deployment was mined.
+
+The app reads the first configured deployment before a wallet connects. Set
+`NEXT_PUBLIC_READ_CHAIN_ID` when more than one deployment is configured and you want a specific
+public network. The header labels this state `Read-only`; users must connect a wallet before
+approval, swaps, votes, or other signing actions become available.
 
 Before enabling signing actions, the dApp also verifies the configured PSM, DAO, vesting, token, and
 timelock links against the selected chain. A mismatched or unreadable contract graph is shown as a

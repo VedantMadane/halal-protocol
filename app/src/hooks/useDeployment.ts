@@ -1,7 +1,7 @@
 "use client";
 
-import { useChainId } from "wagmi";
-import { getDeployment, type HalalDeployment } from "@/config/contracts";
+import { useAccount, useChainId } from "wagmi";
+import { getDeployment, getReadOnlyChainId, type HalalDeployment } from "@/config/contracts";
 import { isSupportedChainId } from "@/config/chains";
 
 export interface DeploymentInfo {
@@ -20,7 +20,9 @@ export interface DeploymentInfo {
  * particular chain has addresses configured.
  */
 export function useDeployment(): DeploymentInfo {
-  const chainId = useChainId();
+  const { isConnected } = useAccount();
+  const connectedChainId = useChainId();
+  const chainId = isConnected ? connectedChainId : getReadOnlyChainId();
   const deployment = getDeployment(chainId);
 
   return {

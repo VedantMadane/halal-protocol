@@ -8,9 +8,20 @@ export function NetworkBadge() {
   const { isConnected } = useAccount();
   const { chainId, isSupportedChain, isDeployed } = useDeployment();
 
-  if (!isConnected) return null;
-
   const name = getChainName(chainId);
+
+  if (!isConnected) {
+    if (!isDeployed) return null;
+    return (
+      <span
+        className="hidden items-center gap-1.5 rounded-full bg-background-subtle px-2.5 py-1 text-xs font-medium text-muted sm:inline-flex"
+        title={`Reading the Halal deployment on ${name}; connect a wallet to sign`}
+      >
+        <span className="h-1.5 w-1.5 rounded-full bg-muted" />
+        Read-only · {name}
+      </span>
+    );
+  }
 
   if (!isSupportedChain) {
     return (

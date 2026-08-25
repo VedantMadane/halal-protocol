@@ -135,6 +135,19 @@ export function getDeployment(chainId: number | undefined): HalalDeployment | un
   return DEPLOYMENTS[chainId];
 }
 
+/**
+ * Selects the chain used for public reads before a wallet connects. An explicit environment
+ * value wins; otherwise the app uses the first configured deployment, then local Anvil as the
+ * safe development fallback.
+ */
+export function getReadOnlyChainId(): number {
+  const configuredChainId = process.env.NEXT_PUBLIC_READ_CHAIN_ID;
+  if (configuredChainId && /^\d+$/.test(configuredChainId)) return Number(configuredChainId);
+
+  const configuredDeployment = Object.entries(DEPLOYMENTS).find(([, deployment]) => deployment !== undefined);
+  return configuredDeployment ? Number(configuredDeployment[0]) : 31_337;
+}
+
 export function isDeployed(chainId: number | undefined): boolean {
   return getDeployment(chainId) !== undefined;
 }

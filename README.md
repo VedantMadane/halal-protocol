@@ -167,6 +167,10 @@ pnpm dev          # local dev server
 
 Run `pnpm build` to produce a production build.
 
+When a deployment is configured, the dApp supports wallet-free read-only browsing. Set
+`NEXT_PUBLIC_READ_CHAIN_ID` if several deployments are configured; connect a wallet only when you
+want to approve transactions, swap, vote, or use another signing action.
+
 ## Contributing
 
 Contributions are welcome — bug fixes, tests, documentation, and (after a discussion in an issue

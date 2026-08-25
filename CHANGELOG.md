@@ -4,6 +4,9 @@ All notable changes to this project are documented here.
 
 ## Unreleased
 
+- Added wallet-free read-only dApp onboarding: the first configured deployment (or
+  `NEXT_PUBLIC_READ_CHAIN_ID`) is browsable before a wallet connects, while signing remains gated
+  by wallet connection and deployment integrity.
 - Added a contributor map with bounded paths for security, reserve tokens, oracle integrations,
   monitoring, economics, governance, dApp UX, and documentation; refreshed contribution and
   citation metadata for the current 133-test release.

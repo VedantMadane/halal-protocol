@@ -20,11 +20,12 @@ export function NotDeployedState() {
   if (!isConnected) {
     return (
       <EmptyState
-        title="Connect a wallet to continue"
+        title="No public deployment configured"
         description={
           <>
-            Connect your wallet to select a supported network and view the live Halal deployment. Supported networks:{" "}
-            {supportedChains.map((c) => c.name).join(", ")}.
+            The dApp can show a configured deployment without a wallet. Set the read-only chain and deployment
+            variables in <code>.env.local</code>, or connect a wallet to inspect another supported network. Supported
+            networks: {supportedChains.map((c) => c.name).join(", ")}.
           </>
         }
       />
