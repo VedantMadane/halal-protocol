@@ -9,6 +9,7 @@ APP_PORT="${APP_PORT:-3001}"
 LOCAL_RPC_URL="http://127.0.0.1:${ANVIL_PORT}"
 LOCAL_MNEMONIC="${ANVIL_MNEMONIC:-test test test test test test test test test test test junk}"
 DEPLOY_LOG="$(mktemp)"
+HEADER_FILE="$(mktemp)"
 ANVIL_PID=""
 APP_PID=""
 APP_ENV_FILE="$ROOT_DIR/app/.env.local"
@@ -24,6 +25,7 @@ cleanup() {
     rm -f "$APP_ENV_FILE"
   fi
   rm -f "$DEPLOY_LOG"
+  rm -f "$HEADER_FILE"
 }
 trap cleanup EXIT INT TERM
 
@@ -108,6 +110,11 @@ for attempt in {1..60}; do
   fi
 done
 
+curl --fail --silent --show-error -D "$HEADER_FILE" -o /dev/null "http://127.0.0.1:${APP_PORT}/"
+grep -Eiq '^x-content-type-options:[[:space:]]*nosniff[[:space:]]*$' "$HEADER_FILE"
+grep -Eiq '^x-frame-options:[[:space:]]*DENY[[:space:]]*$' "$HEADER_FILE"
+grep -Eiq '^referrer-policy:[[:space:]]*strict-origin-when-cross-origin[[:space:]]*$' "$HEADER_FILE"
+grep -Eiq '^permissions-policy:[[:space:]]*camera=\(\),[[:space:]]*geolocation=\(\),[[:space:]]*microphone=\(\)[[:space:]]*$' "$HEADER_FILE"
 curl --fail --silent --show-error "http://127.0.0.1:${APP_PORT}/governance" >/dev/null
 curl --fail --silent --show-error "http://127.0.0.1:${APP_PORT}/psm" >/dev/null
 curl --fail --silent --show-error "http://127.0.0.1:${APP_PORT}/vesting" >/dev/null

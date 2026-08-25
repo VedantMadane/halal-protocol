@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.80 - 2026-08-25
+
+- Extended the disposable dApp smoke test to assert the runtime browser security headers, preventing
+  regressions from being hidden by a successful build alone.
+
 ## 0.1.0-alpha.79 - 2026-08-25
 
 - Corrected the contributor guide's Foundry test-suite count to match the current 157-test suite.
