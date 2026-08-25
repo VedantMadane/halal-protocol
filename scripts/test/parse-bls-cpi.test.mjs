@@ -30,6 +30,27 @@ test("parses the documented BLS series and computes a deterministic ratio", () =
   assert.equal(report.source.seriesId, BLS_SERIES_ID);
   assert.equal(report.source.period, "M07");
   assert.equal(report.source.baseIndex, "300.000");
+  assert.equal(report.source.responseSha256, null);
+});
+
+test("includes and validates the exact source-response hash", () => {
+  const report = buildBlsReport(
+    {
+      payload,
+      baseIndex: "300.000",
+      chainId: "1",
+      adapter: "0x1234567890123456789012345678901234567890",
+      sourceId: `0x${"ab".repeat(32)}`,
+      reportedAt: "100",
+      sourceResponseSha256: "AB".repeat(32),
+    },
+    100,
+  );
+  assert.equal(report.source.responseSha256, "ab".repeat(32));
+  assert.throws(
+    () => buildBlsReport({ payload, baseIndex: "300.000", chainId: "1", adapter: "0x1234567890123456789012345678901234567890", sourceId: `0x${"ab".repeat(32)}`, reportedAt: "100", sourceResponseSha256: "not-a-hash" }, 100),
+    /SHA-256/,
+  );
 });
 
 test("rounds ratios in integer space", () => {

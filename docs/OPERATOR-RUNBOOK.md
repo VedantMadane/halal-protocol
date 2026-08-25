@@ -111,7 +111,9 @@ Confirm the result without a signer:
 RPC_URL="$RPC_URL" PSM="$PSM" ./scripts/check-psm-health.sh
 ```
 
-Require `status=healthy`. Save the output and transaction hash in the journal.
+Require `status=healthy`. Save the output and transaction hash in the journal. When using the BLS
+parser, also retain the generated report's `source.responseSha256` beside the exact downloaded
+response bytes.
 
 ## 2. Recurring monitoring
 

@@ -1,11 +1,19 @@
 #!/usr/bin/env node
 
 import fs from "node:fs";
+import { createHash } from "node:crypto";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { normalizeAddress, normalizeSourceId, prepareReport } from "./prepare-cpi-report.mjs";
 
 export const BLS_SERIES_ID = "CUUR0000SA0";
+
+export function normalizeSha256(value) {
+  if (typeof value !== "string" || !/^[0-9a-f]{64}$/i.test(value)) {
+    throw new Error("sourceResponseSha256 must be a 64-character SHA-256 hex string");
+  }
+  return value.toLowerCase();
+}
 
 function parseDecimal(value, name) {
   if (typeof value !== "string" || !/^\d+(?:\.\d+)?$/.test(value)) {
@@ -51,7 +59,10 @@ export function ratioToCpi(rawIndex, baseIndex) {
   return (numerator + denominator / 2n) / denominator;
 }
 
-export function buildBlsReport({ payload, baseIndex, chainId, adapter, sourceId, reportedAt }, nowSeconds) {
+export function buildBlsReport(
+  { payload, baseIndex, chainId, adapter, sourceId, reportedAt, sourceResponseSha256 = null },
+  nowSeconds,
+) {
   const point = parseBlsResponse(payload);
   const parsedBase = parseDecimal(baseIndex, "baseIndex");
   const scaledCpi = ratioToCpi(point.rawIndex, parsedBase);
@@ -76,6 +87,7 @@ export function buildBlsReport({ payload, baseIndex, chainId, adapter, sourceId,
       rawIndex: point.value,
       baseIndex,
       rounding: "nearest CPI_PRECISION unit, ties rounded up",
+      responseSha256: sourceResponseSha256 === null ? null : normalizeSha256(sourceResponseSha256),
     },
   };
 }
@@ -95,14 +107,16 @@ function parseArgs(argv) {
 export function main(argv = process.argv.slice(2)) {
   const options = parseArgs(argv);
   const outputPath = path.resolve(options.output);
+  const inputBytes = fs.readFileSync(path.resolve(options.input));
   const result = buildBlsReport(
     {
-      payload: JSON.parse(fs.readFileSync(path.resolve(options.input), "utf8")),
+      payload: JSON.parse(inputBytes),
       baseIndex: options["base-index"],
       chainId: options["chain-id"],
       adapter: normalizeAddress(options.adapter),
       sourceId: normalizeSourceId(options["source-id"]),
       reportedAt: options["reported-at"],
+      sourceResponseSha256: createHash("sha256").update(inputBytes).digest("hex"),
     },
     Math.floor(Date.now() / 1000),
   );

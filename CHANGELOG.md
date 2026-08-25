@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.127 - 2026-08-26
+
+- Added an exact-input SHA-256 hash to BLS-generated CPI report source metadata, making normalized
+  reports unambiguously match their archived source response.
+- Added parser validation coverage and operator guidance for retaining the provenance hash.
+
 ## 0.1.0-alpha.126 - 2026-08-26
 
 - Enforced independent CPI adapter ownership and signer custody across construction, signer

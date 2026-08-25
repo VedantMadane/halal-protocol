@@ -251,7 +251,9 @@ Alert on these conditions:
 - unexpected `RoleGranted`, `RoleRevoked`, or `SourceUpdated` events.
 
 The operator must retain the source response, parser version, report timestamp, CPI value, PSM
-transaction hash, and the health-check output for each accepted report.
+transaction hash, and the health-check output for each accepted report. The BLS parser includes
+`source.responseSha256`, the SHA-256 of the exact input response bytes, so the normalized report can
+be paired with the archived source artifact without relying on JSON reserialization.
 The adapter's `lastSubmittedTimestamp` must equal the PSM's `lastReportTimestamp`; a mismatch
 indicates a different updater, an incomplete handoff, or an unexpected state transition that
 requires investigation.
