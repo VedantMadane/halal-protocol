@@ -1,4 +1,4 @@
-.PHONY: verify contracts-build contracts-test contracts-lint contracts-coverage app-lint app-build abis
+.PHONY: verify contracts-build contracts-test contracts-lint contracts-coverage app-lint app-build abis psm-health
 
 verify: contracts-build contracts-test contracts-lint app-lint app-build
 
@@ -22,3 +22,6 @@ app-build:
 
 abis:
 	cd app && pnpm gen:abis
+
+psm-health:
+	./scripts/check-psm-health.sh

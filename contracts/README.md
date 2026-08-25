@@ -11,6 +11,7 @@ the [root README](../README.md) and [`../docs/`](../docs).
   PSM invariants; run `forge test` to confirm).
 - `script/Deploy.s.sol` — full deployment script (token, vesting, DAO, timelock, role wiring).
 - `../scripts/verify-deployment.sh` — read-only post-deployment wiring and role verifier.
+- `../scripts/check-psm-health.sh` — read-only monitoring check for reserve deficits and CPI freshness.
 - The production deployer selects an approximately one-week voting period on Arbitrum by default;
   review or override it for every target chain.
 - `script/Examples.s.sol` — example governance proposal templates (CPI update, source switch,
@@ -77,3 +78,14 @@ the PSM and vesting links, immutable vesting allocations and the intended vestin
 (including the timelock's self-admin and permissionless executor), and a
 nonzero timelock delay. It remains valid after vesting releases, is read-only, and does not require a private key or
 `--broadcast`.
+
+For recurring monitoring, run the health check with only the RPC and PSM address:
+
+```shell
+RPC_URL="$RPC_URL" PSM=0x<psm> ../scripts/check-psm-health.sh
+```
+
+It prints `key=value` metrics and exits nonzero when the PSM has a reserve deficit, has never
+accepted a timestamped CPI report, or the latest report exceeds `MAX_REPORT_AGE`. It also warns when
+the normal updater cadence is overdue; set `FAIL_ON_UPDATE_OVERDUE=false` if an operator wants that
+condition logged without making the check fail. The script is read-only and requires no private key.

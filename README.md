@@ -47,6 +47,7 @@ conservative accounting model:
 | Do invariants cover CPI changes? | [`docs/INVARIANTS.md`](docs/INVARIANTS.md) models governance rate changes and reserve top-ups |
 | Can a deployment be checked without a private key? | [`scripts/verify-deployment.sh`](scripts/verify-deployment.sh) |
 | Can I inspect the full system locally? | [`./scripts/local-demo.sh`](scripts/local-demo.sh) on a disposable Anvil chain |
+| Can an operator monitor PSM health without a wallet? | [`scripts/check-psm-health.sh`](scripts/check-psm-health.sh) exits nonzero for stale CPI or reserve deficits |
 | Are generated frontend interfaces kept in sync? | ABI regeneration is a required CI check |
 | Is the security posture stated plainly? | [`SECURITY.md`](SECURITY.md) and [`docs/THREAT-MODEL.md`](docs/THREAT-MODEL.md) |
 

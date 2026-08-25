@@ -27,6 +27,7 @@ contract LocalDemoReserve is ERC20 {
 ///   PRIVATE_KEY — one of the Anvil account private keys.
 /// Optional environment variables:
 ///   TEAM_BENEFICIARY and TREASURY_BENEFICIARY — default to the broadcaster.
+///   CPI_UPDATER — optional account to receive the PSM UPDATER_ROLE.
 contract DeployLocalHalalSystem is DeployHalalSystem {
     uint256 internal constant DEMO_RESERVE_BALANCE = 1_000_000_000e18;
 
@@ -98,7 +99,7 @@ contract DeployLocalHalalSystem is DeployHalalSystem {
             proposalThreshold: 100e18,
             quorumPercent: 4,
             timelockDelay: 2 days,
-            cpiUpdater: address(0)
+            cpiUpdater: vm.envOr("CPI_UPDATER", address(0))
         });
 
         (

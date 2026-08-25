@@ -4,6 +4,10 @@ All notable changes to this project are documented here.
 
 ## Unreleased
 
+- Added a read-only `check-psm-health.sh` operator check with key/value metrics and fail-closed
+  exits for reserve deficits, missing/stale CPI reports, and overdue updater cadence.
+- Added `CPI_UPDATER` support to the local deployment helper so operator checks can exercise a
+  real timestamped updater report on Anvil.
 - Added dApp-level PSM safety gates: new deposits pause when the CPI report is missing/stale or the
   reserve is under-collateralized, while users retain a visible recovery path for withdrawals.
 - Restricted HLC burning to the PSM's accounting-aware `BURNER_ROLE`, preventing direct token burns
