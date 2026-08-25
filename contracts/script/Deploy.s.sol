@@ -87,7 +87,18 @@ contract DeployHalalSystem is Script {
         dao = _deployGovernance(cfg, token, timelock);
         psm = new HalalPSM(cfg.reserveToken, address(token), address(timelock), cfg.cpiUpdater);
         _wireRoles(cfg.deployer, token, timelock, dao, psm);
-        _assertWiring(cfg.deployer, cfg.cpiUpdater, token, teamVesting, treasuryVesting, dao, timelock, psm);
+        _assertWiring(
+            cfg.deployer,
+            cfg.teamBeneficiary,
+            cfg.treasuryBeneficiary,
+            cfg.cpiUpdater,
+            token,
+            teamVesting,
+            treasuryVesting,
+            dao,
+            timelock,
+            psm
+        );
     }
 
     function _loadConfig() internal view returns (DeployConfig memory cfg) {
@@ -197,6 +208,8 @@ contract DeployHalalSystem is Script {
 
     function _assertWiring(
         address deployer,
+        address teamBeneficiary,
+        address treasuryBeneficiary,
         address cpiUpdater,
         HalalToken token,
         HalalVesting teamVesting,
@@ -208,6 +221,7 @@ contract DeployHalalSystem is Script {
         if (
             !token.genesisMinted() || token.balanceOf(address(teamVesting)) != token.TEAM_ALLOCATION()
                 || token.balanceOf(address(treasuryVesting)) != token.TREASURY_ALLOCATION()
+                || teamVesting.beneficiary() != teamBeneficiary || treasuryVesting.beneficiary() != treasuryBeneficiary
                 || teamVesting.cliff() != 365 days || teamVesting.duration() != 4 * 365 days || !teamVesting.revocable()
                 || treasuryVesting.cliff() != 0 || treasuryVesting.duration() != 3 * 365 days
                 || treasuryVesting.revocable() || !token.hasRole(token.MINTER_ROLE(), address(psm))
@@ -238,6 +252,10 @@ contract DeployHalalSystem is Script {
         console.log("HalalDAO:           ", address(dao));
         console.log("HalalPSM:           ", address(psm));
         console.log("Reserve token:      ", address(psm.reserve()));
+        console.log("Team beneficiary:   ", teamVesting.beneficiary());
+        console.log("Treasury beneficiary:", treasuryVesting.beneficiary());
+        console.log("Deployment chain ID:", block.chainid);
+        console.log("Deployment block:   ", block.number);
         console.log("");
         console.log("All roles transferred to the DAO. Deployer retains zero privileged access.");
         if (cpiUpdater != address(0)) {

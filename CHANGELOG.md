@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## Unreleased
 
+- Added optional beneficiary checks to the deployment verifier, deployment-time beneficiary
+  assertions, and chain/block identity output for repeatable operator audits.
 - Hardened deployment assertions and repeat verification to enforce the intended team and treasury
   vesting cliffs, durations, and revocability policies.
 - Made the deployment verifier safe to rerun after vesting releases by checking immutable vesting

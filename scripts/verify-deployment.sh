@@ -2,8 +2,8 @@
 set -euo pipefail
 
 # Read-only post-deployment verifier. Required: RPC_URL, EXPECTED_CHAIN_ID, TIMELOCK, TOKEN,
-# TEAM_VESTING, TREASURY_VESTING, DAO, PSM, and RESERVE_TOKEN. Optional: DEPLOYER_ADDRESS,
-# CPI_UPDATER.
+# TEAM_VESTING, TREASURY_VESTING, DAO, PSM, and RESERVE_TOKEN. Optional: TEAM_BENEFICIARY,
+# TREASURY_BENEFICIARY, DEPLOYER_ADDRESS, CPI_UPDATER.
 
 required_vars=(RPC_URL EXPECTED_CHAIN_ID TIMELOCK TOKEN TEAM_VESTING TREASURY_VESTING DAO PSM RESERVE_TOKEN)
 for variable in "${required_vars[@]}"; do
@@ -105,6 +105,17 @@ expect_equal "team vesting revocability" "$(call "$TEAM_VESTING" 'revocable()(bo
 expect_equal "treasury vesting cliff" "$(call "$TREASURY_VESTING" 'cliff()(uint64)')" "0"
 expect_equal "treasury vesting duration" "$(call "$TREASURY_VESTING" 'duration()(uint64)')" "94608000"
 expect_equal "treasury vesting revocability" "$(call "$TREASURY_VESTING" 'revocable()(bool)')" "false"
+
+if [[ -n "${TEAM_BENEFICIARY:-}" || -n "${TREASURY_BENEFICIARY:-}" ]]; then
+  if [[ -z "${TEAM_BENEFICIARY:-}" || -z "${TREASURY_BENEFICIARY:-}" ]]; then
+    echo "TEAM_BENEFICIARY and TREASURY_BENEFICIARY must be supplied together" >&2
+    exit 1
+  fi
+  TEAM_BENEFICIARY="${TEAM_BENEFICIARY,,}"
+  TREASURY_BENEFICIARY="${TREASURY_BENEFICIARY,,}"
+  expect_equal "team beneficiary" "$(address_call "$TEAM_VESTING" 'beneficiary()(address)')" "$TEAM_BENEFICIARY"
+  expect_equal "treasury beneficiary" "$(address_call "$TREASURY_VESTING" 'beneficiary()(address)')" "$TREASURY_BENEFICIARY"
+fi
 
 minter_role="$(call "$TOKEN" 'MINTER_ROLE()(bytes32)')"
 admin_role="$(call "$TOKEN" 'DEFAULT_ADMIN_ROLE()(bytes32)')"
