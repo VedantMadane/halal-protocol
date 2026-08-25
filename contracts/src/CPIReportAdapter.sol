@@ -21,6 +21,7 @@ interface ICPIReportSink {
 contract CPIReportAdapter is EIP712, Ownable2Step, ReentrancyGuard {
     bytes32 public constant REPORT_TYPEHASH =
         keccak256("CPIReport(uint256 reportedCPI,uint256 reportedAt,bytes32 sourceId)");
+    uint256 public constant MAX_SIGNERS = 64;
 
     ICPIReportSink public immutable psm;
     bytes32 public immutable sourceId;
@@ -34,6 +35,7 @@ contract CPIReportAdapter is EIP712, Ownable2Step, ReentrancyGuard {
     error ZeroAddress();
     error ZeroSourceId();
     error InvalidSignerSet();
+    error SignerSetTooLarge();
     error SignerAlreadyConfigured();
     error SignerNotConfigured();
     error InvalidThreshold();
@@ -56,6 +58,7 @@ contract CPIReportAdapter is EIP712, Ownable2Step, ReentrancyGuard {
         if (psm_ == address(0)) revert ZeroAddress();
         if (sourceId_ == bytes32(0)) revert ZeroSourceId();
         if (signers_.length == 0 || threshold_ == 0 || threshold_ > signers_.length) revert InvalidSignerSet();
+        if (signers_.length > MAX_SIGNERS) revert SignerSetTooLarge();
         psm = ICPIReportSink(psm_);
         sourceId = sourceId_;
         threshold = threshold_;
@@ -76,6 +79,7 @@ contract CPIReportAdapter is EIP712, Ownable2Step, ReentrancyGuard {
     function addSigner(address signer) external onlyOwner {
         if (signer == address(0)) revert ZeroAddress();
         if (isSigner[signer]) revert SignerAlreadyConfigured();
+        if (signerCount >= MAX_SIGNERS) revert SignerSetTooLarge();
         isSigner[signer] = true;
         _signerIndexPlusOne[signer] = _signers.length + 1;
         _signers.push(signer);

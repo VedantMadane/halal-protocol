@@ -237,6 +237,26 @@ contract CPIReportAdapterTest is Test {
         adapter.removeSigner(signerOne);
     }
 
+    function test_RevertWhen_SignerSetExceedsGasSafeMaximum() public {
+        address[] memory signers = new address[](adapter.MAX_SIGNERS() + 1);
+        for (uint256 i = 0; i < signers.length; ++i) {
+            signers[i] = vm.addr(i + 1_000);
+        }
+
+        vm.expectRevert(CPIReportAdapter.SignerSetTooLarge.selector);
+        new CPIReportAdapter(address(sink), address(this), signers, 1, SOURCE_ID);
+
+        address[] memory maximumSigners = new address[](adapter.MAX_SIGNERS());
+        for (uint256 i = 0; i < maximumSigners.length; ++i) {
+            maximumSigners[i] = vm.addr(i + 2_000);
+        }
+        CPIReportAdapter maximumAdapter =
+            new CPIReportAdapter(address(sink), address(this), maximumSigners, 1, SOURCE_ID);
+
+        vm.expectRevert(CPIReportAdapter.SignerSetTooLarge.selector);
+        maximumAdapter.addSigner(vm.addr(9_999));
+    }
+
     function test_BuildsDecodeableGovernanceHandoff() public view {
         address oldUpdater = address(0xBEEF);
         (address[] memory targets, uint256[] memory values, bytes[] memory calldatas) =

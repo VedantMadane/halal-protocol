@@ -129,7 +129,9 @@ The submitter must provide exactly `threshold` signatures, ordered by recovered 
 strictly ascending order. The adapter rejects future or non-increasing publication timestamps,
 tracks the last forwarded timestamp, binds each signature to the adapter's immutable `sourceId`,
 and protects its PSM call with a reentrancy guard. `Ownable2Step` controls signer rotation and
-threshold changes. Set the owner to the protocol timelock before granting the adapter
+threshold changes. The signer set is capped at `MAX_SIGNERS = 64` so governance cannot expand
+signature verification until reports exceed practical block-gas limits; production deployments
+should use the smallest independently governed quorum that meets their custody policy. Set the owner to the protocol timelock before granting the adapter
 `UPDATER_ROLE` on the PSM.
 
 `getSigners()` exposes the current signer set for deployment verification and `signerAt(index)`

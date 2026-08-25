@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.112 - 2026-08-25
+
+- Bounded CPI adapter signer-set growth at 64 members to keep ECDSA verification work and report
+  liveness within a practical gas envelope.
+- Added constructor and rotation regression coverage and documented the governance trade-off.
+- Synchronized published documentation with the 162-test Foundry suite.
+
 ## 0.1.0-alpha.111 - 2026-08-25
 
 - Added wallet-free browser coverage proving `/health` blocks when a direct PSM report advances
