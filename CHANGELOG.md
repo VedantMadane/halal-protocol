@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.75 - 2026-08-25
+
+- Pinned the Slither wheel by its SHA-256 hash instead of installing a mutable package reference.
+- Added a release workflow that creates a reproducible source bundle, checksum, and GitHub build
+  provenance attestation for each published release.
+
 ## 0.1.0-alpha.74 - 2026-08-25
 
 - Added EIP-2612 permit entrypoints for bounded PSM deposits, withdrawals, and redeemable-credit
