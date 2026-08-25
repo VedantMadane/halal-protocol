@@ -105,6 +105,26 @@ The module authenticates the configured signer quorum. It does not prove that th
 an official CPI source correctly. Operators still need the source policy, parser review, report
 archive, and independent security review described below.
 
+### Deployment command
+
+The repository includes a chain-guarded deployment script. It deploys the adapter and leaves the
+PSM role unchanged so governance can review the constructor output first:
+
+```shell
+cd contracts
+PRIVATE_KEY=0x... EXPECTED_CHAIN_ID=421614 \
+PSM=0x... ADAPTER_OWNER=0x<timelock> \
+CPI_SOURCE_ID=0x... CPI_THRESHOLD=2 \
+CPI_SIGNER_1=0x... CPI_SIGNER_2=0x... CPI_SIGNER_3=0x... \
+forge script script/DeployCPIReportAdapter.s.sol:DeployCPIReportAdapter \
+  --rpc-url "$RPC_URL" --private-key "$PRIVATE_KEY" --broadcast
+```
+
+`CPI_SIGNER_3` is optional. The script rejects a zero or mismatched chain ID, a deployer-owned
+adapter, a zero source ID, and an impossible threshold. The adapter constructor also rejects
+duplicate signers. Record the output, source-ID derivation, commit, and deployment transaction in
+the deployment journal.
+
 ### Governance wiring
 
 1. Deploy the adapter with the PSM address, timelock owner, signer set, threshold, and a nonzero

@@ -11,6 +11,8 @@ the [root README](../README.md) and [`../docs/`](../docs).
 - `test/` — Foundry test suite (148 tests at the time of writing: 145 unit/configuration tests plus 3 stateful
   PSM invariants; run `forge test` to confirm).
 - `script/Deploy.s.sol` — full deployment script (token, vesting, DAO, timelock, role wiring).
+- `script/DeployCPIReportAdapter.s.sol` — chain-guarded optional adapter deployment; it does not
+  grant the PSM updater role.
 - `../scripts/verify-deployment.sh` — read-only post-deployment wiring and role verifier.
 - `../scripts/check-psm-health.sh` — read-only monitoring check for reserve deficits and CPI freshness.
 - The production deployer selects an approximately one-week voting period on Arbitrum by default;
