@@ -194,7 +194,8 @@ forge script script/Deploy.s.sol:DeployHalalSystem \
 # 4. Independently verify wiring (read-only; do not use --broadcast)
 RPC_URL="$RPC_URL" EXPECTED_CHAIN_ID=421614 TIMELOCK=0x<timelock> TOKEN=0x<token> TEAM_VESTING=0x<team_vesting> \
 TREASURY_VESTING=0x<treasury_vesting> DAO=0x<dao> PSM=0x<psm> \
-RESERVE_TOKEN=0x<reserve_token> \
+RESERVE_TOKEN=0x<reserve_token> TEAM_BENEFICIARY=0x<team_multisig> \
+TREASURY_BENEFICIARY=0x<treasury_multisig> DEPLOYER_ADDRESS=0x<deployer> \
 ../scripts/verify-deployment.sh
 
 # 5. Verify on Arbiscan

@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## Unreleased
 
+- Made vesting beneficiary and deployer-role assertions mandatory in the post-deployment verifier,
+  so a successful audit cannot omit deployment identity checks.
 - Extended the local demo and CI deployment smoke test to assert both vesting beneficiaries, and
   included chain/block identity in local deployment output for repeatable handoffs.
 - Added optional beneficiary checks to the deployment verifier, deployment-time beneficiary

@@ -2,10 +2,13 @@
 set -euo pipefail
 
 # Read-only post-deployment verifier. Required: RPC_URL, EXPECTED_CHAIN_ID, TIMELOCK, TOKEN,
-# TEAM_VESTING, TREASURY_VESTING, DAO, PSM, and RESERVE_TOKEN. Optional: TEAM_BENEFICIARY,
-# TREASURY_BENEFICIARY, DEPLOYER_ADDRESS, CPI_UPDATER.
+# TEAM_VESTING, TREASURY_VESTING, DAO, PSM, RESERVE_TOKEN, TEAM_BENEFICIARY, TREASURY_BENEFICIARY,
+# and DEPLOYER_ADDRESS. Optional: CPI_UPDATER.
 
-required_vars=(RPC_URL EXPECTED_CHAIN_ID TIMELOCK TOKEN TEAM_VESTING TREASURY_VESTING DAO PSM RESERVE_TOKEN)
+required_vars=(
+  RPC_URL EXPECTED_CHAIN_ID TIMELOCK TOKEN TEAM_VESTING TREASURY_VESTING DAO PSM RESERVE_TOKEN
+  TEAM_BENEFICIARY TREASURY_BENEFICIARY DEPLOYER_ADDRESS
+)
 for variable in "${required_vars[@]}"; do
   if [[ -z "${!variable:-}" ]]; then
     echo "Missing required environment variable: $variable" >&2
@@ -73,6 +76,9 @@ TREASURY_VESTING="${TREASURY_VESTING,,}"
 DAO="${DAO,,}"
 PSM="${PSM,,}"
 RESERVE_TOKEN="${RESERVE_TOKEN,,}"
+TEAM_BENEFICIARY="${TEAM_BENEFICIARY,,}"
+TREASURY_BENEFICIARY="${TREASURY_BENEFICIARY,,}"
+DEPLOYER_ADDRESS="${DEPLOYER_ADDRESS,,}"
 
 expect_contract "timelock" "$TIMELOCK"
 expect_contract "token" "$TOKEN"
@@ -106,16 +112,8 @@ expect_equal "treasury vesting cliff" "$(call "$TREASURY_VESTING" 'cliff()(uint6
 expect_equal "treasury vesting duration" "$(call "$TREASURY_VESTING" 'duration()(uint64)')" "94608000"
 expect_equal "treasury vesting revocability" "$(call "$TREASURY_VESTING" 'revocable()(bool)')" "false"
 
-if [[ -n "${TEAM_BENEFICIARY:-}" || -n "${TREASURY_BENEFICIARY:-}" ]]; then
-  if [[ -z "${TEAM_BENEFICIARY:-}" || -z "${TREASURY_BENEFICIARY:-}" ]]; then
-    echo "TEAM_BENEFICIARY and TREASURY_BENEFICIARY must be supplied together" >&2
-    exit 1
-  fi
-  TEAM_BENEFICIARY="${TEAM_BENEFICIARY,,}"
-  TREASURY_BENEFICIARY="${TREASURY_BENEFICIARY,,}"
-  expect_equal "team beneficiary" "$(address_call "$TEAM_VESTING" 'beneficiary()(address)')" "$TEAM_BENEFICIARY"
-  expect_equal "treasury beneficiary" "$(address_call "$TREASURY_VESTING" 'beneficiary()(address)')" "$TREASURY_BENEFICIARY"
-fi
+expect_equal "team beneficiary" "$(address_call "$TEAM_VESTING" 'beneficiary()(address)')" "$TEAM_BENEFICIARY"
+expect_equal "treasury beneficiary" "$(address_call "$TREASURY_VESTING" 'beneficiary()(address)')" "$TREASURY_BENEFICIARY"
 
 minter_role="$(call "$TOKEN" 'MINTER_ROLE()(bytes32)')"
 admin_role="$(call "$TOKEN" 'DEFAULT_ADMIN_ROLE()(bytes32)')"
@@ -139,14 +137,11 @@ if [[ -n "${CPI_UPDATER:-}" ]]; then
   expect_true "configured CPI updater role" "$(call "$PSM" 'hasRole(bytes32,address)(bool)' "$psm_updater_role" "$CPI_UPDATER")"
 fi
 
-if [[ -n "${DEPLOYER_ADDRESS:-}" ]]; then
-  DEPLOYER_ADDRESS="${DEPLOYER_ADDRESS,,}"
-  expect_equal "deployer HLC minter role" "$(call "$TOKEN" 'hasRole(bytes32,address)(bool)' "$minter_role" "$DEPLOYER_ADDRESS")" "false"
-  expect_equal "deployer HLC admin role" "$(call "$TOKEN" 'hasRole(bytes32,address)(bool)' "$admin_role" "$DEPLOYER_ADDRESS")" "false"
-  expect_equal "deployer timelock admin role" "$(call "$TIMELOCK" 'hasRole(bytes32,address)(bool)' "$timelock_admin_role" "$DEPLOYER_ADDRESS")" "false"
-  expect_equal "deployer PSM admin role" "$(call "$PSM" 'hasRole(bytes32,address)(bool)' "$psm_admin_role" "$DEPLOYER_ADDRESS")" "false"
-  expect_equal "deployer PSM parameter role" "$(call "$PSM" 'hasRole(bytes32,address)(bool)' "$psm_param_role" "$DEPLOYER_ADDRESS")" "false"
-  expect_equal "deployer PSM updater role" "$(call "$PSM" 'hasRole(bytes32,address)(bool)' "$psm_updater_role" "$DEPLOYER_ADDRESS")" "false"
-fi
+expect_equal "deployer HLC minter role" "$(call "$TOKEN" 'hasRole(bytes32,address)(bool)' "$minter_role" "$DEPLOYER_ADDRESS")" "false"
+expect_equal "deployer HLC admin role" "$(call "$TOKEN" 'hasRole(bytes32,address)(bool)' "$admin_role" "$DEPLOYER_ADDRESS")" "false"
+expect_equal "deployer timelock admin role" "$(call "$TIMELOCK" 'hasRole(bytes32,address)(bool)' "$timelock_admin_role" "$DEPLOYER_ADDRESS")" "false"
+expect_equal "deployer PSM admin role" "$(call "$PSM" 'hasRole(bytes32,address)(bool)' "$psm_admin_role" "$DEPLOYER_ADDRESS")" "false"
+expect_equal "deployer PSM parameter role" "$(call "$PSM" 'hasRole(bytes32,address)(bool)' "$psm_param_role" "$DEPLOYER_ADDRESS")" "false"
+expect_equal "deployer PSM updater role" "$(call "$PSM" 'hasRole(bytes32,address)(bool)' "$psm_updater_role" "$DEPLOYER_ADDRESS")" "false"
 
 echo "Halal deployment wiring verified: $PSM"

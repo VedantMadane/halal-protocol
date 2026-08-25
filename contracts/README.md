@@ -70,8 +70,8 @@ After deployment, independently verify the on-chain wiring before accepting fund
 ```
 
 Set `RPC_URL`, `EXPECTED_CHAIN_ID`, `TIMELOCK`, `TOKEN`, `TEAM_VESTING`, `TREASURY_VESTING`, `DAO`,
-`PSM`, and `RESERVE_TOKEN`; optionally set `TEAM_BENEFICIARY`, `TREASURY_BENEFICIARY`,
-`DEPLOYER_ADDRESS`, and `CPI_UPDATER` to check those assignments too. The verifier checks the RPC
+`PSM`, `RESERVE_TOKEN`, `TEAM_BENEFICIARY`, `TREASURY_BENEFICIARY`, and `DEPLOYER_ADDRESS`.
+Optionally set `CPI_UPDATER` to check that role too. The verifier checks the RPC
 chain identity, that every supplied address has contract bytecode, the DAO's token/timelock links,
 the PSM and vesting links, immutable vesting allocations and the intended vesting policy, role wiring
 (including the timelock's self-admin and permissionless executor), and a
