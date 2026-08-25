@@ -25,6 +25,33 @@ The fastest way to see the complete system is `./scripts/local-demo.sh`: it star
 Anvil chain, deploys the wired contracts, and opens the frontend with a faucet-backed local reserve.
 No external RPC key or real funds are needed for the demo.
 
+## Why this project is interesting
+
+Most stablecoins target a nominal unit of a reserve asset. Halal explores a different target:
+keeping HLC's reserve-asset redemption rate moving with consumer-price inflation, so one HLC is
+intended to represent roughly stable purchasing power over time. That idea is paired with a
+  conservative accounting model:
+
+- Only reserve deposited through the PSM creates a redeemable HLC claim; the fixed team and treasury
+  allocations are explicitly separate and not reserve-backed.
+- CPI updates are bounded by absolute limits, per-update movement, cadence, report freshness, and
+  the reserve held for outstanding claims.
+- Governance is delayed and observable: protocol roles route through an OpenZeppelin Governor and
+  TimelockController, while deployment tooling verifies chain identity and final role wiring.
+
+## Proof at a glance
+
+| Reviewer question | Evidence in this repository |
+| --- | --- |
+| Does the accounting have stateful coverage? | 126 Foundry tests, including 3 PSM invariants and fuzzing |
+| Can a deployment be checked without a private key? | [`scripts/verify-deployment.sh`](scripts/verify-deployment.sh) |
+| Can I inspect the full system locally? | [`./scripts/local-demo.sh`](scripts/local-demo.sh) on a disposable Anvil chain |
+| Are generated frontend interfaces kept in sync? | ABI regeneration is a required CI check |
+| Is the security posture stated plainly? | [`SECURITY.md`](SECURITY.md) and [`docs/THREAT-MODEL.md`](docs/THREAT-MODEL.md) |
+
+The project is still unaudited and not production-ready. The table is evidence of engineering
+discipline, not a safety guarantee.
+
 ## Status & risk
 
 **This protocol has not undergone a professional security audit, and there is no bug bounty
