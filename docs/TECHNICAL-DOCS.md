@@ -3,7 +3,7 @@
 **Version**: 1.1.0
 **Date**: August 24, 2026
 **Network**: Arbitrum (Sepolia & Mainnet)
-**Status**: Unaudited reference implementation | 126 tests passing (123 unit/configuration + 3 invariants) | Not production-ready
+**Status**: Unaudited reference implementation | 128 tests passing (125 unit/configuration + 3 invariants) | Not production-ready
 
 ---
 
@@ -180,7 +180,7 @@ EOF
 ```bash
 # 1. Test locally
 forge test -vvv
-# Expected: 126/126 tests passing ✓
+# Expected: 128/128 tests passing ✓
 
 # 2. Fund wallet with testnet ETH on Arbitrum Sepolia
 # Visit: https://sepoliafaucet.com
@@ -348,6 +348,8 @@ delay, voting period, proposal threshold, or quorum requires deploying and wirin
 | HalalPSM | `setSource()` | DAO | Proposal |
 | HalalPSM | `depositWithMinHlcOut(uint256,uint256)` | Anyone | Public, slippage-bounded |
 | HalalPSM | `withdrawWithMinReserveOut(uint256,uint256)` | Anyone | Public, slippage-bounded |
+| HalalPSM | `depositWithMinHlcOutAndDeadline(uint256,uint256,uint256)` | Anyone | Public, slippage- and deadline-bounded; preferred for new integrations |
+| HalalPSM | `withdrawWithMinReserveOutAndDeadline(uint256,uint256,uint256)` | Anyone | Public, slippage- and deadline-bounded; preferred for new integrations |
 | HalalPSM | `transferRedeemable(address,uint256)` | Anyone | Moves PSM HLC and its redemption credit atomically |
 | HalalPSM | `cancelRedeemable(uint256)` | Anyone | Irreversibly burns HLC and retires matching credit |
 | HalalPSM | `depositReserve()` | DAO | Proposal |
@@ -442,6 +444,8 @@ function previewWithdraw(uint256 hlcAmount) external view returns (uint256)
 // State-changing
 function depositWithMinHlcOut(uint256 reserveAmount, uint256 minHlcOut) external
 function withdrawWithMinReserveOut(uint256 hlcAmount, uint256 minReserveOut) external
+function depositWithMinHlcOutAndDeadline(uint256 reserveAmount, uint256 minHlcOut, uint256 deadline) external
+function withdrawWithMinReserveOutAndDeadline(uint256 hlcAmount, uint256 minReserveOut, uint256 deadline) external
 function transferRedeemable(address to, uint256 hlcAmount) external
 function cancelRedeemable(uint256 hlcAmount) external // Burns HLC; returns no reserve
 // `deposit(uint256)` and `withdraw(uint256)` remain as unbounded compatibility methods.
@@ -512,9 +516,9 @@ forge coverage
 ✓ test_TimelockPreventsImmediateExecution
 ✓ test_TeamVestingRevocable
 ✓ test_TreasuryVestingNonRevocable
-✓ 123 unit/configuration tests plus 3 stateful PSM invariants covering the core contracts and governance flows
+✓ 125 unit/configuration tests plus 3 stateful PSM invariants covering the core contracts and governance flows
 
-Total: 126 tests passing ✓
+Total: 128 tests passing ✓
 ```
 
 ### Verify on Arbiscan
@@ -532,7 +536,7 @@ Total: 126 tests passing ✓
 
 ### Before Deployment
 
-- [ ] All 126 tests passing locally, including the stateful invariants
+- [ ] All 128 tests passing locally, including the stateful invariants
 - [ ] Gas estimates reviewed & acceptable
 - [ ] No compiler warnings
 - [ ] Code review completed

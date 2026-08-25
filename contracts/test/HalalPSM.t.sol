@@ -41,6 +41,20 @@ contract HalalPSMTest is Deployers {
         assertEq(token.balanceOf(alice), 0);
     }
 
+    function test_DeadlineBoundedDepositRejectsStaleExecution() public {
+        uint256 deadline = block.timestamp + 1 hours;
+        uint256 quotedOutput = psm.previewDeposit(1_000e18);
+
+        vm.prank(alice);
+        psm.depositWithMinHlcOutAndDeadline(1_000e18, quotedOutput, deadline);
+        assertEq(token.balanceOf(alice), 1_000e18);
+
+        vm.warp(deadline + 1);
+        vm.prank(alice);
+        vm.expectRevert(HalalPSM.DeadlineExpired.selector);
+        psm.depositWithMinHlcOutAndDeadline(1_000e18, quotedOutput, deadline);
+    }
+
     function test_WithdrawBurnsAndReturnsReserve() public {
         vm.startPrank(alice);
         psm.deposit(1_000e18);
@@ -68,6 +82,26 @@ contract HalalPSMTest is Deployers {
 
         assertEq(token.balanceOf(alice), 1_000e18);
         assertEq(psm.redeemableBalance(alice), 1_000e18);
+    }
+
+    function test_DeadlineBoundedWithdrawRejectsStaleExecution() public {
+        vm.prank(alice);
+        psm.deposit(1_000e18);
+        uint256 quotedOutput = psm.previewWithdraw(1_000e18);
+        uint256 deadline = block.timestamp + 1 hours;
+
+        vm.startPrank(alice);
+        token.approve(address(psm), 1_000e18);
+        psm.withdrawWithMinReserveOutAndDeadline(1_000e18, quotedOutput, deadline);
+        vm.stopPrank();
+
+        vm.prank(alice);
+        psm.deposit(1_000e18);
+        vm.warp(deadline + 1);
+        vm.startPrank(alice);
+        vm.expectRevert(HalalPSM.DeadlineExpired.selector);
+        psm.withdrawWithMinReserveOutAndDeadline(1_000e18, quotedOutput, deadline);
+        vm.stopPrank();
     }
 
     function testFuzz_RoundTripNeverOverpays(uint128 reserveAmount) public {

@@ -95,6 +95,7 @@ contract HalalPSM is AccessControl, ReentrancyGuard {
     error TransferFailed();
     error InsufficientRedeemableBalance();
     error SlippageExceeded();
+    error DeadlineExpired();
     error InvalidReportTimestamp();
     error ReportTooOld();
 
@@ -135,6 +136,17 @@ contract HalalPSM is AccessControl, ReentrancyGuard {
         _deposit(reserveAmount, minHlcOut);
     }
 
+    /// @notice Deposits reserve with both an output bound and an execution deadline. New
+    /// integrations should prefer this entrypoint when a quote must not remain executable after
+    /// a caller-defined time.
+    function depositWithMinHlcOutAndDeadline(uint256 reserveAmount, uint256 minHlcOut, uint256 deadline)
+        external
+        nonReentrant
+    {
+        _checkDeadline(deadline);
+        _deposit(reserveAmount, minHlcOut);
+    }
+
     function _deposit(uint256 reserveAmount, uint256 minHlcOut) internal {
         if (reserveAmount == 0) revert ZeroAmount();
         uint256 balanceBefore = reserve.balanceOf(address(this));
@@ -162,6 +174,16 @@ contract HalalPSM is AccessControl, ReentrancyGuard {
     /// @notice Withdraws HLC and reverts unless at least `minReserveOut` reserve is returned. Use
     /// this bounded entrypoint when the quote came from `previewWithdraw`.
     function withdrawWithMinReserveOut(uint256 hlcAmount, uint256 minReserveOut) external nonReentrant {
+        _withdraw(hlcAmount, minReserveOut);
+    }
+
+    /// @notice Withdraws HLC with both an output bound and an execution deadline. New integrations
+    /// should prefer this entrypoint when a quote must not remain executable after a caller-defined time.
+    function withdrawWithMinReserveOutAndDeadline(uint256 hlcAmount, uint256 minReserveOut, uint256 deadline)
+        external
+        nonReentrant
+    {
+        _checkDeadline(deadline);
         _withdraw(hlcAmount, minReserveOut);
     }
 
@@ -350,6 +372,11 @@ contract HalalPSM is AccessControl, ReentrancyGuard {
     }
 
     // ── Internal ─────────────────────────────────────────────────────────
+
+    function _checkDeadline(uint256 deadline) internal view {
+        // forge-lint: disable-next-line(block-timestamp)
+        if (block.timestamp > deadline) revert DeadlineExpired();
+    }
 
     function _setCPI(uint256 newCPI, bool enforceStepLimit) internal {
         if (newCPI < MIN_CPI || newCPI > MAX_CPI) revert RateOutOfBounds();

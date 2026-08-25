@@ -43,7 +43,7 @@ intended to represent roughly stable purchasing power over time. That idea is pa
 
 | Reviewer question | Evidence in this repository |
 | --- | --- |
-| Does the accounting have stateful coverage? | 126 Foundry tests, including 3 PSM invariants and fuzzing |
+| Does the accounting have stateful coverage? | 128 Foundry tests, including 3 PSM invariants and fuzzing |
 | Can a deployment be checked without a private key? | [`scripts/verify-deployment.sh`](scripts/verify-deployment.sh) |
 | Can I inspect the full system locally? | [`./scripts/local-demo.sh`](scripts/local-demo.sh) on a disposable Anvil chain |
 | Are generated frontend interfaces kept in sync? | ABI regeneration is a required CI check |
@@ -55,7 +55,7 @@ discipline, not a safety guarantee.
 ## Status & risk
 
 **This protocol has not undergone a professional security audit, and there is no bug bounty
-program yet.** The contracts pass their own test suite (126/126 at the time of writing — 123 unit
+program yet.** The contracts pass their own test suite (128/128 at the time of writing — 125 unit
 and configuration tests plus 3 stateful invariants; see
 `contracts/test/`), but a passing test suite is not a substitute for an audit, and this repo
 should not be treated as safe to use with real, meaningful funds. If you deploy or interact with

@@ -4,6 +4,9 @@ All notable changes to this project are documented here.
 
 ## Unreleased
 
+- Added deadline-bounded PSM deposit and withdrawal entrypoints so new integrations can combine
+  slippage protection with an explicit maximum execution time; the existing entrypoints remain for
+  compatibility with already-deployed immutable PSMs.
 - Added a concise protocol rationale and evidence-at-a-glance section to the landing README for
   reviewers, contributors, and potential integrators.
 - Made the production deployment script require `EXPECTED_CHAIN_ID` and fail closed before
