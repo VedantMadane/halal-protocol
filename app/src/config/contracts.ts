@@ -1,12 +1,14 @@
 import { isAddress, zeroAddress, type Address } from "viem";
+import deploymentRegistry from "./deployment-registry.json";
 
 /**
  * ============================================================================================
  *  HALAL PROTOCOL — PER-CHAIN CONTRACT ADDRESSES
  * ============================================================================================
  *
- *  This is the single place that defines the deployment shape. Real addresses are supplied
- *  through the corresponding NEXT_PUBLIC_HLC_*_<chainId> variables in .env.local.
+ *  This is the single place that defines the deployment shape. Public addresses belong in the
+ *  checked-in deployment registry; NEXT_PUBLIC_HLC_*_<chainId> variables override individual
+ *  fields for local experiments.
  *
  *  After running the deploy script from the contracts/ package, e.g.:
  *
@@ -49,6 +51,18 @@ export interface HalalDeployment {
   deploymentBlock: bigint;
 }
 
+interface DeploymentSource {
+  token?: string;
+  teamVesting?: string;
+  treasuryVesting?: string;
+  psm?: string;
+  dao?: string;
+  timelock?: string;
+  reserveToken?: string;
+  reserveTokenSymbol?: string;
+  deploymentBlock?: string | number;
+}
+
 interface DeploymentEnvironment {
   token: string | undefined;
   teamVesting: string | undefined;
@@ -62,7 +76,18 @@ interface DeploymentEnvironment {
 }
 
 /** Returns a complete deployment only when every address and the deployment block validate. */
-function deploymentFromEnvironment(env: DeploymentEnvironment): HalalDeployment | undefined {
+function deploymentFromSource(source: DeploymentSource): HalalDeployment | undefined {
+  const env: DeploymentEnvironment = {
+    token: source.token,
+    teamVesting: source.teamVesting,
+    treasuryVesting: source.treasuryVesting,
+    psm: source.psm,
+    dao: source.dao,
+    timelock: source.timelock,
+    reserveToken: source.reserveToken,
+    reserveTokenSymbol: source.reserveTokenSymbol,
+    deploymentBlock: source.deploymentBlock === undefined ? undefined : String(source.deploymentBlock),
+  };
   const addresses = [
     env.token,
     env.teamVesting,
@@ -90,46 +115,36 @@ function deploymentFromEnvironment(env: DeploymentEnvironment): HalalDeployment 
   };
 }
 
+type DeploymentRegistry = Partial<Record<string, DeploymentSource>>;
+
+const registry = deploymentRegistry as DeploymentRegistry;
+
+function configuredDeployment(chainId: number): HalalDeployment | undefined {
+  const suffix = String(chainId);
+  const registered = registry[suffix] ?? {};
+  return deploymentFromSource({
+    token: process.env[`NEXT_PUBLIC_HLC_TOKEN_${suffix}`] || registered.token,
+    teamVesting: process.env[`NEXT_PUBLIC_HLC_TEAM_VESTING_${suffix}`] || registered.teamVesting,
+    treasuryVesting: process.env[`NEXT_PUBLIC_HLC_TREASURY_VESTING_${suffix}`] || registered.treasuryVesting,
+    psm: process.env[`NEXT_PUBLIC_HLC_PSM_${suffix}`] || registered.psm,
+    dao: process.env[`NEXT_PUBLIC_HLC_DAO_${suffix}`] || registered.dao,
+    timelock: process.env[`NEXT_PUBLIC_HLC_TIMELOCK_${suffix}`] || registered.timelock,
+    reserveToken: process.env[`NEXT_PUBLIC_HLC_RESERVE_TOKEN_${suffix}`] || registered.reserveToken,
+    reserveTokenSymbol: process.env[`NEXT_PUBLIC_HLC_RESERVE_SYMBOL_${suffix}`] || registered.reserveTokenSymbol,
+    deploymentBlock: process.env[`NEXT_PUBLIC_HLC_DEPLOYMENT_BLOCK_${suffix}`] || registered.deploymentBlock,
+  });
+}
+
 export const DEPLOYMENTS: Partial<Record<number, HalalDeployment>> = {
   // ── Anvil / local Foundry devnet (chain id 31337) ────────────────────────────────────────
-  // Configure via NEXT_PUBLIC_HLC_*_31337 variables; incomplete configuration stays disabled.
-  31337: deploymentFromEnvironment({
-    token: process.env.NEXT_PUBLIC_HLC_TOKEN_31337,
-    teamVesting: process.env.NEXT_PUBLIC_HLC_TEAM_VESTING_31337,
-    treasuryVesting: process.env.NEXT_PUBLIC_HLC_TREASURY_VESTING_31337,
-    psm: process.env.NEXT_PUBLIC_HLC_PSM_31337,
-    dao: process.env.NEXT_PUBLIC_HLC_DAO_31337,
-    timelock: process.env.NEXT_PUBLIC_HLC_TIMELOCK_31337,
-    reserveToken: process.env.NEXT_PUBLIC_HLC_RESERVE_TOKEN_31337,
-    reserveTokenSymbol: process.env.NEXT_PUBLIC_HLC_RESERVE_SYMBOL_31337,
-    deploymentBlock: process.env.NEXT_PUBLIC_HLC_DEPLOYMENT_BLOCK_31337,
-  }),
+  // Configure via the registry or NEXT_PUBLIC_HLC_*_31337 overrides; incomplete configuration stays disabled.
+  31337: configuredDeployment(31337),
 
   // ── Arbitrum Sepolia (testnet) — documented target network ─────────────────────────────
-  421614: deploymentFromEnvironment({
-    token: process.env.NEXT_PUBLIC_HLC_TOKEN_421614,
-    teamVesting: process.env.NEXT_PUBLIC_HLC_TEAM_VESTING_421614,
-    treasuryVesting: process.env.NEXT_PUBLIC_HLC_TREASURY_VESTING_421614,
-    psm: process.env.NEXT_PUBLIC_HLC_PSM_421614,
-    dao: process.env.NEXT_PUBLIC_HLC_DAO_421614,
-    timelock: process.env.NEXT_PUBLIC_HLC_TIMELOCK_421614,
-    reserveToken: process.env.NEXT_PUBLIC_HLC_RESERVE_TOKEN_421614,
-    reserveTokenSymbol: process.env.NEXT_PUBLIC_HLC_RESERVE_SYMBOL_421614,
-    deploymentBlock: process.env.NEXT_PUBLIC_HLC_DEPLOYMENT_BLOCK_421614,
-  }),
+  421614: configuredDeployment(421614),
 
   // ── Arbitrum One (mainnet) — documented target network ─────────────────────────────────
-  42161: deploymentFromEnvironment({
-    token: process.env.NEXT_PUBLIC_HLC_TOKEN_42161,
-    teamVesting: process.env.NEXT_PUBLIC_HLC_TEAM_VESTING_42161,
-    treasuryVesting: process.env.NEXT_PUBLIC_HLC_TREASURY_VESTING_42161,
-    psm: process.env.NEXT_PUBLIC_HLC_PSM_42161,
-    dao: process.env.NEXT_PUBLIC_HLC_DAO_42161,
-    timelock: process.env.NEXT_PUBLIC_HLC_TIMELOCK_42161,
-    reserveToken: process.env.NEXT_PUBLIC_HLC_RESERVE_TOKEN_42161,
-    reserveTokenSymbol: process.env.NEXT_PUBLIC_HLC_RESERVE_SYMBOL_42161,
-    deploymentBlock: process.env.NEXT_PUBLIC_HLC_DEPLOYMENT_BLOCK_42161,
-  }),
+  42161: configuredDeployment(42161),
 };
 
 export function getDeployment(chainId: number | undefined): HalalDeployment | undefined {

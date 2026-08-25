@@ -50,6 +50,7 @@ conservative accounting model:
 | Can I inspect the full system locally? | [`./scripts/local-demo.sh`](scripts/local-demo.sh) on a disposable Anvil chain |
 | Can an operator monitor PSM health without a wallet? | [`scripts/check-psm-health.sh`](scripts/check-psm-health.sh) exits nonzero for stale CPI or reserve deficits |
 | Can I model CPI-driven reserve needs reproducibly? | [`docs/ECONOMIC-MODEL.md`](docs/ECONOMIC-MODEL.md) and `make economic-model` |
+| Are public deployment addresses reviewable? | [`docs/DEPLOYMENT-REGISTRY.md`](docs/DEPLOYMENT-REGISTRY.md) and the checked-in registry |
 | Are generated frontend interfaces kept in sync? | ABI regeneration is a required CI check |
 | Is the security posture stated plainly? | [`SECURITY.md`](SECURITY.md) and [`docs/THREAT-MODEL.md`](docs/THREAT-MODEL.md) |
 
@@ -109,6 +110,8 @@ walkthrough, and the exact API surface — see:
   and the exact scope of those guarantees.
 - [`docs/ECONOMIC-MODEL.md`](docs/ECONOMIC-MODEL.md) — a dependency-free CPI and reserve-adequacy
   scenario model with machine-readable output.
+- [`docs/DEPLOYMENT-REGISTRY.md`](docs/DEPLOYMENT-REGISTRY.md) — how operators publish verified
+  deployment addresses without copying unverified values into a frontend environment.
 - [`docs/CONTRIBUTOR-MAP.md`](docs/CONTRIBUTOR-MAP.md) — concrete contribution paths for security,
   oracle integrations, monitoring, economics, governance, dApp UX, and documentation.
 - [`docs/ROADMAP.md`](docs/ROADMAP.md) — the risk-ordered path from unaudited reference

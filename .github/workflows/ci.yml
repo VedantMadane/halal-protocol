@@ -202,6 +202,9 @@ jobs:
       - name: pnpm lint
         run: pnpm lint
 
+      - name: Validate deployment registry
+        run: node ../scripts/validate-deployment-registry.mjs
+
       - name: pnpm audit (production dependencies)
         run: pnpm audit --prod --audit-level=high
 

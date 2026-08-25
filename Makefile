@@ -1,6 +1,9 @@
-.PHONY: verify contracts-build contracts-test contracts-lint contracts-coverage app-lint app-build abis psm-health economic-model
+.PHONY: verify contracts-build contracts-test contracts-lint contracts-coverage app-lint app-build abis psm-health economic-model registry-check
 
-verify: contracts-build contracts-test contracts-lint app-lint app-build
+verify: registry-check contracts-build contracts-test contracts-lint app-lint app-build
+
+registry-check:
+	node scripts/validate-deployment-registry.mjs
 
 contracts-build:
 	cd contracts && forge build

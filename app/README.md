@@ -29,13 +29,15 @@ reserve. This reserve is for local testing only and is not a real stablecoin or 
 | `NEXT_PUBLIC_RPC_URL_42161` | Optional Arbitrum One RPC URL; falls back to the public chain endpoint |
 | `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` | WalletConnect/Reown project ID; injected wallets work without it |
 
-For each supported chain, set all nine `NEXT_PUBLIC_HLC_*_<chainId>` variables in `.env.local`:
+Public deployments belong in the checked-in [`../app/src/config/deployment-registry.json`](src/config/deployment-registry.json).
+For local experiments, set all nine `NEXT_PUBLIC_HLC_*_<chainId>` variables in `.env.local`:
 the seven contract addresses, `RESERVE_SYMBOL`, and `DEPLOYMENT_BLOCK`. The accepted suffixes are
 `31337`, `421614`, and `42161`. Addresses are validated at startup and incomplete configurations
 remain disabled. The deployment block bounds the governance event scan, so set it to the block where
 the DAO deployment was mined.
 
-The app reads the first configured deployment before a wallet connects. Set
+The app reads the checked-in registry first and applies environment variables as per-field
+overrides. The app reads the first configured deployment before a wallet connects. Set
 `NEXT_PUBLIC_READ_CHAIN_ID` when more than one deployment is configured and you want a specific
 public network. The header labels this state `Read-only`; users must connect a wallet before
 approval, swaps, votes, or other signing actions become available.
