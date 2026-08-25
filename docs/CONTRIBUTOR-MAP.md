@@ -13,12 +13,13 @@ operations. Report fund-risking findings through [`SECURITY.md`](../SECURITY.md)
 Choose the task that matches your interests; each issue includes a bounded scope, acceptance
 criteria, and a safe local verification path:
 
-- [Deployment review worksheet (#42)](https://github.com/fredrikblau/halal-protocol/issues/42) —
-  documentation and operator evidence.
 - [Standalone PSM health-check tests (#43)](https://github.com/fredrikblau/halal-protocol/issues/43) —
   Node test coverage for fail-closed monitoring output.
 - [Local CPI report walkthrough (#44)](https://github.com/fredrikblau/halal-protocol/issues/44) —
   copy-paste documentation for the disposable adapter rehearsal.
+
+The [deployment review worksheet (#42)](https://github.com/fredrikblau/halal-protocol/issues/42)
+is a completed example of the contribution standard above.
 
 ## Choose a path
 

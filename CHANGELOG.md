@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.144 - 2026-08-26
+
+- Added `docs/DEPLOYMENT-REVIEW-CHECKLIST.md`, a copyable evidence worksheet for public testnet
+  deployment review, reserve due diligence, CPI bootstrap, monitoring, and registry acceptance.
+- Completed issue #42 and kept the remaining newcomer tasks (#43 and #44) visible in the contributor
+  funnel.
+
 ## 0.1.0-alpha.143 - 2026-08-26
 
 - Added two clearly scoped `good first issue` contributor paths for standalone health-check tests
