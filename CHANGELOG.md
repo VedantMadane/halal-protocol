@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.68 - 2026-08-25
+
+- Extended the private-key-free CPI report verifier with live adapter and PSM watermark checks,
+  freshness preflight, and RPC-time validation.
+- Fixed the local adapter rehearsal to derive report timestamps from the Anvil chain instead of the
+  host clock.
+
 ## 0.1.0-alpha.67 - 2026-08-25
 
 - Added CPI adapter authorization tests for duplicate signatures, chain separation, signer removal,

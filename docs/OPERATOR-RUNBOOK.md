@@ -181,8 +181,10 @@ node scripts/verify-cpi-report.mjs \
   --signatures 0x<signature-for-lowest>,0x<signature-for-next>
 ```
 
-Keep the verifier output with the report archive. It contains the adapter, source ID, signer list,
-and signature count, but no private key material.
+Keep the verifier output with the report archive. It contains the adapter, PSM, source ID, live
+watermarks, freshness window, signer list, and signature count, but no private key material. The
+command fails before signature recovery when the report is stale, replayed, future-dated, or older
+than the PSM's accepted-report watermark.
 
 Before each submission, verify:
 

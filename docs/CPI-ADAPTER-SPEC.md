@@ -166,9 +166,12 @@ node scripts/verify-cpi-report.mjs \
 ```
 
 Read the signer addresses from the deployment health output or `CPIReportAdapter.getSigners()`.
-The verifier reads the live adapter's chain ID, source ID, threshold, and signer set through the
-RPC. It keeps private keys out of the process, requires one 65-byte signature per configured signer
-in strict address order, and delegates EIP-712 recovery to Foundry's `cast wallet verify`.
+The verifier reads the live adapter's chain ID, PSM binding, source ID, threshold, signer set, and
+report watermark through the RPC. It also reads the PSM's report watermark, freshness window, and
+current block time. It rejects stale, replayed, future, or already-consumed reports before it
+recovers signatures. The tool keeps private keys out of the process, requires one 65-byte signature
+per configured signer in strict address order, and delegates EIP-712 recovery to Foundry's
+`cast wallet verify`.
 
 The module remains unaudited. A deployment must not treat the presence of this source file or its
 tests as an approval to accept meaningful funds.

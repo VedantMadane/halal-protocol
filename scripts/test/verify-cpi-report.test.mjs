@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { validateSignatureSet, validateTypedData } from "../verify-cpi-report.mjs";
+import { validateReportState, validateSignatureSet, validateTypedData } from "../verify-cpi-report.mjs";
 
 const signerOne = "0x1111111111111111111111111111111111111111";
 const signerTwo = "0x2222222222222222222222222222222222222222";
@@ -43,5 +43,40 @@ test("rejects a typed data file for another domain", () => {
   assert.throws(
     () => validateTypedData({ ...typedData, message: { ...typedData.message, reportedCPI: "2000001" } }),
     /outside the PSM range/,
+  );
+});
+
+test("preflights the live adapter and PSM report watermarks", () => {
+  assert.deepEqual(
+    validateReportState({
+      typedData,
+      now: "1780001000",
+      adapterLastSubmittedTimestamp: "0",
+      psmLastReportTimestamp: "0",
+      psmMaxReportAge: "7776000",
+    }),
+    {
+      reportedAt: "1780000000",
+      checkedAt: "1780001000",
+      adapterPreviousReportTimestamp: "0",
+      psmPreviousReportTimestamp: "0",
+      maxReportAge: "7776000",
+    },
+  );
+});
+
+test("rejects stale, replayed, and future reports before signature recovery", () => {
+  const base = {
+    now: "1780001000",
+    adapterLastSubmittedTimestamp: "0",
+    psmLastReportTimestamp: "0",
+    psmMaxReportAge: "7776000",
+  };
+  assert.throws(() => validateReportState({ typedData, ...base, now: "1787776001" }), /older than/);
+  assert.throws(() => validateReportState({ typedData, ...base, adapterLastSubmittedTimestamp: "1780000000" }), /adapter watermark/);
+  assert.throws(() => validateReportState({ typedData, ...base, psmLastReportTimestamp: "1780000000" }), /PSM watermark/);
+  assert.throws(
+    () => validateReportState({ typedData, ...base, now: "1779999999" }),
+    /future for the live RPC/,
   );
 });

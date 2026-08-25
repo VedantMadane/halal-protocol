@@ -64,8 +64,9 @@ echo "$HEALTH_OUTPUT" | grep -q '^cpi_adapter_signer_1='
 
 REPORT_INPUT="$(mktemp)"
 TYPED_DATA="$(mktemp)"
-node -e 'const fs=require("fs"); const [out,adapter,source]=process.argv.slice(1); fs.writeFileSync(out, JSON.stringify({chainId:"31337",adapter,sourceId:source,cpi:"1.000000",reportedAt:String(Math.floor(Date.now()/1000))}));' \
-  "$REPORT_INPUT" "$ADAPTER_ADDRESS" "$SOURCE_ID"
+REPORT_AT="$(cast block latest --field timestamp --rpc-url "$LOCAL_RPC_URL")"
+node -e 'const fs=require("fs"); const [out,adapter,source,reportedAt]=process.argv.slice(1); fs.writeFileSync(out, JSON.stringify({chainId:"31337",adapter,sourceId:source,cpi:"1.000000",reportedAt}));' \
+  "$REPORT_INPUT" "$ADAPTER_ADDRESS" "$SOURCE_ID" "$REPORT_AT"
 node "$ROOT_DIR/scripts/prepare-cpi-report.mjs" --input "$REPORT_INPUT" --typed-data-out "$TYPED_DATA" >/dev/null
 SIGNER_ONE_ADDRESS="$(cast wallet address --private-key "$SIGNER_ONE_KEY")"
 SIGNER_TWO_ADDRESS="$(cast wallet address --private-key "$SIGNER_TWO_KEY")"

@@ -105,6 +105,35 @@ export function validateSignatureSet(signerValues, signatureValues) {
   return { signers, signatures };
 }
 
+/**
+ * Checks the report against the live timestamp state that the adapter and PSM will enforce.
+ * Keeping this pure makes the safety boundary testable without a wallet or an RPC process.
+ */
+export function validateReportState({
+  typedData,
+  now,
+  adapterLastSubmittedTimestamp,
+  psmLastReportTimestamp,
+  psmMaxReportAge,
+}) {
+  const reportedAt = BigInt(typedData.message.reportedAt);
+  const nowValue = BigInt(now);
+  const adapterWatermark = BigInt(adapterLastSubmittedTimestamp);
+  const psmWatermark = BigInt(psmLastReportTimestamp);
+  const maxReportAge = BigInt(psmMaxReportAge);
+  if (reportedAt > nowValue) throw new Error("report timestamp is in the future for the live RPC");
+  if (nowValue - reportedAt > maxReportAge) throw new Error("report is older than the PSM freshness window");
+  if (reportedAt <= adapterWatermark) throw new Error("report timestamp does not advance the adapter watermark");
+  if (reportedAt <= psmWatermark) throw new Error("report timestamp does not advance the PSM watermark");
+  return {
+    reportedAt: reportedAt.toString(),
+    checkedAt: nowValue.toString(),
+    adapterPreviousReportTimestamp: adapterWatermark.toString(),
+    psmPreviousReportTimestamp: psmWatermark.toString(),
+    maxReportAge: maxReportAge.toString(),
+  };
+}
+
 export function verifyReport({ typedDataPath, rpcUrl, adapter, signerValues, signatureValues, castCommand = "cast" }) {
   const typedData = validateTypedData(JSON.parse(readFileSync(typedDataPath, "utf8")));
   const { signers, signatures } = validateSignatureSet(signerValues, signatureValues);
@@ -122,6 +151,32 @@ export function verifyReport({ typedDataPath, rpcUrl, adapter, signerValues, sig
   if (typedData.message.sourceId.toLowerCase() !== onChainSourceId) {
     throw new Error("typed data sourceId does not match the adapter");
   }
+  const psm = firstCastValue(
+    runCast(["call", normalizedAdapter, "psm()(address)", "--rpc-url", rpcUrl], castCommand),
+    "PSM address",
+  ).toLowerCase();
+  const adapterLastSubmittedTimestamp = BigInt(
+    firstCastValue(
+      runCast(["call", normalizedAdapter, "lastSubmittedTimestamp()(uint256)", "--rpc-url", rpcUrl], castCommand),
+      "adapter report watermark",
+    ),
+  );
+  const psmLastReportTimestamp = BigInt(
+    firstCastValue(runCast(["call", psm, "lastReportTimestamp()(uint256)", "--rpc-url", rpcUrl], castCommand), "PSM report watermark"),
+  );
+  const psmMaxReportAge = BigInt(
+    firstCastValue(runCast(["call", psm, "MAX_REPORT_AGE()(uint256)", "--rpc-url", rpcUrl], castCommand), "PSM report age"),
+  );
+  const checkedAt = BigInt(
+    firstCastValue(runCast(["block", "latest", "--field", "timestamp", "--rpc-url", rpcUrl], castCommand), "block timestamp"),
+  );
+  const reportState = validateReportState({
+    typedData,
+    now: checkedAt,
+    adapterLastSubmittedTimestamp,
+    psmLastReportTimestamp,
+    psmMaxReportAge,
+  });
   const threshold = BigInt(
     firstCastValue(runCast(["call", normalizedAdapter, "threshold()(uint256)", "--rpc-url", rpcUrl], castCommand), "threshold"),
   );
@@ -143,7 +198,9 @@ export function verifyReport({ typedDataPath, rpcUrl, adapter, signerValues, sig
     status: "verified",
     typedDataPath: path.resolve(typedDataPath),
     adapter: typedData.domain.verifyingContract.toLowerCase(),
+    psm,
     sourceId: typedData.message.sourceId.toLowerCase(),
+    ...reportState,
     signers,
     signatureCount: signatures.length,
     adapterSignerCount: onChainSigners.length,
