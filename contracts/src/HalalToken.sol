@@ -28,6 +28,7 @@ contract HalalToken is ERC20, ERC20Permit, ERC20Votes, AccessControl {
 
     error ZeroAddress();
     error GenesisAlreadyMinted();
+    error GenesisRecipientsNotDistinct();
 
     /// @param admin Temporary deployer-controlled admin; deploy script must transfer this to the DAO
     /// timelock and revoke the deployer's own roles once the full system is wired up.
@@ -43,6 +44,7 @@ contract HalalToken is ERC20, ERC20Permit, ERC20Votes, AccessControl {
     function initialMint(address teamVesting, address treasuryVesting) external onlyRole(DEFAULT_ADMIN_ROLE) {
         if (genesisMinted) revert GenesisAlreadyMinted();
         if (teamVesting == address(0) || treasuryVesting == address(0)) revert ZeroAddress();
+        if (teamVesting == treasuryVesting) revert GenesisRecipientsNotDistinct();
         genesisMinted = true;
         _mint(teamVesting, TEAM_ALLOCATION);
         _mint(treasuryVesting, TREASURY_ALLOCATION);

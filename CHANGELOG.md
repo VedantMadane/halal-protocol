@@ -470,3 +470,8 @@ The project remains unaudited and is not production-ready. See [`SECURITY.md`](S
 - Added a contributor guide for extending deployment-configuration regression tests, including the
   production/local-demo boundary, focused commands, and documentation-count checklist.
 - Linked the guide from the contributor map and contribution instructions.
+## [0.1.0-alpha.120] - 2026-08-25
+
+- Made `HalalToken.initialMint` reject identical team and treasury vesting recipients as a
+  defense-in-depth custody boundary.
+- Added a focused regression and synchronized the current Foundry test counts.
