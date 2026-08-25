@@ -61,10 +61,12 @@ at all — it is fully self-contained so it can be built, tested, and deployed w
 Chainlink Functions subscription. Concretely:
 
 - `updateCPI(uint256 reportedCPI)` is gated by a dedicated `UPDATER_ROLE` (not the DAO's own
-  role) and is bounds-, rate-, cadence-, and reserve-limited: it reverts with `RateOutOfBounds` outside
+  role) and is bounds-, rate-, and step-limited, cadence-limited after bootstrap, and
+  reserve-limited: it reverts with `RateOutOfBounds` outside
   `[MIN_CPI, MAX_CPI]` (0.1x–2.0x), with `StepTooLarge` if the move exceeds `MAX_CPI_STEP_BPS`
   (20%) in one call, and with `UpdateTooSoon` if called before `minUpdateInterval` (25 days by
-  default) has elapsed since the last update. It also reverts with `RateWouldUnderCollateralize` if
+  default) has elapsed since the last accepted report or governance override. The first fresh
+  report can bootstrap immediately. It also reverts with `RateWouldUnderCollateralize` if
   the new rate would require more reserve than the PSM currently holds. It's a *report submission*
   function, not an oracle call.
 - `updateCPIWithTimestamp(uint256 reportedCPI, uint256 reportedAt)` is the preferred production

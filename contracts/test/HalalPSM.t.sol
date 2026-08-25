@@ -257,11 +257,21 @@ contract HalalPSMTest is Deployers {
         vm.prank(address(timelock));
         psm.grantRole(updaterRole, address(this));
 
-        // lastUpdated starts at deploy time, so even the first updater submission must wait out
-        // minUpdateInterval before it's accepted
-        vm.warp(block.timestamp + psm.minUpdateInterval() + 1);
         vm.expectRevert(HalalPSM.StepTooLarge.selector);
         psm.updateCPI(1_300_000); // >20% jump from 1.0
+    }
+
+    function test_FirstUpdaterReportIsAcceptedImmediately() public {
+        bytes32 updaterRole = psm.UPDATER_ROLE();
+        vm.prank(address(timelock));
+        psm.grantRole(updaterRole, address(this));
+
+        uint256 reportTimestamp = block.timestamp - 1;
+        psm.updateCPIWithTimestamp(1_050_000, reportTimestamp);
+
+        assertEq(psm.cpiRate(), 1_050_000);
+        assertEq(psm.lastReportTimestamp(), reportTimestamp);
+        assertEq(psm.lastUpdated(), block.timestamp);
     }
 
     function test_ConstructorCanBootstrapUpdaterAndDAOCanRevokeIt() public {
@@ -271,7 +281,6 @@ contract HalalPSMTest is Deployers {
 
         assertTrue(bootstrappedPsm.hasRole(bootstrappedPsm.UPDATER_ROLE(), updater));
 
-        vm.warp(block.timestamp + bootstrappedPsm.minUpdateInterval() + 1);
         vm.prank(updater);
         bootstrappedPsm.updateCPI(1_050_000);
         assertEq(bootstrappedPsm.cpiRate(), 1_050_000);
@@ -417,6 +426,7 @@ contract HalalPSMTest is Deployers {
         psm.grantRole(updaterRole, address(this));
         vm.stopPrank();
 
+        psm.updateCPI(1_050_000);
         vm.expectRevert(HalalPSM.UpdateTooSoon.selector);
         psm.updateCPI(1_050_000);
     }

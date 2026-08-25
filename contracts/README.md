@@ -7,7 +7,7 @@ the [root README](../README.md) and [`../docs/`](../docs).
 ## Layout
 
 - `src/` — the five core contracts.
-- `test/` — Foundry test suite (135 tests at the time of writing: 132 unit/configuration tests plus 3 stateful
+- `test/` — Foundry test suite (136 tests at the time of writing: 133 unit/configuration tests plus 3 stateful
   PSM invariants; run `forge test` to confirm).
 - `script/Deploy.s.sol` — full deployment script (token, vesting, DAO, timelock, role wiring).
 - `../scripts/verify-deployment.sh` — read-only post-deployment wiring and role verifier.

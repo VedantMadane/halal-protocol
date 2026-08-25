@@ -286,8 +286,8 @@ contract HalalPSM is AccessControl, ReentrancyGuard {
 
     // ── Oracle / rate management ─────────────────────────────────────────
 
-    /// @notice Submits a new CPI reading using the block timestamp as the report timestamp. Rate-,
-    /// step-, cadence-, and reserve-limited so a
+    /// @notice Submits a new CPI reading using the block timestamp as the report timestamp. It is
+    /// rate- and step-limited, cadence-limited after bootstrap, and reserve-limited so a
     /// malfunctioning or compromised updater cannot move the peg further than `MAX_CPI_STEP_BPS`,
     /// more often than `minUpdateInterval`, or above the reserve currently held for all outstanding
     /// PSM-issued HLC. Governance can use `mockCPI` for an explicitly approved emergency override.
@@ -306,9 +306,13 @@ contract HalalPSM is AccessControl, ReentrancyGuard {
 
     function _updateCPI(uint256 reportedCPI, uint256 reportedAt) internal {
         // validator timestamp manipulation is bounded to seconds, negligible against a multi-day interval
-        // forge-lint: disable-next-line(block-timestamp)
-        if (block.timestamp < lastUpdated || block.timestamp - lastUpdated < minUpdateInterval) {
-            revert UpdateTooSoon();
+        // The first fresh report bootstraps the feed immediately. Once a report or governance
+        // override has established the watermark, enforce the configured cadence between updates.
+        if (lastReportTimestamp != 0) {
+            // forge-lint: disable-next-line(block-timestamp)
+            if (block.timestamp < lastUpdated || block.timestamp - lastUpdated < minUpdateInterval) {
+                revert UpdateTooSoon();
+            }
         }
         // forge-lint: disable-next-line(block-timestamp)
         if (reportedAt > block.timestamp || (lastReportTimestamp != 0 && reportedAt <= lastReportTimestamp)) {

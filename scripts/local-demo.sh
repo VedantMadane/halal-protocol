@@ -70,8 +70,6 @@ value_from_env() {
 
 LOCAL_PSM="$(value_from_env NEXT_PUBLIC_HLC_PSM_31337)"
 echo "Seeding a fresh local CPI report..."
-cast rpc evm_increaseTime 2160001 --rpc-url "$LOCAL_RPC_URL" >/dev/null
-cast rpc evm_mine --rpc-url "$LOCAL_RPC_URL" >/dev/null
 LOCAL_REPORT_AT="$(cast block latest --field timestamp --rpc-url "$LOCAL_RPC_URL")"
 cast send "$LOCAL_PSM" 'updateCPIWithTimestamp(uint256,uint256)' 1000000 "$LOCAL_REPORT_AT" \
   --private-key "$LOCAL_UPDATER_KEY" --rpc-url "$LOCAL_RPC_URL" >/dev/null
@@ -99,9 +97,13 @@ else
   APP_ENV_CREATED="true"
 fi
 
+LOCAL_DEPLOYMENT_BLOCK="$(cast block latest --field number --rpc-url "$LOCAL_RPC_URL")"
+
 {
   echo "NEXT_PUBLIC_RPC_URL_31337=$LOCAL_RPC_URL"
-  grep 'NEXT_PUBLIC_HLC_' "$DEPLOY_LOG" | sed -e 's/^ *//' -e 's/= /=/'
+  grep 'NEXT_PUBLIC_HLC_' "$DEPLOY_LOG" \
+    | sed -e 's/^ *//' -e 's/= /=/' \
+    | sed "s/^NEXT_PUBLIC_HLC_DEPLOYMENT_BLOCK_31337=.*/NEXT_PUBLIC_HLC_DEPLOYMENT_BLOCK_31337=$LOCAL_DEPLOYMENT_BLOCK/"
 } > "$APP_ENV_FILE"
 
 echo "Temporary frontend configuration written to app/.env.local (restored on exit)"

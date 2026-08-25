@@ -112,15 +112,13 @@ jobs:
           set -e
           test "$HEALTH_EXIT" -ne 0
           echo "$HEALTH_OUTPUT" | grep -q 'reason=timestamped_cpi_report_missing'
-          cast rpc evm_increaseTime 2160001 --rpc-url http://127.0.0.1:18545 >/dev/null
-          cast rpc evm_mine --rpc-url http://127.0.0.1:18545 >/dev/null
           REPORT_AT=$(cast block latest --field timestamp --rpc-url http://127.0.0.1:18545)
           cast send "$PSM_ADDRESS" 'updateCPIWithTimestamp(uint256,uint256)' 1000000 "$REPORT_AT" \
             --private-key "$LOCAL_UPDATER_KEY" --rpc-url http://127.0.0.1:18545 >/dev/null
           RPC_URL=http://127.0.0.1:18545 PSM="$PSM_ADDRESS" ../scripts/check-psm-health.sh | grep -q '^status=healthy$'
 
       - name: forge test
-        run: forge test -vvv
+        run: forge test --force -vvv
 
       - name: forge lint (first-party code)
         run: forge lint src test script --severity high --severity med --severity low --severity gas

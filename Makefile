@@ -6,7 +6,7 @@ contracts-build:
 	cd contracts && forge build
 
 contracts-test:
-	cd contracts && forge test
+	cd contracts && forge test --force
 
 contracts-lint:
 	cd contracts && forge fmt --check src test script && forge lint src test script --severity high --severity med --severity low --severity gas

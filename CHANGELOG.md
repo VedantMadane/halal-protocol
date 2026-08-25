@@ -4,11 +4,15 @@ All notable changes to this project are documented here.
 
 ## Unreleased
 
+- Allowed the first fresh CPI report immediately after deployment while retaining the step,
+  timestamp, freshness, and reserve-adequacy checks; later reports still observe the configured
+  cadence. The local demo and CI smoke test no longer fake a 25-day wait.
+- Forced test recompilation in the primary Make and CI verification paths so stale Foundry
+  artifacts cannot produce a false-green run with no discovered tests.
 - Made the dApp reject zero deployment blocks, preventing an incomplete registry entry from
   triggering an unbounded governance history scan.
 - Added vesting regression coverage for partial-release revocation and full-vesting revocation,
-  confirming that the DAO receives only unvested tokens and released balances remain accounted for;
-  the documented suite now has 135 tests.
+  confirming that the DAO receives only unvested tokens and released balances remain accounted for.
 - Added wallet-free read-only dApp onboarding: the first configured deployment (or
   `NEXT_PUBLIC_READ_CHAIN_ID`) is browsable before a wallet connects, while signing remains gated
   by wallet connection and deployment integrity.

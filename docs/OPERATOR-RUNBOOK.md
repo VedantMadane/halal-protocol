@@ -78,9 +78,10 @@ cast send "$PSM" \
   --private-key "$UPDATER_KEY" --rpc-url "$RPC_URL"
 ```
 
-The report must be in the past, newer than the last accepted report, no more than 90 days old, and
-accepted after the configured update interval. The updater account cannot bypass the CPI bounds,
-step limit, cadence, freshness, or reserve-adequacy checks.
+The first report can be accepted immediately when it is in the past, no more than 90 days old, and
+new enough to establish the report watermark. Later reports must advance that watermark and wait
+for the configured update interval. The updater account cannot bypass the CPI bounds, step limit,
+cadence, freshness, or reserve-adequacy checks.
 
 Confirm the result without a signer:
 

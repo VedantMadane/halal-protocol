@@ -7,7 +7,7 @@ read [`SECURITY.md`](../SECURITY.md) before using real funds. It includes:
 
 - **HalalDAO.sol** - OpenZeppelin Governor with voting
 - **HalalTimelock.sol** - 2-day execution delay
-- **Full Test Suite** - 135 tests (132 unit/configuration tests plus 3 stateful PSM invariants) covering the core workflows
+- **Full Test Suite** - 136 tests (133 unit/configuration tests plus 3 stateful PSM invariants) covering the core workflows
 - **Deployment Script** - One-command setup
 - **Example Proposals** - Ready-to-use proposal templates
 
@@ -62,9 +62,10 @@ effect: DAO-approved manual override, bounded to 0.1–2.0 but not subject to th
 
 Routine oracle reports should use `psm.updateCPIWithTimestamp(reportedCPI, reportedAt)` from a
 separately granted `UPDATER_ROLE` account; reports must be monotonic, no more than 90 days old,
-and not from the future. The first report may have been published just before deployment; later
-reports must advance the on-chain watermark. The account may be bootstrapped with `CPI_UPDATER` or granted later by
-governance. `updateCPI(reportedCPI)` remains as a compatibility path.
+and not from the future. The first report can be accepted immediately; later reports must advance
+the on-chain watermark and observe the configured cadence. The account may be bootstrapped with
+`CPI_UPDATER` or granted later by governance. `updateCPI(reportedCPI)` remains as a compatibility
+path.
 
 ### 2. **Switch CPI Source**
 ```solidity
@@ -166,7 +167,7 @@ forge test -vvv
 # ✓ test_CastVote_For
 # ✓ test_FullProposalFlow
 # ✓ test_DAO_ControlsPSM_AfterTakeover
-# ... (135 tests: 132 unit/configuration + 3 invariants) ...
+# ... (136 tests: 133 unit/configuration + 3 invariants) ...
 ```
 
 ### Step 3: Verify on Arbiscan
@@ -351,7 +352,7 @@ timelocked migration of protocol roles.
 
 Before moving to Arbitrum mainnet:
 
-- [ ] All tests passing locally and on the target network (135/135 local suite)
+- [ ] All tests passing locally and on the target network (136/136 local suite)
 - [ ] Manual proposal cycle tested (create → vote → queue → execute)
 - [ ] Team vesting wallet is multisig (e.g., Gnosis Safe)
 - [ ] Treasury vesting wallet is multisig
@@ -366,7 +367,7 @@ Before moving to Arbitrum mainnet:
 ## Files Included
 
 - `contracts/src/` — five first-party protocol contracts
-- `contracts/test/` — 135 tests (132 unit/configuration tests plus 3 stateful PSM invariants) and fixtures
+- `contracts/test/` — 136 tests (133 unit/configuration tests plus 3 stateful PSM invariants) and fixtures
 - `contracts/script/Deploy.s.sol` — full-system deployment script
 - `contracts/script/Examples.s.sol` — governance proposal examples
 - `app/` — Next.js frontend
