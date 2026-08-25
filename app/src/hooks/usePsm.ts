@@ -30,7 +30,7 @@ export function usePsmState() {
   // These getters were added after the initial immutable deployments. Keep them in a separate,
   // optional read batch so an older deployment still exposes its core PSM data and simply shows
   // source-report metadata as unavailable.
-  const { data: reportData } = useReadContracts({
+  const { data: reportData, isLoading: reportLoading } = useReadContracts({
     contracts: deployment
       ? ([
           { address: deployment.psm, abi: halalPsmAbi, functionName: "lastReportTimestamp" },
@@ -59,7 +59,7 @@ export function usePsmState() {
     reserveSymbol: get<string>(10),
     lastReportTimestamp: getReport<bigint>(0),
     maxReportAge: getReport<bigint>(1),
-    isLoading,
+    isLoading: isLoading || reportLoading,
     isError: isError || readFailed,
     error: error ?? (readFailed ? partialReadError() : undefined),
     refetch,

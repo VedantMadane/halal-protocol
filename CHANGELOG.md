@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## Unreleased
 
+- Added dApp-level PSM safety gates: new deposits pause when the CPI report is missing/stale or the
+  reserve is under-collateralized, while users retain a visible recovery path for withdrawals.
 - Restricted HLC burning to the PSM's accounting-aware `BURNER_ROLE`, preventing direct token burns
   from stranding PSM redemption credit; deployment verification and tests now assert the new role.
 - Added a risk-ordered public roadmap covering audit readiness, testnet operations, monitoring, and

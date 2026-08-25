@@ -58,3 +58,8 @@ pnpm gen:abis
 
 The frontend is a read/write client for deployed contracts. Contract sources and deployment
 instructions live in [`../contracts`](../contracts) and [`../docs`](../docs).
+
+The PSM page pauses new deposits when the deployment has no verifiable timestamped CPI report, the
+report is older than the contract's `MAX_REPORT_AGE`, or the reserve is below `reserveRequired()`.
+Withdrawals remain available so users can use the contract's recovery path when their own
+redemption credit can still be serviced.

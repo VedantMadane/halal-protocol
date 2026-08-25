@@ -34,7 +34,7 @@ function safeParseUnits(value: string, decimals: number): bigint | undefined {
   }
 }
 
-export function SwapForm({ cpiRate }: { cpiRate: bigint | undefined }) {
+export function SwapForm({ cpiRate, depositBlockedReason }: { cpiRate: bigint | undefined; depositBlockedReason?: string }) {
   const { deployment } = useDeployment();
   const deploymentIntegrity = useDeploymentIntegrity();
   const { address, isConnected } = useAccount();
@@ -53,6 +53,7 @@ export function SwapForm({ cpiRate }: { cpiRate: bigint | undefined }) {
       deploymentReserve={deployment.reserveToken}
       reserveSymbolFallback={deployment.reserveTokenSymbol}
       cpiRate={cpiRate}
+      depositBlockedReason={depositBlockedReason}
       address={address}
       isConnected={isConnected}
       user={user}
@@ -73,6 +74,7 @@ function SwapFormInner({
   deploymentReserve,
   reserveSymbolFallback,
   cpiRate,
+  depositBlockedReason,
   isConnected,
   user,
   mode,
@@ -88,6 +90,7 @@ function SwapFormInner({
   deploymentReserve: `0x${string}`;
   reserveSymbolFallback: string;
   cpiRate: bigint | undefined;
+  depositBlockedReason?: string;
   address: `0x${string}` | undefined;
   isConnected: boolean;
   user: ReturnType<typeof usePsmUserState>;
@@ -236,7 +239,8 @@ function SwapFormInner({
         minOutput !== undefined &&
         (!supportsDeadlineActions || deadline !== undefined) &&
         !needsApproval &&
-        !insufficientBalance,
+        !insufficientBalance &&
+        (mode === "withdraw" || depositBlockedReason === undefined),
     },
   });
 
@@ -277,6 +281,11 @@ function SwapFormInner({
       {readError && (
         <Alert tone="danger" title="Wallet or reserve data could not be loaded">
           {readErrorMessage} Refresh the page or check your network before submitting a transaction.
+        </Alert>
+      )}
+      {mode === "deposit" && depositBlockedReason && (
+        <Alert tone="danger" title="Deposit paused by protocol safety checks">
+          {depositBlockedReason}
         </Alert>
       )}
       {actionSimulation.isError && (
@@ -399,6 +408,10 @@ function SwapFormInner({
       ) : !deploymentVerified ? (
         <Button className="w-full" disabled>
           {verificationChecking ? "Verifying deployment" : "Deployment not verified"}
+        </Button>
+      ) : mode === "deposit" && depositBlockedReason ? (
+        <Button className="w-full" disabled>
+          Deposits paused until the protocol is healthy
         </Button>
       ) : !walletDataReady || !reserveMetadataReady ? (
         <Button className="w-full" disabled>

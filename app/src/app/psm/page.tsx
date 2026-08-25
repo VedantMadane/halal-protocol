@@ -12,10 +12,13 @@ import { useDeployment } from "@/hooks/useDeployment";
 import { usePsmState } from "@/hooks/usePsm";
 import { getFriendlyErrorMessage } from "@/lib/errors";
 import { DeploymentIntegrityBanner } from "@/components/DeploymentIntegrityBanner";
+import { PsmSafetyAlert } from "@/components/psm/PsmSafetyAlert";
+import { usePsmSafety } from "@/hooks/usePsmSafety";
 
 export default function PsmPage() {
   const { isDeployed } = useDeployment();
   const psm = usePsmState();
+  const safety = usePsmSafety(psm);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -29,6 +32,7 @@ export default function PsmPage() {
       ) : (
         <div className="space-y-4">
           <DeploymentIntegrityBanner />
+          <PsmSafetyAlert safety={safety} />
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
             <div className="lg:col-span-3">
               {psm.isError && (
@@ -41,7 +45,7 @@ export default function PsmPage() {
                   <CardTitle>Swap</CardTitle>
                 </CardHeader>
                 <CardBody>
-                  <SwapForm cpiRate={psm.cpiRate} />
+                  <SwapForm cpiRate={psm.cpiRate} depositBlockedReason={safety.depositBlockedReason} />
                 </CardBody>
               </Card>
               <Card className="mt-4">
