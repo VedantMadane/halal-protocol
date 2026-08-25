@@ -74,6 +74,8 @@ function deploymentFromEnvironment(env: DeploymentEnvironment): HalalDeployment 
   ];
   if (addresses.some((address) => !address || !isAddress(address) || address === zeroAddress)) return undefined;
   if (!env.reserveTokenSymbol || !env.deploymentBlock || !/^\d+$/.test(env.deploymentBlock)) return undefined;
+  const deploymentBlock = BigInt(env.deploymentBlock);
+  if (deploymentBlock === 0n) return undefined;
 
   return {
     token: env.token as Address,
@@ -84,7 +86,7 @@ function deploymentFromEnvironment(env: DeploymentEnvironment): HalalDeployment 
     timelock: env.timelock as Address,
     reserveToken: env.reserveToken as Address,
     reserveTokenSymbol: env.reserveTokenSymbol,
-    deploymentBlock: BigInt(env.deploymentBlock),
+    deploymentBlock,
   };
 }
 

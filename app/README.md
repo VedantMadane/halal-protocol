@@ -40,6 +40,10 @@ The app reads the first configured deployment before a wallet connects. Set
 public network. The header labels this state `Read-only`; users must connect a wallet before
 approval, swaps, votes, or other signing actions become available.
 
+`NEXT_PUBLIC_HLC_DEPLOYMENT_BLOCK_<chainId>` must be the positive block number where the deployment
+was mined. The app rejects `0` and incomplete address sets so it does not scan governance history
+from an unbounded starting point.
+
 Before enabling signing actions, the dApp also verifies the configured PSM, DAO, vesting, token, and
 timelock links against the selected chain. A mismatched or unreadable contract graph is shown as a
 blocking warning; do not override that warning by signing transactions manually.

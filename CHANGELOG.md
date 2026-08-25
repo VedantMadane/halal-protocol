@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## Unreleased
 
+- Made the dApp reject zero deployment blocks, preventing an incomplete registry entry from
+  triggering an unbounded governance history scan.
 - Added vesting regression coverage for partial-release revocation and full-vesting revocation,
   confirming that the DAO receives only unvested tokens and released balances remain accounted for;
   the documented suite now has 135 tests.
