@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.137 - 2026-08-26
+
+- Added browser coverage for a supported network with no configured deployment, asserting the
+  operator-facing chain-specific recovery guidance.
+- Made the disposable dApp suite cover six deterministic health, governance, and transaction paths.
+
 ## 0.1.0-alpha.136 - 2026-08-26
 
 - Added browser coverage for malformed governance ETH values, asserting the user-facing validation

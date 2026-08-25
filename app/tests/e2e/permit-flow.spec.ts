@@ -111,14 +111,14 @@ async function submitDivergentPsmReport() {
   await publicClient.waitForTransactionReceipt({ hash: reportHash });
 }
 
-async function installAnvilProvider(page: Page) {
-  await page.addInitScript(({ rpcUrl, account }) => {
+async function installAnvilProvider(page: Page, chainId: number = LOCAL_CHAIN.id) {
+  await page.addInitScript(({ rpcUrl, account, chainId: injectedChainId }) => {
     const listeners = new Map<string, Set<(...args: unknown[]) => void>>();
     const provider = {
       isMetaMask: true,
       request: async ({ method, params = [] }: { method: string; params?: unknown[] }) => {
         if (method === "eth_accounts" || method === "eth_requestAccounts") return [account];
-        if (method === "eth_chainId") return "0x7a69";
+        if (method === "eth_chainId") return `0x${injectedChainId.toString(16)}`;
         if (method === "wallet_switchEthereumChain" || method === "wallet_addEthereumChain") return null;
         const response = await fetch(rpcUrl, {
           method: "POST",
@@ -150,7 +150,7 @@ async function installAnvilProvider(page: Page) {
       removeListener: (event: string, listener: (...args: unknown[]) => void) => listeners.get(event)?.delete(listener),
     };
     Object.defineProperty(window, "ethereum", { configurable: false, value: provider });
-  }, { rpcUrl: RPC_URL, account: ANVIL_ACCOUNT });
+  }, { rpcUrl: RPC_URL, account: ANVIL_ACCOUNT, chainId });
 }
 
 test("renders deployment health without a wallet provider", async ({ page }) => {
@@ -167,6 +167,16 @@ test("renders deployment health without a wallet provider", async ({ page }) => 
   await expect(page.getByText("Signed CPI adapter")).toBeVisible();
   await expect(page.getByText(/2 of 2 configured signers; adapter and PSM watermarks match/)).toBeVisible();
   await expect(page.getByRole("link", { name: "Open protocol dashboard" })).toHaveAttribute("href", "/");
+});
+
+test("explains a supported network with no configured deployment", async ({ page }) => {
+  await installAnvilProvider(page, 421_614);
+  await page.goto("/health");
+
+  await expect(page.getByRole("heading", { name: "Deployment health" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Not deployed on this network" })).toBeVisible();
+  await expect(page.getByText(/Halal has no contracts configured for Arbitrum Sepolia yet/)).toBeVisible();
+  await expect(page.getByText("Connect to a supported network or check the project's deployment configuration for chain id 421614.")).toBeVisible();
 });
 
 test("blocks an invalid governance action before any transaction is submitted", async ({ page }) => {
