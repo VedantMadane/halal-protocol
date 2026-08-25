@@ -215,6 +215,41 @@ ID and adapter address before submitting the exact quorum to `submitReport`. Kee
 release, normalized report, typed-data file, signer identities, and submission transaction together
 in the report archive. Never place a production signer key in the repository or shell history.
 
+## Reference source profile: U.S. CPI-U
+
+The repository includes a parser for the BLS CPI-U all-items series `CUUR0000SA0`, which BLS
+identifies as the all-items U.S. city average for all urban consumers, not seasonally adjusted.
+The official API exposes the series ID, monthly period, and index value through its latest-series
+endpoint. It does not supply the source publication timestamp required by the PSM, so the operator
+must copy that timestamp from the archived BLS release record and retain both records together.
+
+Fetch the latest series response from the official API, then convert the raw index into the protocol
+ratio using the deployment's documented base index:
+
+```shell
+curl --fail --silent --show-error \
+  'https://api.bls.gov/publicAPI/v2/timeseries/data/CUUR0000SA0?latest=true' \
+  > bls-cpi-response.json
+
+node scripts/parse-bls-cpi.mjs \
+  --input bls-cpi-response.json \
+  --output cpi-report.json \
+  --base-index 300.000 \
+  --chain-id 421614 \
+  --adapter 0x... \
+  --source-id 0x... \
+  --reported-at "$BLS_RELEASE_TIMESTAMP"
+```
+
+The parser accepts one monthly point for the exact series, computes
+`rawIndex / baseIndex * 1_000_000` with integer half-up rounding, and then applies the PSM's
+`[0.1, 2.0]` range. Include the series ID, base index, rounding rule, and parser version in the
+source ID and deployment journal. The base index becomes part of the protocol's economic policy;
+changing it requires a new source ID and adapter review.
+
+The BLS profile provides a reproducible source parser. It does not settle the deployment's revision
+policy, release-calendar monitoring, signer custody, or independent review requirements.
+
 ## Open decisions for the implementer
 
 The following choices require a written deployment decision before implementation:

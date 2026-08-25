@@ -15,6 +15,8 @@ the [root README](../README.md) and [`../docs/`](../docs).
   grant the PSM updater role.
 - `../scripts/verify-deployment.sh` — read-only post-deployment wiring and role verifier.
 - `../scripts/check-psm-health.sh` — read-only monitoring check for reserve deficits and CPI freshness.
+- `../scripts/prepare-cpi-report.mjs` and `../scripts/parse-bls-cpi.mjs` — deterministic report
+  normalization tools for the optional signed adapter.
 - The production deployer selects an approximately one-week voting period on Arbitrum by default;
   review or override it for every target chain.
 - `script/Examples.s.sol` — example governance proposal templates (CPI update, source switch,

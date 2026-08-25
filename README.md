@@ -51,6 +51,7 @@ conservative accounting model:
 | Does the PSM fail closed on missing or stale CPI data? | `HalalPSM` rejects deposits until `isCPIReportFresh()` is true; the dApp mirrors the gate |
 | Can an operator audit a deployment without a wallet? | [`scripts/check-deployment-health.sh`](scripts/check-deployment-health.sh) combines wiring and PSM health checks |
 | Can I model CPI-driven reserve needs reproducibly? | [`docs/ECONOMIC-MODEL.md`](docs/ECONOMIC-MODEL.md) and `make economic-model` |
+| Can I reproduce an official CPI report payload? | [`scripts/parse-bls-cpi.mjs`](scripts/parse-bls-cpi.mjs) and [`docs/CPI-ADAPTER-SPEC.md`](docs/CPI-ADAPTER-SPEC.md) |
 | Are public deployment addresses reviewable? | [`docs/DEPLOYMENT-REGISTRY.md`](docs/DEPLOYMENT-REGISTRY.md) and the checked-in registry |
 | Are generated frontend interfaces kept in sync? | ABI regeneration is a required CI check |
 | Is the security posture stated plainly? | [`SECURITY.md`](SECURITY.md) and [`docs/THREAT-MODEL.md`](docs/THREAT-MODEL.md) |
