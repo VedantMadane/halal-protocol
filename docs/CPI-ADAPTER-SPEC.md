@@ -74,7 +74,7 @@ The deployment policy must define these fields before it grants `UPDATER_ROLE`:
 | Field | Required meaning |
 | --- | --- |
 | `reportedCPI` | The source's CPI value converted to `CPI_PRECISION` units. `1_000_000` means 1.0. |
-| `reportedAt` | The source publication timestamp in Unix seconds, not the relayer submission time. |
+| `reportedAt` | A nonzero source publication timestamp in Unix seconds, not the relayer submission time. |
 | source identity | The agency, index series, geography, release calendar, and source URL. |
 | revision policy | Whether a revised publication can replace an accepted report and how governance approves it. |
 | unit policy | The exact source units, scaling, rounding, and missing-value behavior. |

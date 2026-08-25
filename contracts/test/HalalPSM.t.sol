@@ -324,6 +324,7 @@ contract HalalPSMTest is Deployers {
     }
 
     function test_FirstUpdaterReportIsAcceptedImmediately() public {
+        vm.warp(2);
         MockERC20 freshReserve = new MockERC20("Fresh DAI", "fDAI", 18);
         HalalPSM freshPsm = _newPsmWithUpdater(freshReserve);
 
@@ -333,6 +334,17 @@ contract HalalPSMTest is Deployers {
         assertEq(freshPsm.cpiRate(), 1_050_000);
         assertEq(freshPsm.lastReportTimestamp(), reportTimestamp);
         assertEq(freshPsm.lastUpdated(), block.timestamp);
+    }
+
+    function test_UpdaterRejectsZeroReportTimestampDuringBootstrap() public {
+        MockERC20 freshReserve = new MockERC20("Fresh DAI", "fDAI", 18);
+        HalalPSM freshPsm = _newPsmWithUpdater(freshReserve);
+
+        vm.expectRevert(HalalPSM.InvalidReportTimestamp.selector);
+        freshPsm.updateCPIWithTimestamp(1_050_000, 0);
+
+        assertEq(freshPsm.cpiRate(), freshPsm.CPI_PRECISION());
+        assertEq(freshPsm.lastReportTimestamp(), 0);
     }
 
     function test_ConstructorCanBootstrapUpdaterAndDAOCanRevokeIt() public {
@@ -377,6 +389,7 @@ contract HalalPSMTest is Deployers {
     }
 
     function test_FirstTimestampedReportCanPrecedeDeployment() public {
+        vm.warp(2);
         MockERC20 freshReserve = new MockERC20("Fresh DAI", "fDAI", 18);
         HalalPSM freshPsm = _newPsmWithUpdater(freshReserve);
 

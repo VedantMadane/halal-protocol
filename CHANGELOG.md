@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.125 - 2026-08-26
+
+- Rejected zero-valued CPI publication timestamps in the PSM, keeping direct updater bootstrap
+  behavior consistent with the signed adapter and freshness watermark.
+- Added a regression test and synchronized published documentation with 168 Foundry tests.
+
 ## 0.1.0-alpha.124 - 2026-08-26
 
 - Hardened the CPI adapter deployment preflight so it rejects a zero private key and PSM addresses

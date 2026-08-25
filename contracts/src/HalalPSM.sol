@@ -397,6 +397,7 @@ contract HalalPSM is AccessControl, ReentrancyGuard {
                 revert UpdateTooSoon();
             }
         }
+        if (reportedAt == 0) revert InvalidReportTimestamp();
         // forge-lint: disable-next-line(block-timestamp)
         if (reportedAt > block.timestamp || (lastReportTimestamp != 0 && reportedAt <= lastReportTimestamp)) {
             revert InvalidReportTimestamp();
