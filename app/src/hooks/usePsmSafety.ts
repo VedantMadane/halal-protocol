@@ -20,9 +20,11 @@ export type PsmSafetyState = {
 };
 
 /**
- * Derives user-facing operating gates from the same freshness and collateral views enforced by
- * the protocol. A stale feed or reserve deficit pauses new deposits, but never hides the recovery
- * path: users may still withdraw their own redeemable credit when the contract permits it.
+ * Derives user-facing operating gates from the protocol's freshness and collateral views. The
+ * contract enforces fresh CPI data on deposits; the frontend also treats a reserve deficit as an
+ * operational stop while governance restores collateral. Deposits are self-funding on-chain and
+ * do not worsen an existing deficit. The UI never hides the recovery path: users may still
+ * withdraw their own redeemable credit when the contract permits it.
  */
 export function usePsmSafety({
   isLoading = false,

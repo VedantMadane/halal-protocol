@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.95 - 2026-08-25
+
+- Clarified that CPI freshness is an on-chain deposit gate while reserve-deficit blocking remains a
+  conservative frontend operating policy; deposits remain self-funding during recovery.
+
 ## 0.1.0-alpha.94 - 2026-08-25
 
 - Added a contributor quickstart linking the local demo, verification command, good-first issues,

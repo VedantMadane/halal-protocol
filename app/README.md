@@ -107,6 +107,8 @@ mismatch as a reason to stop and review the deployment before signing.
 
 The PSM page pauses new deposits when the deployment has no verifiable timestamped CPI report, the
 report is older than the contract's `MAX_REPORT_AGE`, or the reserve is below `reserveRequired()`.
+The stale-report gate is enforced by the contract; the reserve-deficit gate is a conservative
+frontend operating policy because deposits are self-funding and do not worsen an existing deficit.
 Withdrawals remain available so users can use the contract's recovery path when their own
 redemption credit can still be serviced.
 
