@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.111 - 2026-08-25
+
+- Added wallet-free browser coverage proving `/health` blocks when a direct PSM report advances
+  without advancing the configured CPI adapter watermark.
+
 ## 0.1.0-alpha.110 - 2026-08-25
 
 - Added a no-return ERC20 reserve fixture proving `SafeERC20` compatibility through a complete

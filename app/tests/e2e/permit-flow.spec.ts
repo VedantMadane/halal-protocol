@@ -1,6 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 import { readFileSync } from "node:fs";
-import { createPublicClient, createWalletClient, http, parseSignature, parseUnits, recoverTypedDataAddress } from "viem";
+import { createPublicClient, createTestClient, createWalletClient, http, parseSignature, parseUnits, recoverTypedDataAddress } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 
 const RPC_URL = "http://127.0.0.1:18545";
@@ -93,6 +93,24 @@ async function seedRedeemableHlc() {
   await publicClient.waitForTransactionReceipt({ hash: depositHash });
 }
 
+async function submitDivergentPsmReport() {
+  const env = readLocalEnv();
+  const testClient = createTestClient({ chain: LOCAL_CHAIN, mode: "anvil", transport: http(RPC_URL) });
+  const updaterWallet = createWalletClient({ account: ANVIL_UPDATER_ACCOUNT, chain: LOCAL_CHAIN, transport: http(RPC_URL) });
+  const publicClient = createPublicClient({ chain: LOCAL_CHAIN, transport: http(RPC_URL) });
+  await testClient.increaseTime({ seconds: 25 * 24 * 60 * 60 + 1 });
+  await testClient.mine({ blocks: 1 });
+  const block = await publicClient.getBlock({ blockTag: "latest" });
+  const reportHash = await updaterWallet.writeContract({
+    account: ANVIL_UPDATER_ACCOUNT,
+    address: env.NEXT_PUBLIC_HLC_PSM_31337 as `0x${string}`,
+    abi: PSM_ABI,
+    functionName: "updateCPIWithTimestamp",
+    args: [1_000_000n, block.timestamp],
+  });
+  await publicClient.waitForTransactionReceipt({ hash: reportHash });
+}
+
 async function installAnvilProvider(page: Page) {
   await page.addInitScript(({ rpcUrl, account }) => {
     const listeners = new Map<string, Set<(...args: unknown[]) => void>>();
@@ -183,4 +201,13 @@ test("withdraws through the real HLC permit flow on disposable Anvil state", asy
   const publicClient = createPublicClient({ chain: LOCAL_CHAIN, transport: http(RPC_URL) });
   const receipt = await publicClient.waitForTransactionReceipt({ hash: transactionHash as `0x${string}` });
   expect(receipt.status, `permit transaction reverted: ${transactionHash}`).toBe("success");
+});
+
+test("blocks health when the adapter and PSM report watermarks diverge", async ({ page }) => {
+  await submitDivergentPsmReport();
+  await page.goto("/health");
+
+  await expect(page.getByRole("status", { name: "Overall deployment health" })).toContainText("Blocking");
+  await expect(page.getByText("Signed CPI adapter")).toBeVisible();
+  await expect(page.getByText("Adapter quorum, ownership, source identity, or report watermark diverges from the deployment.")).toBeVisible();
 });
