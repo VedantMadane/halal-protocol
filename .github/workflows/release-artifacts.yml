@@ -32,7 +32,7 @@ jobs:
           mkdir -p dist
           archive="dist/halal-protocol-${RELEASE_TAG}.tar.gz"
           git archive --format=tar --prefix="halal-protocol-${RELEASE_TAG}/" "$RELEASE_TAG" | gzip -n > "$archive"
-          sha256sum "$archive" > "${archive}.sha256"
+          (cd dist && sha256sum "$(basename "$archive")" > "$(basename "$archive").sha256")
           cat "${archive}.sha256"
 
       - name: Attest source bundle

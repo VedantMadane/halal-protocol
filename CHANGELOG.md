@@ -2,6 +2,10 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.76 - 2026-08-25
+
+- Fixed the release checksum file so downloaded assets verify from the same directory.
+
 ## 0.1.0-alpha.75 - 2026-08-25
 
 - Pinned the Slither wheel by its SHA-256 hash instead of installing a mutable package reference.
