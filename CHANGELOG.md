@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.91 - 2026-08-25
+
+- Added a CPI adapter submission sequence and evidence map so reviewers can trace source, signer,
+  relayer, adapter, and PSM boundaries with reproducible commands.
+
 ## 0.1.0-alpha.90 - 2026-08-25
 
 - Hardened the shared deployment-integrity check to verify that the configured CPI adapter's

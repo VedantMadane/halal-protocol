@@ -30,6 +30,37 @@ The adapter may use a Chainlink Functions consumer, a separately operated relaye
 reviewed mechanism. The choice belongs in the deployment journal. The adapter must not change the
 PSM's accounting, reserve rules, or emergency governance path.
 
+## Submission sequence
+
+The source publisher, parser, signer quorum, relayer, and PSM each own a separate boundary. The
+sequence below shows which component supplies each fact and where the on-chain checks apply.
+
+```mermaid
+sequenceDiagram
+    participant Source as Official source
+    participant Parser as Parser and policy
+    participant Signers as Signer quorum
+    participant Relayer as Relayer
+    participant Adapter as CPIReportAdapter
+    participant PSM as HalalPSM
+
+    Source->>Parser: Publish index value and release time
+    Parser->>Parser: Validate series, units, release, bounds, and revision policy
+    Parser->>Signers: Share normalized report and archive record
+    Signers->>Signers: Sign CPIReport(value, release time, source ID)
+    Signers-->>Relayer: Return signatures
+    Relayer->>Adapter: submitReport(value, release time, signatures)
+    Adapter->>Adapter: Check EIP-712 domain, source ID, quorum, order, and timestamp
+    Adapter->>PSM: updateCPIWithTimestamp(value, release time)
+    PSM->>PSM: Check bounds, step, cadence, reserve, freshness, and watermark
+    PSM-->>Adapter: Accept or revert
+    Adapter-->>Relayer: Emit report acceptance or revert
+```
+
+The adapter authenticates the signer quorum. The parser and deployment policy establish what the
+signers approved. The PSM enforces economic and timing constraints. A successful transaction does
+not prove that the official source reported the value correctly.
+
 ## Report contract
 
 The adapter submits:
@@ -231,6 +262,22 @@ Before a deployment grants `UPDATER_ROLE`, the adapter contribution must include
 - an independent security review of the adapter, parser, custody path, and deployment policy.
 
 The contribution must document the exact commands and tool versions used to run these tests.
+
+### Evidence map
+
+Reviewers can start with the smallest relevant test or command instead of reading the repository
+in deployment order.
+
+| Boundary | Evidence | Reproduction |
+| --- | --- | --- |
+| EIP-712 domain and source binding | Chain ID, source ID, replay, future timestamp, and signature-order tests | `cd contracts && forge test --match-contract CPIReportAdapterTest` |
+| Signer custody and quorum changes | Rotation, removal, threshold, enumeration, and unauthorized-signer tests | `cd contracts && forge test --match-path test/CPIReportAdapter.t.sol` |
+| PSM acceptance boundary | Bounds, cadence, timestamp, reserve, and stale-report tests | `cd contracts && forge test --match-contract HalalPSMTest` |
+| Accounting invariants | Credit conservation, token supply, and reserve collateralization invariants | `cd contracts && forge test --match-contract HalalPSMInvariantTest` |
+| Source parser | Series identity, integer conversion, malformed input, and timestamp tests | `node --test scripts/test/*.test.mjs` |
+| End-to-end handoff | Two-of-two signing, live adapter verification, and watermark checks | `make adapter-demo` |
+
+These checks provide review evidence. They do not constitute an independent security audit.
 
 ## Report preparation and signing
 

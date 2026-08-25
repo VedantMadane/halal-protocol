@@ -72,6 +72,7 @@ conservative accounting model:
 | Are release sources checksummed and attestable? | [`Release artifacts`](.github/workflows/release-artifacts.yml) publishes a reproducible source bundle, SHA-256 checksum, and build-provenance attestation |
 | Is the security posture stated plainly? | [`SECURITY.md`](SECURITY.md) and [`docs/THREAT-MODEL.md`](docs/THREAT-MODEL.md) |
 | Is the production CPI integration boundary defined? | [`docs/CPI-ADAPTER-SPEC.md`](docs/CPI-ADAPTER-SPEC.md) and [issue #17](https://github.com/fredrikblau/halal-protocol/issues/17) |
+| Can a reviewer trace a CPI report from source publication to PSM acceptance? | [`docs/CPI-ADAPTER-SPEC.md`](docs/CPI-ADAPTER-SPEC.md) includes the submission sequence and evidence map |
 
 The project is still unaudited and not production-ready. The table is evidence of engineering
 discipline, not a safety guarantee.
