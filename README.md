@@ -4,6 +4,7 @@
 [![Security](https://github.com/fredrikblau/halal-protocol/actions/workflows/security.yml/badge.svg)](https://github.com/fredrikblau/halal-protocol/actions/workflows/security.yml)
 [![Slither](https://github.com/fredrikblau/halal-protocol/actions/workflows/slither.yml/badge.svg)](https://github.com/fredrikblau/halal-protocol/actions/workflows/slither.yml)
 [![Deep contract tests](https://github.com/fredrikblau/halal-protocol/actions/workflows/deep-tests.yml/badge.svg)](https://github.com/fredrikblau/halal-protocol/actions/workflows/deep-tests.yml)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/fredrikblau/halal-protocol/badge)](https://securityscorecards.dev/viewer/?uri=github.com/fredrikblau/halal-protocol)
 [![Latest release](https://img.shields.io/github/v/release/fredrikblau/halal-protocol?include_prereleases&label=latest%20release)](https://github.com/fredrikblau/halal-protocol/releases)
 [![GitHub stars](https://img.shields.io/github/stars/fredrikblau/halal-protocol?style=social)](https://github.com/fredrikblau/halal-protocol/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/fredrikblau/halal-protocol?style=social)](https://github.com/fredrikblau/halal-protocol/network/members)
@@ -62,6 +63,7 @@ conservative accounting model:
 | Are public deployment addresses reviewable? | [`docs/DEPLOYMENT-REGISTRY.md`](docs/DEPLOYMENT-REGISTRY.md) and the checked-in registry |
 | Are generated frontend interfaces kept in sync? | ABI regeneration is a required CI check |
 | Does CI exercise a configured dApp? | `scripts/local-app-smoke.sh` deploys disposable Anvil state, builds with live addresses, and checks the main routes |
+| Is the CI supply chain independently scored? | The pinned-action [`Scorecard workflow`](.github/workflows/scorecard.yml) publishes OpenSSF SARIF results |
 | Is the security posture stated plainly? | [`SECURITY.md`](SECURITY.md) and [`docs/THREAT-MODEL.md`](docs/THREAT-MODEL.md) |
 | Is the production CPI integration boundary defined? | [`docs/CPI-ADAPTER-SPEC.md`](docs/CPI-ADAPTER-SPEC.md) and [issue #17](https://github.com/fredrikblau/halal-protocol/issues/17) |
 

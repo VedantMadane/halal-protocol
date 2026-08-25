@@ -20,19 +20,19 @@ jobs:
       security-events: write
     steps:
       - name: Checkout (with submodules)
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           submodules: recursive
 
       - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
+        uses: foundry-rs/foundry-toolchain@908c540300062bd5a7e473851cdb4282204cee09 # v1
 
       - name: Build contracts for Slither
         working-directory: contracts
         run: forge build --build-info --deny never --skip ./test/** ./script/** --force
 
       - name: Install Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: "3.12"
 
@@ -63,6 +63,6 @@ jobs:
 
       - name: Upload Slither results
         if: always() && hashFiles('slither-results.sarif') != ''
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@4c0873ef8656cb3c50b3f42fb63bc1ade0cfa827 # v4
         with:
           sarif_file: slither-results.sarif
