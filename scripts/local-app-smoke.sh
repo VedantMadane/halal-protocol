@@ -126,5 +126,6 @@ grep -Eiq '^permissions-policy:[[:space:]]*camera=\(\),[[:space:]]*geolocation=\
 curl --fail --silent --show-error "http://127.0.0.1:${APP_PORT}/governance" >/dev/null
 curl --fail --silent --show-error "http://127.0.0.1:${APP_PORT}/psm" >/dev/null
 curl --fail --silent --show-error "http://127.0.0.1:${APP_PORT}/vesting" >/dev/null
+curl --fail --silent --show-error "http://127.0.0.1:${APP_PORT}/health" >/dev/null
 grep -q "CPI update history" /tmp/halal-app-smoke-dashboard.html
 echo "Configured local dApp smoke test passed on chain 31337."

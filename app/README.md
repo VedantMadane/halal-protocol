@@ -67,8 +67,12 @@ limit referrer leakage, and deny unused camera, microphone, and geolocation perm
 should still provide HTTPS and any deployment-specific content-security policy or RPC controls.
 
 From the repository root, `make app-smoke` deploys a disposable Anvil instance, builds the app with
-the generated addresses, and requests the dashboard, governance, PSM, and vesting routes. The
-script restores any existing `app/.env.local` file when it exits.
+the generated addresses, and requests the dashboard, governance, PSM, vesting, and deployment
+health routes. The script restores any existing `app/.env.local` file when it exits.
+
+Open `/health` to inspect the selected deployment without connecting a wallet. The page checks
+contract wiring and roles, CPI freshness, reserve coverage, and signed-adapter alignment. Treat a
+blocking check as a reason to stop before signing.
 
 Run `make app-e2e` to launch the same disposable environment and exercise the browser wallet shim
 through an HLC permit withdrawal. The test uses Anvil's funded development account and never

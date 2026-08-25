@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.89 - 2026-08-25
+
+- Added a wallet-free `/health` operator view that checks deployment wiring, CPI freshness, reserve
+  coverage, and signed-adapter alignment before protocol transactions are signed.
+
 ## 0.1.0-alpha.88 - 2026-08-25
 
 - Added a 400,000-gas ceiling to frontend EIP-2612 PSM actions so RPC estimators cannot underfund

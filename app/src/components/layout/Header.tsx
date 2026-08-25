@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { href: "/governance", label: "Governance" },
   { href: "/psm", label: "Swap" },
   { href: "/vesting", label: "Vesting" },
+  { href: "/health", label: "Health" },
 ] as const;
 
 export function Header() {
