@@ -8,6 +8,7 @@ import { MockFeeOnTransferERC20 } from "./mocks/MockFeeOnTransferERC20.sol";
 import { MockOutgoingFeeERC20 } from "./mocks/MockOutgoingFeeERC20.sol";
 import { MockReentrantERC20 } from "./mocks/MockReentrantERC20.sol";
 import { MockFalseReturnERC20 } from "./mocks/MockFalseReturnERC20.sol";
+import { MockNoReturnERC20 } from "./mocks/MockNoReturnERC20.sol";
 import { MockPermitERC20 } from "./mocks/MockPermitERC20.sol";
 import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 import { IERC20Permit } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Permit.sol";
@@ -562,6 +563,25 @@ contract HalalPSMTest is Deployers {
         vm.stopPrank();
 
         assertEq(falseReserve.balanceOf(address(falsePsm)), 0);
+    }
+
+    function test_SupportsReserveTokenWithNoTransferReturnData() public {
+        MockNoReturnERC20 noReturnReserve = new MockNoReturnERC20();
+        HalalPSM noReturnPsm = new HalalPSM(address(noReturnReserve), address(token), address(timelock), address(this));
+        _grantPsmTokenRoles(noReturnPsm);
+        noReturnPsm.updateCPI(1_000_000);
+        noReturnReserve.mint(alice, 100e18);
+
+        vm.startPrank(alice);
+        noReturnReserve.approve(address(noReturnPsm), 100e18);
+        noReturnPsm.deposit(100e18);
+        token.approve(address(noReturnPsm), 100e18);
+        noReturnPsm.withdraw(100e18);
+        vm.stopPrank();
+
+        assertEq(noReturnReserve.balanceOf(address(noReturnPsm)), 0);
+        assertEq(noReturnReserve.balanceOf(alice), 100e18);
+        assertEq(noReturnPsm.redeemableBalance(alice), 0);
     }
 
     function test_DAOCanWithdrawOnlyReserveSurplus() public {

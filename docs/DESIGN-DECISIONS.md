@@ -109,6 +109,11 @@ operates a production deployment.
   for a zero-unit reserve return. The arithmetic uses OpenZeppelin's full-precision `Math.mulDiv`
   where multiplication-before-division could otherwise overflow for a large input whose final
   result is still representable.
+- **ERC20 transfer return data.** Reserve transfers use OpenZeppelin `SafeERC20`, so a token whose
+  `transfer` or `transferFrom` returns no data is accepted as long as the call itself succeeds.
+  Tokens that return `false` or revert are rejected. Balance-delta checks remain in place for
+  fee-on-transfer behavior, but deployment operators must still review the reserve token's full
+  transfer, pause, blacklist, upgradeability, and issuer controls.
 - **`reserveRequired()` / `reserveSurplus()` views.** These didn't exist in the original design.
   Because deposits lock in reserve at the CPI rate prevailing *at deposit time* while withdrawals
   pay out at the rate prevailing *at withdrawal time*, a CPI that has risen since a given deposit

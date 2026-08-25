@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.110 - 2026-08-25
+
+- Added a no-return ERC20 reserve fixture proving `SafeERC20` compatibility through a complete
+  PSM deposit/withdraw round trip, and documented the reserve-token transfer-return policy.
+- Synchronized published documentation with the 161-test Foundry suite.
+
 ## 0.1.0-alpha.109 - 2026-08-25
 
 - Hardened BLS CPI response parsing with explicit rejection of ambiguous series/data-point
