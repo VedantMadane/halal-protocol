@@ -189,6 +189,32 @@ Before a deployment grants `UPDATER_ROLE`, the adapter contribution must include
 
 The contribution must document the exact commands and tool versions used to run these tests.
 
+## Report preparation and signing
+
+Use [`scripts/prepare-cpi-report.mjs`](../scripts/prepare-cpi-report.mjs) to normalize a source
+release. It rejects floating-point input, values outside the PSM range, future timestamps, malformed
+addresses, and malformed source IDs:
+
+```shell
+node scripts/prepare-cpi-report.mjs \
+  --input report.json --typed-data-out typed-data.json
+```
+
+The input must contain `chainId`, `adapter`, `sourceId`, `cpi` as a decimal string, and `reportedAt`
+as the source publication timestamp. See
+[`scripts/test/cpi-report.example.json`](../scripts/test/cpi-report.example.json) for the shape.
+Each authorized signer can sign the same typed-data file through the custody system. For a local
+development key, Foundry can produce an EIP-712 signature with:
+
+```shell
+cast wallet sign --data --from-file typed-data.json --private-key "$SIGNER_KEY"
+```
+
+The operator must recover each signature, sort signatures by signer address, and verify the source
+ID and adapter address before submitting the exact quorum to `submitReport`. Keep the raw source
+release, normalized report, typed-data file, signer identities, and submission transaction together
+in the report archive. Never place a production signer key in the repository or shell history.
+
 ## Open decisions for the implementer
 
 The following choices require a written deployment decision before implementation:
