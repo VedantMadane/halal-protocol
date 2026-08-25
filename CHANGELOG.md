@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.99 - 2026-08-25
+
+- Added a security regression test proving that transferred PSM credit cannot unlock a recipient's
+  separate, unbacked genesis HLC balance.
+
 ## 0.1.0-alpha.98 - 2026-08-25
 
 - Added browser coverage proving the wallet-free deployment health page renders its read-only

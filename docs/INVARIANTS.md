@@ -14,6 +14,12 @@ sequences of 2,048 calls by default (the scheduled deep workflow raises this to 
 | Governance-rate collateralization | Reserve held by the PSM remains at least `reserveRequired()` after a governance CPI change. | The handler tops up the mock reserve before each rate change, then continues mixed user actions. |
 | Supply decomposition | Token supply equals the fixed 10M genesis allocation plus outstanding PSM issuance. | The handler does not call the separately available ERC20 burn path; `cancelRedeemable` preserves this equation by reducing both values. |
 
+The redemption boundary also applies when one address holds both asset classes: the focused
+`test_TransferredCreditCannotUnlockRecipientGenesisBalance` regression test gives a recipient its
+unbacked genesis allocation, transfers it a PSM claim, redeems exactly that claim, and proves the
+remaining genesis HLC cannot drain the reserve. A plain ERC20 balance is therefore not evidence of
+PSM redemption authority; `redeemableBalance` is the authority boundary.
+
 These are deliberately state-transition properties rather than claims that every governance
 override is fully collateralized. Routine `updateCPI()` reports cannot raise `reserveRequired()`
 above the reserve held by the PSM; the DAO-gated `mockCPI()` emergency path can intentionally do so.

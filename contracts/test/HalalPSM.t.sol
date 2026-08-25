@@ -892,6 +892,33 @@ contract HalalPSMTest is Deployers {
         assertEq(psm.redeemableBalance(bob), 0);
     }
 
+    function test_TransferredCreditCannotUnlockRecipientGenesisBalance() public {
+        vm.prank(alice);
+        psm.deposit(1_000e18);
+
+        // Give the recipient a large, unbacked genesis allocation before transferring a
+        // separately tracked PSM claim to it. The two balances must remain non-fungible for
+        // redemption purposes even though both are HLC in the recipient's wallet.
+        vm.warp(block.timestamp + 4 * 365 days + 1);
+        teamVesting.release();
+        assertGt(token.balanceOf(teamBeneficiary), 0);
+
+        vm.startPrank(alice);
+        token.approve(address(psm), 400e18);
+        psm.transferRedeemable(teamBeneficiary, 400e18);
+        vm.stopPrank();
+
+        vm.startPrank(teamBeneficiary);
+        token.approve(address(psm), type(uint256).max);
+        psm.withdraw(400e18);
+        vm.expectRevert(HalalPSM.InsufficientRedeemableBalance.selector);
+        psm.withdraw(1);
+        vm.stopPrank();
+
+        assertEq(psm.redeemableBalance(teamBeneficiary), 0);
+        assertEq(psm.totalHlcIssued(), 600e18);
+    }
+
     function test_CancelRedeemableBurnsHLCAndRetiresCredit() public {
         vm.prank(alice);
         psm.deposit(1_000e18);
