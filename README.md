@@ -27,6 +27,18 @@ Anvil chain, deploys the wired contracts, seeds a fresh local CPI report, and op
 with a faucet-backed local reserve.
 No external RPC key or real funds are needed for the demo.
 
+## Contribute
+
+Start with the [good first issues](https://github.com/fredrikblau/halal-protocol/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22):
+
+- Run `./scripts/local-demo.sh` to see the contracts and dApp together.
+- Run `make verify` before opening a pull request.
+- Pick [issue #20](https://github.com/fredrikblau/halal-protocol/issues/20) for frontend testing,
+  [#21](https://github.com/fredrikblau/halal-protocol/issues/21) for reserve-token documentation,
+  or [#22](https://github.com/fredrikblau/halal-protocol/issues/22) for read-only monitoring.
+- Use [Discussions](https://github.com/fredrikblau/halal-protocol/discussions) for design questions.
+- Report security vulnerabilities through [`SECURITY.md`](SECURITY.md), not a public issue.
+
 ## Why this project is interesting
 
 Most stablecoins target a nominal unit of a reserve asset. Halal explores a different target:

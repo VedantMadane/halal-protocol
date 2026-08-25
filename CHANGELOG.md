@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.94 - 2026-08-25
+
+- Added a contributor quickstart linking the local demo, verification command, good-first issues,
+  Discussions, and private security reporting.
+
 ## 0.1.0-alpha.93 - 2026-08-25
 
 - Hardened the private-key-free CPI report verifier to reject invalid adapter quorums, duplicate
