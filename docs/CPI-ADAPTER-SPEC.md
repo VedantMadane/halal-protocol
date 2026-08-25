@@ -101,6 +101,12 @@ and protects its PSM call with a reentrancy guard. `Ownable2Step` controls signe
 threshold changes. Set the owner to the protocol timelock before granting the adapter
 `UPDATER_ROLE` on the PSM.
 
+`getSigners()` exposes the current signer set for deployment verification and `signerAt(index)`
+supports low-bandwidth monitoring. The array preserves configuration order when signers are added;
+removing a signer may move the last entry into the removed slot, so consumers must compare it as a
+set. Record the returned addresses, threshold, owner, and source ID in the deployment journal and
+recheck them after each governance rotation.
+
 The module authenticates the configured signer quorum. It does not prove that those signers parsed
 an official CPI source correctly. Operators still need the source policy, parser review, report
 archive, and independent security review described below.
@@ -152,9 +158,10 @@ tests as an approval to accept meaningful funds.
 ### Local adapter rehearsal
 
 Run `make adapter-demo` to deploy a disposable PSM and adapter on Anvil chain `31337`, grant the
-adapter `UPDATER_ROLE` inside the local harness, sign a two-of-two EIP-712 report, and verify the
-accepted CPI rate. The harness bypasses DAO execution to keep the rehearsal short; it must not be
-used as a public deployment or as evidence that a production governance handoff has executed.
+adapter `UPDATER_ROLE` inside the local harness, sign a two-of-two EIP-712 report, and run the
+read-only health check, including signer enumeration. The harness bypasses DAO execution to keep
+the rehearsal short; it must not be used as a public deployment or as evidence that a production
+governance handoff has executed.
 
 ## Monitoring requirements
 

@@ -126,7 +126,9 @@ EXPECTED_CPI_SOURCE=https://... EXPECTED_CPI_SOURCE_ID=0x... \
 ```
 
 The script emits `key=value` records suitable for a cron wrapper, log shipper, or small exporter.
-Alert on a nonzero exit code and retain the emitted values:
+For a configured adapter it also emits one `cpi_adapter_signer_<index>` record per current signer;
+compare those addresses with the deployment journal after each rotation. Alert on a nonzero exit
+code and retain the emitted values:
 
 | Signal | Meaning | First response |
 | --- | --- | --- |

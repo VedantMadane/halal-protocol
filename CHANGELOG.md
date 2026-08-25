@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.64 - 2026-08-25
+
+- Added enumerable CPI adapter signer views and rotation-safe bookkeeping, plus health-check output
+  for each active signer so deployment journals can verify custody changes.
+
 ## 0.1.0-alpha.63 - 2026-08-25
 
 - Promoted the signed CPI adapter rehearsal into `make verify` and the hosted contract workflow,

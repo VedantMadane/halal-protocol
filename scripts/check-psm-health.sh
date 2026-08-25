@@ -15,7 +15,7 @@ done
 command -v cast >/dev/null || { echo "cast is required (install Foundry first)" >&2; exit 1; }
 
 call_at() {
-  cast call "$1" "$2" --rpc-url "$RPC_URL" | awk 'NR == 1 { print $1; exit }'
+  cast call "$@" --rpc-url "$RPC_URL" | awk 'NR == 1 { print $1; exit }'
 }
 
 call() {
@@ -80,6 +80,12 @@ if [[ -n "${CPI_ADAPTER:-}" ]]; then
   echo "cpi_adapter_source_id=$adapter_source_id"
   echo "cpi_adapter_threshold=$adapter_threshold"
   echo "cpi_adapter_signer_count=$adapter_signer_count"
+  if [[ "$adapter_signer_count" =~ ^[0-9]+$ ]]; then
+    for (( signer_index = 0; signer_index < adapter_signer_count; signer_index++ )); do
+      signer_address="$(call_at "$CPI_ADAPTER" 'signerAt(uint256)(address)' "$signer_index" | tr '[:upper:]' '[:lower:]')"
+      echo "cpi_adapter_signer_${signer_index}=$signer_address"
+    done
+  fi
 
   if [[ "$adapter_psm" != "${PSM,,}" ]]; then
     echo "status=unhealthy"

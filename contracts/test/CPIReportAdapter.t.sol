@@ -138,6 +138,27 @@ contract CPIReportAdapterTest is Test {
         assertEq(sink.lastCPI(), 1_010_000);
     }
 
+    function test_EnumeratesSignerSetAfterRotation() public {
+        uint256 replacementKey = 0xE11E;
+        address replacement = vm.addr(replacementKey);
+
+        adapter.removeSigner(signerTwo);
+        adapter.addSigner(replacement);
+
+        address[] memory currentSigners = adapter.getSigners();
+        assertEq(currentSigners.length, 3);
+        assertEq(currentSigners[0], signerOne);
+        assertEq(currentSigners[1], signerThree);
+        assertEq(currentSigners[2], replacement);
+        assertEq(adapter.signerCount(), currentSigners.length);
+        assertEq(adapter.signerAt(0), signerOne);
+        assertEq(adapter.signerAt(1), signerThree);
+        assertEq(adapter.signerAt(2), replacement);
+        assertFalse(adapter.isSigner(signerTwo));
+        assertTrue(adapter.isSigner(signerThree));
+        assertTrue(adapter.isSigner(replacement));
+    }
+
     function test_RevertWhen_OwnerRemovesSignerBelowThreshold() public {
         adapter.setThreshold(3);
         vm.expectRevert(CPIReportAdapter.InvalidThreshold.selector);

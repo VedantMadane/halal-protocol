@@ -25,6 +25,8 @@ contract CPIReportAdapter is EIP712, Ownable2Step, ReentrancyGuard {
     ICPIReportSink public immutable psm;
     bytes32 public immutable sourceId;
     mapping(address => bool) public isSigner;
+    address[] private _signers;
+    mapping(address => uint256) private _signerIndexPlusOne;
     uint256 public signerCount;
     uint256 public threshold;
     uint256 public lastSubmittedTimestamp;
@@ -63,6 +65,8 @@ contract CPIReportAdapter is EIP712, Ownable2Step, ReentrancyGuard {
             address signer = signers_[i];
             if (signer == address(0) || isSigner[signer]) revert InvalidSignerSet();
             isSigner[signer] = true;
+            _signerIndexPlusOne[signer] = _signers.length + 1;
+            _signers.push(signer);
             ++signerCount;
             emit SignerAdded(signer);
         }
@@ -73,6 +77,8 @@ contract CPIReportAdapter is EIP712, Ownable2Step, ReentrancyGuard {
         if (signer == address(0)) revert ZeroAddress();
         if (isSigner[signer]) revert SignerAlreadyConfigured();
         isSigner[signer] = true;
+        _signerIndexPlusOne[signer] = _signers.length + 1;
+        _signers.push(signer);
         ++signerCount;
         emit SignerAdded(signer);
     }
@@ -82,6 +88,15 @@ contract CPIReportAdapter is EIP712, Ownable2Step, ReentrancyGuard {
         if (!isSigner[signer]) revert SignerNotConfigured();
         if (signerCount - 1 < threshold) revert InvalidThreshold();
         isSigner[signer] = false;
+        uint256 index = _signerIndexPlusOne[signer] - 1;
+        uint256 lastIndex = _signers.length - 1;
+        if (index != lastIndex) {
+            address lastSigner = _signers[lastIndex];
+            _signers[index] = lastSigner;
+            _signerIndexPlusOne[lastSigner] = index + 1;
+        }
+        _signers.pop();
+        delete _signerIndexPlusOne[signer];
         --signerCount;
         emit SignerRemoved(signer);
     }
@@ -96,6 +111,18 @@ contract CPIReportAdapter is EIP712, Ownable2Step, ReentrancyGuard {
     /// @notice Returns the EIP-712 digest that signers must approve.
     function reportDigest(uint256 reportedCPI, uint256 reportedAt) public view returns (bytes32) {
         return _hashTypedDataV4(keccak256(abi.encode(REPORT_TYPEHASH, reportedCPI, reportedAt, sourceId)));
+    }
+
+    /// @notice Returns the current signer set in configuration order, except that removing a
+    /// signer may move the last configured signer into the removed slot. Consumers must treat the
+    /// array as a set and compare addresses without relying on order.
+    function getSigners() external view returns (address[] memory) {
+        return _signers;
+    }
+
+    /// @notice Returns one signer from the current set for low-bandwidth monitoring clients.
+    function signerAt(uint256 index) external view returns (address) {
+        return _signers[index];
     }
 
     /// @notice Forwards a report after verifying exactly `threshold` distinct authorized signatures.
