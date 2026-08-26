@@ -105,6 +105,29 @@ The PSM's `source` string records operator metadata. It does not authenticate a 
 must compare it with the expected deployment record using
 [`scripts/check-psm-health.sh`](../scripts/check-psm-health.sh).
 
+### Reviewer checklist before a governed handoff
+
+Do not approve the `UPDATER_ROLE` grant or source-label update until every item below has a
+named evidence link. A green on-chain health result is necessary, but it cannot replace source,
+parser, or custody review.
+
+- [ ] The PSM `source()` label exactly matches the policy record and the deployment-registry
+      `cpiSource` value; it identifies the intended series without implying authentication.
+- [ ] The adapter `sourceId` is derived from the documented source identity and parser policy, and
+      matches the policy record, typed-data payload, and deployment-registry `cpiSourceId`.
+- [ ] The policy record names the publisher, series, units, timezone, publication timestamp field,
+      cadence, freshness limit, revision behavior, fallback, and owner.
+- [ ] Parser fixtures cover malformed, missing, duplicate, revised, out-of-range, and unexpected
+      source data; the exact parser commit and raw-response hash are recorded.
+- [ ] The adapter owner is the intended timelock, the signer set and threshold are independently
+      reviewed, and no signer overlaps the owner or relies on undocumented custody.
+- [ ] The zero-value handoff calldata grants the adapter before revoking the old updater, changes
+      the source label, and contains no unrelated action; offline preflight passes.
+- [ ] Before and after the first report, the operator records role events, adapter/PSM watermarks,
+      health output, report transaction, and the deployment journal entry.
+- [ ] A source or parser change is treated as a new review: prepare the replacement, verify its
+      first report, then revoke the old updater; do not use `mockCPI` as an unreviewed fallback.
+
 ## Failure behavior
 
 The adapter and operator must apply these rules:

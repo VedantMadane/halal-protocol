@@ -122,6 +122,8 @@ timelock ownership, source identity, quorum, signer uniqueness/owner separation,
 bytecode, chain identity, immutable wiring, vesting policy, beneficiary custody boundaries, token
 roles, timelock roles, PSM roles, and the absence of deployer privileges. Stop the launch if it
 fails.
+Before approving the handoff itself, complete the reviewer checklist in
+[`CPI-ADAPTER-SPEC.md`](CPI-ADAPTER-SPEC.md) and attach its evidence to the deployment journal.
 Verify every contract's source and constructor arguments on the target explorer after the verifier
 passes. Explorer verification does not replace the verifier.
 
