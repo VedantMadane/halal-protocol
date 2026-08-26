@@ -214,6 +214,9 @@ tests as an approval to accept meaningful funds.
 
 ### Local adapter rehearsal
 
+For a copy-paste explanation of the report lifecycle, see the
+[`local CPI report walkthrough`](LOCAL-CPI-REPORT-WALKTHROUGH.md).
+
 Run `make adapter-demo` to deploy a disposable PSM and adapter on Anvil chain `31337`, grant the
 adapter `UPDATER_ROLE` inside the local harness, sign a two-of-two EIP-712 report, and run the
 read-only health check, including signer enumeration, then verify a separately prepared quorum

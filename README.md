@@ -153,6 +153,8 @@ walkthrough, and the exact API surface — see:
   deployment addresses without copying unverified values into a frontend environment.
 - [`docs/CONTRIBUTOR-MAP.md`](docs/CONTRIBUTOR-MAP.md) — concrete contribution paths for security,
   oracle integrations, monitoring, economics, governance, dApp UX, and documentation.
+- [`docs/LOCAL-CPI-REPORT-WALKTHROUGH.md`](docs/LOCAL-CPI-REPORT-WALKTHROUGH.md) — copy-paste local
+  CPI report preparation and verification lifecycle.
 - [Security review challenge #16](https://github.com/fredrikblau/halal-protocol/issues/16) — a bounded
   starting point for independent PSM and CPI review.
 - [`docs/ROADMAP.md`](docs/ROADMAP.md) — the risk-ordered path from unaudited reference

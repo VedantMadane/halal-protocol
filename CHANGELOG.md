@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.146 - 2026-08-26
+
+- Added a copy-paste local CPI report walkthrough covering preparation, signer ordering, live
+  adapter checks, verification, intentional failure, and safety boundaries.
+- Linked the walkthrough from the CPI adapter specification and README.
+- Completed issue #44 without exposing keys, RPC credentials, or real deployment values.
+
 ## 0.1.0-alpha.145 - 2026-08-26
 
 - Added deterministic standalone PSM health-check tests for healthy output, stale CPI reports, and
