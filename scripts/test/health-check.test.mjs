@@ -116,3 +116,22 @@ test("standalone PSM health check reports a reserve deficit", () => {
   assert.match(result.output, /^status=unhealthy$/m);
   assert.match(result.output, /^reason=reserve_deficit$/m);
 });
+
+test("standalone PSM health check classifies malformed numeric RPC output", () => {
+  const result = runPsmHealthWithFakeCast({ lastReportTimestamp: "not-a-timestamp" });
+  assert.notEqual(result.status, 0, result.output);
+  assert.match(result.output, /^status=unhealthy$/m);
+  assert.match(result.output, /^reason=invalid_last_report_timestamp$/m);
+});
+
+test("standalone PSM health check rejects an invalid overdue mode", () => {
+  const result = run(PSM_HEALTH_CHECK, {
+    ...process.env,
+    RPC_URL: "http://fake-rpc.invalid",
+    PSM: "0x0000000000000000000000000000000000000001",
+    FAIL_ON_UPDATE_OVERDUE: "sometimes",
+  });
+  assert.notEqual(result.status, 0, result.output);
+  assert.match(result.output, /^status=unhealthy$/m);
+  assert.match(result.output, /^reason=invalid_fail_on_update_overdue$/m);
+});

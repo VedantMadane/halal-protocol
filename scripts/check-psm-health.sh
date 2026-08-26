@@ -14,6 +14,29 @@ done
 
 command -v cast >/dev/null || { echo "cast is required (install Foundry first)" >&2; exit 1; }
 
+unhealthy_input() {
+  echo "status=unhealthy"
+  echo "reason=invalid_${1}"
+  echo "value=${2}"
+  exit 1
+}
+
+require_uint() {
+  local label="$1"
+  local value="$2"
+  [[ "$value" =~ ^[0-9]+$ ]] || unhealthy_input "$label" "$value"
+}
+
+require_int() {
+  local label="$1"
+  local value="$2"
+  [[ "$value" =~ ^-?[0-9]+$ ]] || unhealthy_input "$label" "$value"
+}
+
+if [[ "${FAIL_ON_UPDATE_OVERDUE:-true}" != "true" && "${FAIL_ON_UPDATE_OVERDUE:-true}" != "false" ]]; then
+  unhealthy_input "fail_on_update_overdue" "${FAIL_ON_UPDATE_OVERDUE}"
+fi
+
 call_at() {
   cast call "$@" --rpc-url "$RPC_URL" | awk 'NR == 1 { print $1; exit }'
 }
@@ -33,6 +56,13 @@ max_report_age="$(call 'MAX_REPORT_AGE()(uint256)')"
 last_updated="$(call 'lastUpdated()(uint256)')"
 min_update_interval="$(call 'minUpdateInterval()(uint256)')"
 cpi_source="$(call 'source()(string)' | sed -e 's/^"//' -e 's/"$//')"
+
+require_uint "checked_at" "$now"
+require_int "reserve_surplus" "$reserve_surplus"
+require_uint "last_report_timestamp" "$last_report"
+require_uint "max_report_age" "$max_report_age"
+require_uint "last_updated" "$last_updated"
+require_uint "min_update_interval" "$min_update_interval"
 
 echo "psm=$PSM"
 echo "checked_at=$now"
@@ -76,6 +106,9 @@ if [[ -n "${CPI_ADAPTER:-}" ]]; then
   adapter_threshold="$(call_at "$CPI_ADAPTER" 'threshold()(uint256)')"
   adapter_signer_count="$(call_at "$CPI_ADAPTER" 'signerCount()(uint256)')"
   adapter_last_submitted="$(call_at "$CPI_ADAPTER" 'lastSubmittedTimestamp()(uint256)')"
+  require_uint "adapter_threshold" "$adapter_threshold"
+  require_uint "adapter_signer_count" "$adapter_signer_count"
+  require_uint "adapter_last_submitted_timestamp" "$adapter_last_submitted"
   echo "cpi_adapter=$CPI_ADAPTER"
   echo "cpi_adapter_owner=$adapter_owner"
   echo "cpi_adapter_source_id=$adapter_source_id"
