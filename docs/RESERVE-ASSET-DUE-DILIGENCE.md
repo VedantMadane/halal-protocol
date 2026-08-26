@@ -109,6 +109,8 @@ normalization, and record the upgrade/pause alert and response owner. This examp
 
 ## Repository references
 
+- [`Completed fictional review example`](RESERVE-ASSET-DUE-DILIGENCE-EXAMPLE.md) — a non-binding
+  example showing how to separate observations, assumptions, open questions, and decisions.
 - [`HalalPSM` transfer and reserve-floor tests](../contracts/test/HalalPSM.t.sol)
 - [`HalalPSM` stateful invariants](INVARIANTS.md)
 - [`Threat model`](THREAT-MODEL.md)

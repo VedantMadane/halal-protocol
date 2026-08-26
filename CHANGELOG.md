@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.215 - 2026-08-26
+
+- Added a fictional, non-binding reserve-asset due-diligence example that separates observed facts,
+  assumptions, open questions, monitoring obligations, and deployment decisions.
+- Replenished the contributor funnel with the labeled machine-readable monitoring task in issue #85.
+
 ## 0.1.0-alpha.214 - 2026-08-26
 
 - Refreshed contributor links after closing issue #83 so active issue #84 is surfaced as the next
