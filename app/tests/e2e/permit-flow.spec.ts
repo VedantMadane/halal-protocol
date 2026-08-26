@@ -317,6 +317,38 @@ test("blocks a malformed governance value before any transaction is submitted", 
   expect(await page.evaluate(() => (window as Window & { __lastTransaction?: unknown }).__lastTransaction)).toBeUndefined();
 });
 
+test("fails closed when reserve-token metadata cannot be read", async ({ page }) => {
+  const env = readLocalEnv();
+  const reserveAddress = env.NEXT_PUBLIC_HLC_RESERVE_TOKEN_31337.toLowerCase();
+  await page.route(/127\.0\.0\.1:18545/, async (route) => {
+    const request = route.request();
+    const body = request.postDataJSON() as { method?: string; params?: Array<{ to?: string; data?: string }> };
+    const call = body.params?.[0];
+    if (
+      body.method === "eth_call" &&
+      call?.to?.toLowerCase() === reserveAddress &&
+      call.data?.toLowerCase().startsWith("0x313ce567")
+    ) {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ jsonrpc: "2.0", id: 1, error: { code: -32000, message: "metadata unavailable" } }),
+      });
+      return;
+    }
+    await route.continue();
+  });
+
+  await installAnvilProvider(page);
+  await page.goto("/psm");
+  const connectButton = page.getByTestId("rk-connect-button");
+  if (await connectButton.count()) await connectButton.click();
+  await expect(page.getByRole("button", { name: /0xf3.*2266/i })).toBeVisible();
+  await expect(page.getByText("Unable to read mDAI token metadata.")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Waiting for wallet data" })).toBeDisabled();
+  expect(await page.evaluate(() => (window as Window & { __lastTransaction?: unknown }).__lastTransaction)).toBeUndefined();
+});
+
 test("blocks reserve-deficit health and pauses new PSM deposits", async ({ page }) => {
   await seedRedeemableHlc();
   const testClient = createTestClient({ chain: LOCAL_CHAIN, mode: "anvil", transport: http(RPC_URL) });
