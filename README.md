@@ -64,7 +64,7 @@ conservative accounting model:
 
 | Reviewer question | Evidence in this repository |
 | --- | --- |
-| Does the accounting have stateful coverage? | 188 Foundry tests, including 11 PSM invariants, differential arithmetic checks, and fuzzing |
+| Does the accounting have stateful coverage? | 189 Foundry tests, including 11 PSM invariants, differential arithmetic checks, and fuzzing |
 | Do invariants cover CPI changes? | [`docs/INVARIANTS.md`](docs/INVARIANTS.md) models governance rate changes and reserve top-ups |
 | Can a deployment be checked without a private key? | [`scripts/verify-deployment.sh`](scripts/verify-deployment.sh) |
 | Can I inspect the full system locally? | [`./scripts/local-demo.sh`](scripts/local-demo.sh) on a disposable Anvil chain |
@@ -101,7 +101,7 @@ discipline, not a safety guarantee.
 ## Status & risk
 
 **This protocol has not undergone a professional security audit, and there is no bug bounty
-program yet.** The contracts pass their own test suite (188/188 at the time of writing — 177 unit
+program yet.** The contracts pass their own test suite (189/189 at the time of writing — 178 unit
 and configuration tests plus 11 stateful invariants; see
 `contracts/test/`), but a passing test suite is not a substitute for an audit, and this repo
 should not be treated as safe to use with real, meaningful funds. If you deploy or interact with
