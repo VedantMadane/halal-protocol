@@ -244,6 +244,12 @@ test("explains a supported network with no configured deployment", async ({ page
   await expect(page.getByRole("heading", { name: "Not deployed on this network" })).toBeVisible();
   await expect(page.getByText(/Halal has no contracts configured for Arbitrum Sepolia yet/)).toBeVisible();
   await expect(page.getByText("Connect to a supported network or check the project's deployment configuration for chain id 421614.")).toBeVisible();
+
+  await page.goto("/psm");
+  await expect(page.getByRole("heading", { name: "Not deployed on this network" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Deposit" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Withdraw" })).toHaveCount(0);
+  expect(await page.evaluate(() => (window as Window & { __lastTransaction?: unknown }).__lastTransaction)).toBeUndefined();
 });
 
 test("moves the vesting beneficiary only after the proposed address accepts", async ({ page }) => {
