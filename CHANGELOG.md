@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.228 - 2026-08-26
+
+- Strengthened `main` branch protection so pull requests require path detection plus every applicable
+  Contracts, Scripts, generated-ABI, and Frontend CI check, while retaining strict ordering and code-owner review.
+
 ## 0.1.0-alpha.227 - 2026-08-26
 
 - Added a scoped static-analysis record documenting the pinned Slither 0.11.6 reproduction, 66

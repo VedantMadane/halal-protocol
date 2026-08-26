@@ -27,9 +27,10 @@ bar than a typical app repo — see the [roadmap](docs/ROADMAP.md) and [Changes 
    satisfied.
 
 The `main` branch is protected: changes must arrive through a pull request, receive one approval
-from the code owner, pass the path-detection check, use linear history, and resolve review
-conversations. Administrators may bypass the rule for repository recovery, but normal development
-should use the review path.
+from the code owner, pass path detection plus every applicable Contracts, Scripts, generated-ABI, and
+Frontend CI check, use linear history, and resolve review conversations. Path-filtered jobs are
+skipped safely for unrelated documentation changes. Administrators may bypass the rule for repository
+recovery, but normal development should use the review path.
 
 CI (`.github/workflows/ci.yml`) runs the contracts, dependency-light script, ABI, and frontend test
 suites on every relevant push and PR. A PR won't be merged with a red CI run.
