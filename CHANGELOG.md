@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.265 - 2026-08-27
+
+- Extended PSM source-label hardening to reject ASCII whitespace-only values, while preserving
+  meaningful labels that contain spaces.
+
 ## 0.1.0-alpha.264 - 2026-08-27
 
 - Made the PSM reject empty CPI source labels at the contract boundary, adding defense in depth

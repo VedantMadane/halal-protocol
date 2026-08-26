@@ -428,7 +428,17 @@ contract HalalPSM is AccessControl, ReentrancyGuard {
     }
 
     function setSource(string calldata newSource) external onlyRole(PARAM_ROLE) {
-        if (bytes(newSource).length == 0) revert EmptySource();
+        bytes calldata sourceBytes = bytes(newSource);
+        if (sourceBytes.length == 0) revert EmptySource();
+        bool hasNonWhitespace;
+        for (uint256 i = 0; i < sourceBytes.length; ++i) {
+            bytes1 character = sourceBytes[i];
+            if (character != 0x09 && character != 0x0a && character != 0x0d && character != 0x20) {
+                hasNonWhitespace = true;
+                break;
+            }
+        }
+        if (!hasNonWhitespace) revert EmptySource();
         source = newSource;
         emit SourceUpdated(newSource);
     }
