@@ -32,6 +32,13 @@ function runPsmHealthWithFakeCast(overrides = {}) {
     lastUpdated: "1000",
     minUpdateInterval: "200",
     source: '"BLS-CPI"',
+    adapterPsm: "0x0000000000000000000000000000000000000001",
+    adapterOwner: "0x0000000000000000000000000000000000000002",
+    adapterSourceId: `0x${"a".repeat(64)}`,
+    adapterThreshold: "1",
+    adapterSignerCount: "1",
+    adapterLastSubmitted: "900",
+    adapterSigner: "0x0000000000000000000000000000000000000003",
     ...overrides,
   };
   writeFileSync(
@@ -46,6 +53,13 @@ case "$*" in
   *"lastUpdated"*) echo '${values.lastUpdated}' ;;
   *"minUpdateInterval"*) echo '${values.minUpdateInterval}' ;;
   *"source()(string)"*) echo '${values.source}' ;;
+  *"psm()(address)"*) echo '${values.adapterPsm}' ;;
+  *"owner()(address)"*) echo '${values.adapterOwner}' ;;
+  *"sourceId()(bytes32)"*) echo '${values.adapterSourceId}' ;;
+  *"threshold()(uint256)"*) echo '${values.adapterThreshold}' ;;
+  *"signerCount()(uint256)"*) echo '${values.adapterSignerCount}' ;;
+  *"lastSubmittedTimestamp()(uint256)"*) echo '${values.adapterLastSubmitted}' ;;
+  *"signerAt(uint256)(address)"*) echo '${values.adapterSigner}' ;;
   *) echo "unexpected fake cast call: $*" >&2; exit 1 ;;
 esac
 `,
@@ -54,12 +68,13 @@ esac
 
   try {
     return run(PSM_HEALTH_CHECK, {
-      ...process.env,
-      PATH: `${tempDir}:${process.env.PATH}`,
-      RPC_URL: "http://fake-rpc.invalid",
-      PSM: "0x0000000000000000000000000000000000000001",
-      FAIL_ON_UPDATE_OVERDUE: "false",
-    });
+    ...process.env,
+    PATH: `${tempDir}:${process.env.PATH}`,
+    RPC_URL: "http://fake-rpc.invalid",
+    PSM: "0x0000000000000000000000000000000000000001",
+    FAIL_ON_UPDATE_OVERDUE: "false",
+    ...overrides,
+  });
   } finally {
     rmSync(tempDir, { recursive: true, force: true });
   }
@@ -134,4 +149,14 @@ test("standalone PSM health check rejects an invalid overdue mode", () => {
   assert.notEqual(result.status, 0, result.output);
   assert.match(result.output, /^status=unhealthy$/m);
   assert.match(result.output, /^reason=invalid_fail_on_update_overdue$/m);
+});
+
+test("configured CPI adapter requires an expected source identity", () => {
+  const result = runPsmHealthWithFakeCast({
+    CPI_ADAPTER: "0x0000000000000000000000000000000000000004",
+    EXPECTED_CPI_ADAPTER_OWNER: "0x0000000000000000000000000000000000000002",
+  });
+  assert.notEqual(result.status, 0, result.output);
+  assert.match(result.output, /^status=unhealthy$/m);
+  assert.match(result.output, /^reason=cpi_adapter_source_id_expectation_missing$/m);
 });

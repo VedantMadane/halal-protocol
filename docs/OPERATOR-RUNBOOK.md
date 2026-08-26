@@ -135,7 +135,8 @@ RPC_URL=https://... PSM=0x... ./scripts/check-psm-health.sh
 ```
 
 For a deployment with a governed adapter and recorded source metadata, pass the adapter and both
-source expectations. Include the timelock as the expected adapter owner. The check then fails if
+source expectations; `EXPECTED_CPI_SOURCE_ID` is mandatory whenever `CPI_ADAPTER` is set. Include
+the timelock as the expected adapter owner. The check then fails if
 governance removed the updater role, changed the source label, pointed the adapter at another PSM,
 changed its owner, or changed its quorum:
 

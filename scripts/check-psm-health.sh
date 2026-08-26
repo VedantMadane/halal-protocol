@@ -100,6 +100,15 @@ if [[ -n "${CPI_ADAPTER:-}" ]]; then
     echo "reason=cpi_adapter_owner_expectation_missing"
     failure=1
   fi
+  if [[ -z "${EXPECTED_CPI_SOURCE_ID:-}" ]]; then
+    echo "status=unhealthy"
+    echo "reason=cpi_adapter_source_id_expectation_missing"
+    failure=1
+  elif [[ ! "${EXPECTED_CPI_SOURCE_ID}" =~ ^0x[0-9a-fA-F]{64}$ || "${EXPECTED_CPI_SOURCE_ID}" =~ ^0x0{64}$ ]]; then
+    echo "status=unhealthy"
+    echo "reason=invalid_expected_cpi_source_id"
+    failure=1
+  fi
   adapter_psm="$(call_at "$CPI_ADAPTER" 'psm()(address)' | tr '[:upper:]' '[:lower:]')"
   adapter_owner="$(call_at "$CPI_ADAPTER" 'owner()(address)' | tr '[:upper:]' '[:lower:]')"
   adapter_source_id="$(call_at "$CPI_ADAPTER" 'sourceId()(bytes32)' | tr '[:upper:]' '[:lower:]')"
