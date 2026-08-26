@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.170 - 2026-08-26
+
+- Audited the contributor queue, closed the already-covered adapter health task, and opened a
+  focused reserve-deficit health-state task for the next frontend testing contribution.
+
 ## 0.1.0-alpha.169 - 2026-08-26
 
 - Added a provider-neutral CPI source-policy template covering source identity, value transformation,

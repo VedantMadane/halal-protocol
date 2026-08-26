@@ -13,10 +13,11 @@ operations. Report fund-risking findings through [`SECURITY.md`](../SECURITY.md)
 Choose the task that matches your interests; each issue includes a bounded scope, acceptance
 criteria, and a safe local verification path:
 
-- [CPI source-policy template (#54)](https://github.com/fredrikblau/halal-protocol/issues/54) —
-  a provider-neutral, copy-paste record for source, parser, revision, and signer policy.
-- [Configured adapter health-page coverage (#55)](https://github.com/fredrikblau/halal-protocol/issues/55) —
-  deterministic browser coverage for healthy adapter metadata and one fail-closed mismatch.
+- [Reserve-deficit health-state coverage (#56)](https://github.com/fredrikblau/halal-protocol/issues/56) —
+  deterministic browser coverage for visible reserve shortfall and blocked safety-sensitive actions.
+
+The completed [CPI source-policy template (#54)](https://github.com/fredrikblau/halal-protocol/issues/54)
+is available as a reference for the documentation standard, but is no longer an active starter task.
 
 The completed [local-demo troubleshooting guide](LOCAL-DEMO-TROUBLESHOOTING.md) covers prerequisites,
 ports, stale configuration, cleanup, and expected success signals.
