@@ -17,7 +17,10 @@ criteria, and a safe local verification path:
   clean-checkout tag, artifact, ABI, local-gate, and hosted-check review.
 - [Incident-response tabletop example (#86)](https://github.com/fredrikblau/halal-protocol/issues/86) —
   rehearse detection, evidence preservation, governance response, and recovery verification for a
-  fictional protocol incident.
+  fictional protocol incident; use the completed [`stale-CPI example`](INCIDENT-RESPONSE-TABLETOP-EXAMPLE.md)
+  as a reference.
+- [Governance proposal review case study (#87)](https://github.com/fredrikblau/halal-protocol/issues/87) —
+  review fictional targets, selectors, role impact, reserve impact, and timelock evidence before execution.
 - The completed [machine-readable monitoring example](MONITORING-JSON-EXAMPLE.md) shows how to
   consume health JSON while preserving fail-closed exit behavior.
 - The completed [reserve-asset due-diligence example](RESERVE-ASSET-DUE-DILIGENCE-EXAMPLE.md)

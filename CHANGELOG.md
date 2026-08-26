@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.217 - 2026-08-26
+
+- Added a fictional stale-CPI incident-response tabletop showing detection, safe containment,
+  governance/external recovery authority, retained evidence, and recovery proof.
+- Replenished the contributor funnel with the labeled governance proposal review task in issue #87.
+
 ## 0.1.0-alpha.216 - 2026-08-26
 
 - Added a dependency-free machine-readable health consumer with explicit healthy, unhealthy, and

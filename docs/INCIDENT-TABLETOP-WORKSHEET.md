@@ -151,3 +151,6 @@ Next rehearsal date:
 The exercise is complete only when the operator can identify a safe response, name the authority
 required for recovery, and retain evidence that can be checked without trusting a single RPC,
 frontend, signer, or issuer statement.
+
+See the [fictional stale-CPI tabletop example](INCIDENT-RESPONSE-TABLETOP-EXAMPLE.md) for a
+completed, non-binding record.

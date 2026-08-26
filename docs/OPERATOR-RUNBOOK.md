@@ -403,6 +403,8 @@ that submits or executes the proposal.
 
 For a structured rehearsal, copy the [protocol incident tabletop worksheet](INCIDENT-TABLETOP-WORKSHEET.md)
 and run it against a disposable or testnet deployment before accepting meaningful funds.
+The [stale-CPI tabletop example](INCIDENT-RESPONSE-TABLETOP-EXAMPLE.md) shows the expected evidence
+and containment record.
 
 ### Missing or stale CPI report
 
