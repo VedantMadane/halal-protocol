@@ -101,6 +101,26 @@ Open questions:             baseline, revision handling, transport endpoint, cus
 Evidence links:             BLS series-ID page and CPI release calendar above
 ```
 
+## Maintainer decision worksheet
+
+This worksheet makes the remaining decisions explicit without treating any option as approved.
+The issue owner should record the selected option, decision-maker, date, and evidence in the
+deployment journal; a contributor may prepare the evidence but must not grant roles or publish a
+deployment on the basis of this draft.
+
+| Decision | Option A | Option B | Evidence required before selection |
+| --- | --- | --- | --- |
+| Baseline | Fixed observation and release timestamp | Governance-approved rolling reference | Reproducible calculation, economic rationale, and impact on the PSM bounds |
+| Revisions | Accept only a newer release period | Permit a corrected period through an explicit governance correction | BLS revision behavior, archive of both values, and replay test |
+| Retrieval | Official endpoint with archived raw bytes | Approved redundant retrieval path with the same series checks | Endpoint behavior, hash retention, outage procedure, and parser fixtures |
+| Signers | Independent quorum with documented rotation | Custodied operator set with a documented emergency replacement | Addresses, threshold, custody controls, and compromise response |
+| Launch scope | Testnet rehearsal only | Production launch after independent review | Deployment evidence, health output, reserve review, and reviewer sign-off |
+
+Minimum closure evidence: every row has one selected option; all `PENDING` fields above are
+resolved or assigned to a named owner with a deadline; the exact parser commit and raw-response
+hash are retained; and an independent reviewer signs the record. If a decision is deferred, leave
+the source policy in `Draft` status and keep `UPDATER_ROLE` ungranted.
+
 Before launch, copy the finalized record into the deployment journal and complete the reserve,
 beneficiary, role, source, adapter, and monitoring evidence in the [deployment review
 checklist](DEPLOYMENT-REVIEW-CHECKLIST.md). This draft deliberately leaves the decision open.
