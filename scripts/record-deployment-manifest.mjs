@@ -2,6 +2,7 @@ import { execFileSync } from "node:child_process";
 import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { verifyDeploymentReceipt } from "./verify-deployment-receipt.mjs";
 
 const registryPath = fileURLToPath(new URL("../app/src/config/deployment-registry.json", import.meta.url));
 const verifierPath = fileURLToPath(new URL("./verify-deployment.sh", import.meta.url));
@@ -124,6 +125,21 @@ const sourceVerificationUrl = requiredHttpsUrl("source-url");
 const journalUrl = requiredHttpsUrl("journal-url");
 
 console.log(`Verifying deployment on chain ${chainId} before updating the registry...`);
+try {
+  const receipt = JSON.parse(
+    execFileSync("cast", ["receipt", deploymentTx, "--rpc-url", process.env.RPC_URL, "--json"], { encoding: "utf8" })
+  );
+  const latestBlock = execFileSync(
+    "cast",
+    ["block", "latest", "--field", "number", "--rpc-url", process.env.RPC_URL],
+    { encoding: "utf8" }
+  )
+    .trim()
+    .split(/\s+/)[0];
+  verifyDeploymentReceipt({ deploymentTx, deploymentBlock, receipt, latestBlock });
+} catch (error) {
+  throw new Error(`Deployment transaction evidence could not be verified: ${error.message}`);
+}
 execFileSync("bash", [verifierPath], { env: process.env, stdio: "inherit" });
 
 const registryFile = options.output ? resolve(options.output) : registryPath;

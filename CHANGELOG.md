@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.211 - 2026-08-26
+
+- Hardened deployment manifest recording so the supplied deployment transaction must have a
+  matching successful receipt and a mined block at or after the claimed deployment block.
+- Added deterministic receipt-validation tests and documented the stronger registry evidence gate.
+
 ## 0.1.0-alpha.210 - 2026-08-26
 
 - Extended the reserve-token matrix with a configurable fee mock and a regression proving that a

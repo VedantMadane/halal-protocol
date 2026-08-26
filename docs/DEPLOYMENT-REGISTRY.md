@@ -21,7 +21,8 @@ node scripts/record-deployment-manifest.mjs --chain-id 421614 \
   --source-url https://.../address/0x...#code --journal-url https://...
 ```
 
-The recorder runs `scripts/verify-deployment.sh` first. If adapter metadata is supplied, that
+The recorder verifies that the deployment transaction exists, succeeded, and is mined at or after
+the claimed deployment block before running `scripts/verify-deployment.sh`. If adapter metadata is supplied, that
 verifier also checks the adapter's bytecode, immutable PSM, timelock owner, source ID, signer
 quorum, signer/owner separation, `UPDATER_ROLE`, and equality between the adapter's accepted-report
 watermark and the PSM's accepted-report watermark before the registry can be changed. It also

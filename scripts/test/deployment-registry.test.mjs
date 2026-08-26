@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
+import { verifyDeploymentReceipt } from "../verify-deployment-receipt.mjs";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
 const validator = join(root, "scripts/validate-deployment-registry.mjs");
@@ -67,4 +68,37 @@ test("requires a deployment journal", async () => {
   const result = await runValidator(deployment({ journalUrl: undefined }));
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, /needs a journalUrl/);
+});
+
+test("accepts a successful mined deployment transaction", () => {
+  verifyDeploymentReceipt({
+    deploymentTx: `0x${"1".repeat(64)}`,
+    deploymentBlock: "100",
+    latestBlock: "0x70",
+    receipt: { transactionHash: `0x${"1".repeat(64)}`, blockNumber: "0x64", status: "0x1" },
+  });
+});
+
+test("rejects a failed deployment transaction", () => {
+  assert.throws(
+    () => verifyDeploymentReceipt({
+      deploymentTx: `0x${"1".repeat(64)}`,
+      deploymentBlock: "100",
+      latestBlock: "112",
+      receipt: { transactionHash: `0x${"1".repeat(64)}`, blockNumber: "100", status: "0x0" },
+    }),
+    /did not succeed/
+  );
+});
+
+test("rejects deployment evidence above the chain tip", () => {
+  assert.throws(
+    () => verifyDeploymentReceipt({
+      deploymentTx: `0x${"1".repeat(64)}`,
+      deploymentBlock: "200",
+      latestBlock: "150",
+      receipt: { transactionHash: `0x${"1".repeat(64)}`, blockNumber: "200", status: "0x1" },
+    }),
+    /not yet mined/
+  );
 });
