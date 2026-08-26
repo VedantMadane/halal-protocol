@@ -14,6 +14,10 @@ This policy will be updated once an audit (or a bug bounty program) is in place.
 "unaudited" is not a formality — please read it as a real statement about the current risk level
 of this code.
 
+Repository review activity is summarized in the dated
+[`engineering security review log`](docs/SECURITY-REVIEW-LOG.md). It records checks and residual
+risks; it does not change this unaudited status or replace private vulnerability reporting.
+
 ## Scope
 
 - **Smart contracts**: everything under `contracts/src/` — `HalalToken`, `HalalVesting`,

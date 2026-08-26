@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.234 - 2026-08-26
+
+- Added a dated engineering security review log covering the PSM accounting and CPI adapter
+  boundaries, with reproducible evidence and explicit residual risks. It does not claim an audit.
+
 ## 0.1.0-alpha.233 - 2026-08-26
 
 - Refreshed the contributor map after completing the CPI parser fixture task, leaving the active

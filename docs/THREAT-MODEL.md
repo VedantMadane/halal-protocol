@@ -4,6 +4,10 @@ This document defines the security boundary for the current Halal reference impl
 an engineering review aid, not an audit, safety guarantee, or replacement for independent review.
 The contracts are non-upgradeable and currently unaudited.
 
+The repository's dated engineering review activity is recorded in the
+[`security review log`](SECURITY-REVIEW-LOG.md); that log records scope and evidence, not an audit
+opinion.
+
 ## Security objectives
 
 The system is intended to preserve these properties:
