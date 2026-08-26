@@ -60,6 +60,13 @@ const PSM_ABI = [
   },
   {
     type: "function",
+    name: "mockCPI",
+    stateMutability: "nonpayable",
+    inputs: [{ name: "newCPI", type: "uint256" }],
+    outputs: [],
+  },
+  {
+    type: "function",
     name: "redeemableBalance",
     stateMutability: "view",
     inputs: [{ name: "account", type: "address" }],
@@ -307,6 +314,45 @@ test("blocks a malformed governance value before any transaction is submitted", 
   await expect(page.getByText('Invalid ETH value: "1e3"')).toBeVisible();
   await expect(page.getByRole("button", { name: "Submit proposal" })).toBeDisabled();
   expect(await page.evaluate(() => (window as Window & { __lastTransaction?: unknown }).__lastTransaction)).toBeUndefined();
+});
+
+test("blocks reserve-deficit health and pauses new PSM deposits", async ({ page }) => {
+  await seedRedeemableHlc();
+  const testClient = createTestClient({ chain: LOCAL_CHAIN, mode: "anvil", transport: http(RPC_URL) });
+  const snapshot = await testClient.snapshot();
+  const env = readLocalEnv();
+  const timelock = env.NEXT_PUBLIC_HLC_TIMELOCK_31337 as `0x${string}`;
+  const publicClient = createPublicClient({ chain: LOCAL_CHAIN, transport: http(RPC_URL) });
+  await testClient.impersonateAccount({ address: timelock });
+  await testClient.setBalance({ address: timelock, value: 10n ** 18n });
+  const governanceWallet = createWalletClient({ account: timelock, chain: LOCAL_CHAIN, transport: http(RPC_URL) });
+  const cpiHash = await governanceWallet.writeContract({
+    account: timelock,
+    address: env.NEXT_PUBLIC_HLC_PSM_31337 as `0x${string}`,
+    abi: PSM_ABI,
+    functionName: "mockCPI",
+    args: [1_500_000n],
+  });
+  const cpiReceipt = await publicClient.waitForTransactionReceipt({ hash: cpiHash });
+  expect(cpiReceipt.status, `reserve-deficit fixture transaction reverted: ${cpiHash}`).toBe("success");
+  await testClient.stopImpersonatingAccount({ address: timelock });
+
+  await page.goto("/health");
+  await expect(page.getByRole("status", { name: "Overall deployment health" })).toContainText("Blocking");
+  await expect(page.getByText("PSM reserve coverage")).toBeVisible();
+  await expect(page.getByText("The PSM reserve is below the amount required to redeem all outstanding claims.")).toBeVisible();
+
+  await installAnvilProvider(page);
+  await page.goto("/psm");
+  const connectButton = page.getByTestId("rk-connect-button");
+  if (await connectButton.count()) await connectButton.click();
+  await expect(page.getByRole("button", { name: /0xf3.*2266/i })).toBeVisible();
+  await expect(page.getByText("New PSM deposits are paused")).toBeVisible();
+  await expect(page.getByText(/The PSM is under-reserved/).first()).toBeVisible();
+  await expect(page.getByRole("button", { name: "Deposits paused until the protocol is healthy" })).toBeDisabled();
+  expect(await page.evaluate(() => (window as Window & { __lastTransaction?: unknown }).__lastTransaction)).toBeUndefined();
+
+  await testClient.revert({ id: snapshot });
 });
 
 test("withdraws through the real HLC permit flow on disposable Anvil state", async ({ page }) => {
