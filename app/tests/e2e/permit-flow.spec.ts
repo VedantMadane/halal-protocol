@@ -474,6 +474,27 @@ test("keeps invalid CPI template rates from reaching the wallet", async ({ page 
   }
 });
 
+test("requires a description before enabling a CPI proposal", async ({ page }) => {
+  await seedRedeemableHlc();
+  await delegateLocalVotingPower();
+  await installAnvilProvider(page);
+  await page.goto("/governance/new");
+  await connectBrowserWallet(page);
+
+  await expect(page.getByRole("heading", { name: "New Proposal" })).toBeVisible();
+  const description = page.locator("textarea").first();
+  const submitButton = page.getByRole("button", { name: "Submit proposal" });
+  await description.fill("");
+  await expect(page.getByText("Description is required.", { exact: true })).toBeVisible();
+  await expect(submitButton).toBeDisabled();
+  expect(await page.evaluate(() => (window as Window & { __lastTransaction?: unknown }).__lastTransaction)).toBeUndefined();
+
+  await description.fill("A valid CPI governance proposal description.");
+  await expect(page.getByText("Description is required.", { exact: true })).toHaveCount(0);
+  await expect(submitButton).toBeEnabled();
+  expect(await page.evaluate(() => (window as Window & { __lastTransaction?: unknown }).__lastTransaction)).toBeUndefined();
+});
+
 test("fails closed when reserve-token metadata cannot be read", async ({ page }) => {
   const env = readLocalEnv();
   const reserveAddress = env.NEXT_PUBLIC_HLC_RESERVE_TOKEN_31337.toLowerCase();

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useAccount, useSwitchChain } from "wagmi";
 import { EmptyState } from "./ui/EmptyState";
 import { Button } from "./ui/Button";
@@ -16,6 +17,7 @@ export function NotDeployedState() {
   const { isConnected } = useAccount();
   const { chainId, isSupportedChain } = useDeployment();
   const switchChain = useSwitchChain();
+  const [switchAttempted, setSwitchAttempted] = useState(false);
 
   if (!isSupportedChain) {
     return (
@@ -32,11 +34,14 @@ export function NotDeployedState() {
             <Button
               size="sm"
               loading={switchChain.isPending}
-              onClick={() => switchChain.switchChain({ chainId: arbitrumSepolia.id })}
+              onClick={() => {
+                setSwitchAttempted(true);
+                switchChain.switchChain({ chainId: arbitrumSepolia.id });
+              }}
             >
               Switch to Arbitrum Sepolia
             </Button>
-            {switchChain.isError && (
+            {(switchChain.isError || switchAttempted) && (
               <p className="max-w-md text-xs text-danger">
                 {getFriendlyErrorMessage(switchChain.error, "networkSwitch")}
               </p>

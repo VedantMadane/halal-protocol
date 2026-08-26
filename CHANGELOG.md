@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.196 - 2026-08-26
+
+- Added required-description governance regression coverage, including disabled-submit and
+  no-wallet-transaction assertions while recovering to a valid proposal description.
+- Stabilized network-switch failure UX and refreshed the labeled contributor queue with issue #73.
+
 ## 0.1.0-alpha.195 - 2026-08-26
 
 - Hardened the CPI governance form against over-precision input that `parseUnits` would otherwise
