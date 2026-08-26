@@ -99,9 +99,10 @@ and the verifier output as the authority for this section.
 ## 4. Perform reserve-token due diligence
 
 The PSM can account for several transfer behaviors, but it cannot make a hostile, frozen, censored,
-upgradeable, or issuer-controlled reserve token safe. Use the compatibility matrix in the
-[operator runbook](OPERATOR-RUNBOOK.md#11-confirm-the-deployment-inputs) and record conclusions
-for the exact token address. Complete the standalone [reserve-asset due-diligence checklist]
+upgradeable, or issuer-controlled reserve token safe. Start with the [reserve-token integration
+decision tree](RESERVE-TOKEN-DECISION-TREE.md), then use the compatibility matrix in the [operator
+runbook](OPERATOR-RUNBOOK.md#11-confirm-the-deployment-inputs) and record conclusions for the exact
+token address. Complete the standalone [reserve-asset due-diligence checklist]
 (RESERVE-ASSET-DUE-DILIGENCE.md) and link the completed record from the journal.
 
 - [ ] Record reserve token address, symbol, decimals, implementation/proxy details, and issuer. The

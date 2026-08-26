@@ -2,6 +2,10 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.259 - 2026-08-27
+
+- Added an evidence-driven reserve-token integration decision tree and linked it from the public deployment worksheet.
+
 ## 0.1.0-alpha.258 - 2026-08-27
 
 - Made the production deployment script reject reserve-token addresses without contract bytecode before deploying the rest of the system.
