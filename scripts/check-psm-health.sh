@@ -62,6 +62,23 @@ if [[ -n "${CPI_ADAPTER:-}" ]]; then
   fi
 fi
 
+require_contract_code() {
+  local label="$1"
+  local address="$2"
+  local code
+  if ! code="$(cast code "$address" --rpc-url "$RPC_URL" 2>/dev/null)"; then
+    unhealthy_reason "${label}_code_read_failed" "$address"
+  fi
+  if [[ -z "$code" || "$code" == "0x" ]]; then
+    unhealthy_reason "${label}_no_code" "$address"
+  fi
+}
+
+require_contract_code "psm" "$PSM"
+if [[ -n "${CPI_ADAPTER:-}" ]]; then
+  require_contract_code "cpi_adapter" "${CPI_ADAPTER}"
+fi
+
 call_at() {
   cast call "$@" --rpc-url "$RPC_URL" | awk 'NR == 1 { print $1; exit }'
 }

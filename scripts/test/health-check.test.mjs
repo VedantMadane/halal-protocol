@@ -39,6 +39,7 @@ function runPsmHealthWithFakeCast(overrides = {}) {
     adapterSignerCount: "1",
     adapterLastSubmitted: "900",
     adapterSigner: "0x0000000000000000000000000000000000000003",
+    code: "0x1234",
     ...overrides,
   };
   writeFileSync(
@@ -46,6 +47,7 @@ function runPsmHealthWithFakeCast(overrides = {}) {
     `#!/usr/bin/env bash
 set -euo pipefail
 case "$*" in
+  *"code "*) echo '${values.code}' ;;
   *"block latest"*) echo '${values.timestamp}' ;;
   *"reserveSurplus"*) echo '${values.reserveSurplus}' ;;
   *"lastReportTimestamp"*) echo '${values.lastReportTimestamp}' ;;
@@ -171,4 +173,11 @@ test("configured CPI adapter rejects malformed metadata before adapter RPC calls
   assert.match(result.output, /^status=unhealthy$/m);
   assert.match(result.output, /^reason=invalid_cpi_adapter$/m);
   assert.doesNotMatch(result.output, /unexpected fake cast call/);
+});
+
+test("standalone PSM health check classifies an address without contract code", () => {
+  const result = runPsmHealthWithFakeCast({ code: "0x" });
+  assert.notEqual(result.status, 0, result.output);
+  assert.match(result.output, /^status=unhealthy$/m);
+  assert.match(result.output, /^reason=psm_no_code$/m);
 });
