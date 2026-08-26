@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.198 - 2026-08-26
+
+- Added a source-verified governance lifecycle walkthrough with local dApp steps, exact Foundry
+  commands, timing parameters, and expected proposal states.
+- Replenished the contributor funnel with the labeled threshold-gating task in issue #75.
+
 ## 0.1.0-alpha.197 - 2026-08-26
 
 - Corrected proposal-detail status aggregation so secondary snapshot/quorum reads participate in

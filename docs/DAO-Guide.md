@@ -270,6 +270,71 @@ if (forVotes > againstVotes && forVotes >= quorum) {
 
 ---
 
+## Reproducible Local Governance Walkthrough
+
+This is a disposable local rehearsal. It never uses a public RPC, real collateral, or a production
+private key. Keep the terminal running the demo open until the interactive steps are complete.
+
+### 1. Start the local system
+
+From the repository root, use the local-only demo wrapper:
+
+```bash
+./scripts/local-demo.sh
+```
+
+Open <http://localhost:3000>. The wrapper starts Anvil on port `8545`, deploys the full role-wired
+system, seeds a current CPI report, verifies the deployment, and writes temporary frontend
+configuration. It restores the previous `app/.env.local` and stops Anvil when you press `Ctrl-C`.
+
+### 2. Create a proposal through the dApp
+
+1. Connect the first published Anvil account with **Browser Wallet**.
+2. Open **Swap**, choose **Deposit**, and deposit some faucet-backed `mDAI`. This mints HLC and
+   creates the account's redeemable PSM credit.
+3. Open **Governance** and click **Self-delegate to activate voting power**. Wait for the
+   confirmation, then confirm voting power is at least `100 HLC`.
+4. Choose **New proposal**, keep the **Update CPI rate** template, enter a rate between `0.1` and
+   `2.0` with at most six decimal places, and provide a description.
+5. Submit the proposal. The detail page should show one action targeting the configured PSM with
+   decoded `mockCPI(uint256)` calldata; the proposal list should show its pending state.
+
+The browser flow is covered without a public network by:
+
+```bash
+make app-e2e
+```
+
+### 3. Rehearse every on-chain lifecycle state
+
+The local browser flow intentionally stops after proposal creation because a real voting period
+and timelock should not be shortened in the dApp. The Foundry tests use `vm.roll` and `vm.warp` on
+an isolated chain to advance the exact same lifecycle safely:
+
+```bash
+cd contracts
+forge test --match-contract HalalDAOTest --match-test test_ProposalState_Transitions -vvv
+forge test --match-contract HalalDAOTest --match-test test_FullProposalFlow -vvv
+```
+
+These tests prove the following sequence against the deployed role wiring:
+
+| State | Local rehearsal | Expected result |
+| --- | --- | --- |
+| Pending | Create proposal | Voting has not started; snapshot is fixed |
+| Active | Advance past the 1-block voting delay | A delegated holder can vote |
+| Succeeded | Vote for, then advance 50,400 voting blocks | For votes meet the 4% quorum |
+| Queued | Call `dao.queue(...)` | The timelock schedules the exact action bundle |
+| Executed | Advance 2 days, then call `dao.execute(...)` | The PSM CPI rate changes through governance |
+
+For the exact fixture helpers and assertions, read
+[`HalalDAO.t.sol`](../contracts/test/HalalDAO.t.sol) and
+[`DeployLocal.s.sol`](../contracts/script/DeployLocal.s.sol). For production deployments, verify
+the configured voting period rather than assuming the local `50,400`-block value: the deployment
+script defaults Arbitrum chains to `2,419,200` blocks and permits an explicit reviewed override.
+
+---
+
 ## Test Coverage
 
 ```
