@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.164 - 2026-08-26
+
+- Added a worked redeemable-credit example documenting ordinary HLC transfers, accounting-aware
+  claim transfers, withdrawal, and claim retirement with explicit balance and credit changes.
+
 ## 0.1.0-alpha.163 - 2026-08-26
 
 - Stabilized the vesting handoff browser regression by asserting the durable beneficiary and

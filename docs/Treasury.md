@@ -19,9 +19,38 @@ In your deployed contracts, the Treasury is actually **two things**:
 *   **The Multisig (Gnosis Safe):** The "CFO/Finance Team." They execute the daily spending based on the budget.
 *   **The Vesting Contract:** The "Trust Fund." It holds the locked tokens.
 
+### 2. Worked Example: HLC Balance versus Redemption Credit
+
+The PSM deliberately tracks two different things. `token.balanceOf(account)` is the ordinary
+fungible HLC balance, while `psm.redeemableBalance(account)` is the amount of that balance that
+the account may redeem against this PSM. The second value is the accounting boundary; receiving
+HLC does not automatically create redemption rights.
+
+Assume a fresh PSM at CPI 1.0, no transfer fees, and an illustrative deposit of 100 reserve units:
+
+| Action | Alice HLC balance | Bob HLC balance | Alice redeemable credit | Bob redeemable credit |
+| --- | ---: | ---: | ---: | ---: |
+| Alice deposits 100 reserve units | 100 | 0 | 100 | 0 |
+| Alice calls ordinary `HLC.transfer(Bob, 40)` | 60 | 40 | 100 | 0 |
+| Alice approves and calls `PSM.transferRedeemable(Bob, 40)` | 20 | 80 | 60 | 40 |
+| Bob approves and withdraws 40 HLC | 20 | 40 | 60 | 0 |
+| Alice approves and calls `PSM.cancelRedeemable(10)` | 10 | 40 | 50 | 0 |
+
+The ordinary ERC20 transfer moves only HLC. Bob cannot redeem the 40 received that way, because
+Bob's credit is still zero. `transferRedeemable` moves the PSM-issued HLC and its matching credit
+atomically, so Bob can redeem exactly the transferred claim. `cancelRedeemable` burns HLC and
+retires the matching credit without returning reserve; after the final row, the PSM still holds
+60 reserve units against 50 outstanding HLC units, so 10 units are surplus rather than an active
+redemption obligation.
+
+This example omits CPI movement, decimal scaling, slippage, and fee-on-transfer behavior. For the
+stateful conservation property and the genesis-allocation boundary, see
+[`docs/INVARIANTS.md`](INVARIANTS.md), `test_TransferRedeemableMovesHLCAndRedemptionCreditAtomically`,
+and `test_TransferredCreditCannotUnlockRecipientGenesisBalance`.
+
 ***
 
-### 2. Real-World Example A: Creating a Market (Liquidity)
+### 3. Real-World Example A: Creating a Market (Liquidity)
 
 **The Problem:** You launch HLC, but no one can buy it because it's not on Uniswap.
 **The Goal:** Put \$50,000 worth of HLC and \$50,000 worth of DAI into Uniswap so people can trade.
@@ -36,7 +65,7 @@ In your deployed contracts, the Treasury is actually **two things**:
 
 ***
 
-### 3. Real-World Example B: Paying for a Security Audit
+### 4. Real-World Example B: Paying for a Security Audit
 
 **The Problem:** You need to pay an audit firm (e.g., OpenZeppelin) \$100,000 to check your new lending contract. They accept USDC, not HLC.
 
@@ -50,7 +79,7 @@ In your deployed contracts, the Treasury is actually **two things**:
 
 ***
 
-### 4. Real-World Example C: The "Rainy Day" Fund (Revenue)
+### 5. Real-World Example C: The "Rainy Day" Fund (Revenue)
 
 Right now, your Treasury only holds HLC tokens. But a healthy Treasury should also hold **stablecoins (DAI/USDC)** so you can pay bills even if the HLC price drops.
 
@@ -69,7 +98,7 @@ Right now, your Treasury only holds HLC tokens. But a healthy Treasury should al
 
 ***
 
-### 5. How the "Vesting" Constraint Works in Real Life
+### 6. How the "Vesting" Constraint Works in Real Life
 
 You allocated 4M HLC to the Treasury with **3-year vesting**. This protects the community.
 
