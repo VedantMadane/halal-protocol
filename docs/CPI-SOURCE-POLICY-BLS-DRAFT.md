@@ -40,7 +40,7 @@ by the adapter; the operator must retain the official response and release evide
 | Duplicate-value behavior | Reject a report whose `reportedAt` is not newer than the PSM watermark |
 | `reportedAt` | The documented BLS publication timestamp for that release, in Unix seconds; never retrieval or submission time |
 | Future / stale / out-of-order policy | Reject; the adapter and PSM enforce timestamp ordering and a 90-day maximum age |
-| Revision policy | PENDING — define whether a revised BLS observation requires governance approval and archive both versions |
+| Revision policy | The parser rejects BLS points marked revised (`R`) pending explicit policy review; any accepted correction to an already represented period requires governance approval and archives both versions |
 
 The repository parser implements this exact integer operation through `ratioToCpi`: it parses the
 source and baseline as decimal integers, performs integer division with half-up rounding, and emits
@@ -97,7 +97,7 @@ Parser policy status:       [x] Draft  [ ] Reviewed  [ ] Rejected
 Signer custody status:      [x] Draft  [ ] Reviewed  [ ] Rejected
 Independent reviewer(s):    PENDING
 Review date (UTC):          PENDING
-Open questions:             baseline, revision handling, transport endpoint, custody, and launch scope
+Open questions:             baseline, correction approval workflow, transport endpoint, custody, and launch scope
 Evidence links:             BLS series-ID page and CPI release calendar above
 ```
 

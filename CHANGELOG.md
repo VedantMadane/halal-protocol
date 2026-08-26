@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.232 - 2026-08-26
+
+- Hardened the BLS CPI parser against duplicate periods and revision-marked (`R`) observations;
+  revised input now fails closed pending explicit policy review.
+- Added deterministic coverage proving the parser preserves the caller-supplied publication
+  timestamp and rejects future timestamps.
+
 ## 0.1.0-alpha.231 - 2026-08-26
 
 - Marked the offline deployment preflight contribution complete in the contributor map and linked

@@ -362,8 +362,8 @@ node scripts/parse-bls-cpi.mjs \
   --reported-at "$BLS_RELEASE_TIMESTAMP"
 ```
 
-The parser accepts one point marked `latest=true` for the exact series, rejects preliminary
-footnotes, computes
+The parser accepts one point marked `latest=true` for the exact series, rejects preliminary and
+revision-marked (`R`) footnotes pending explicit policy review, computes
 `rawIndex / baseIndex * 1_000_000` with integer half-up rounding, and then applies the PSM's
 `[0.1, 2.0]` range. Include the series ID, base index, rounding rule, and parser version in the
 source ID and deployment journal. The base index becomes part of the protocol's economic policy;

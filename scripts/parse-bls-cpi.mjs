@@ -48,6 +48,9 @@ export function parseBlsResponse(payload) {
   if (Array.isArray(point.footnotes) && point.footnotes.some((footnote) => footnote?.code === "P")) {
     throw new Error("BLS data point is preliminary");
   }
+  if (Array.isArray(point.footnotes) && point.footnotes.some((footnote) => typeof footnote?.code === "string" && footnote.code.toUpperCase() === "R")) {
+    throw new Error("BLS data point is revised; require an explicit revision-policy review");
+  }
   const rawIndex = parseDecimal(point.value, "BLS value");
   return { ...point, rawIndex };
 }

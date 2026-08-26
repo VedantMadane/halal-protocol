@@ -57,7 +57,7 @@ test("rounds ratios in integer space", () => {
   assert.equal(ratioToCpi({ integer: 10005n, scale: 3 }, { integer: 10000n, scale: 3 }), 1_000_500n);
 });
 
-test("rejects a different series, missing point, or invalid period", () => {
+test("rejects a different series, duplicate periods, or invalid period", () => {
   assert.throws(() => parseBlsResponse({ ...payload, status: "REQUEST_FAILED" }), /did not succeed/);
   assert.throws(
     () => parseBlsResponse({ ...payload, Results: { series: [payload.Results.series[0], payload.Results.series[0]] } }),
@@ -72,7 +72,15 @@ test("rejects a different series, missing point, or invalid period", () => {
     /exactly one data point/,
   );
   assert.throws(
-    () => parseBlsResponse({ ...payload, Results: { series: [{ ...payload.Results.series[0], data: [payload.Results.series[0].data[0], payload.Results.series[0].data[0]] }] } }),
+    () => parseBlsResponse({
+      ...payload,
+      Results: {
+        series: [{
+          ...payload.Results.series[0],
+          data: [payload.Results.series[0].data[0], { ...payload.Results.series[0].data[0], value: "333.953" }],
+        }],
+      },
+    }),
     /exactly one data point/,
   );
   assert.throws(
@@ -98,6 +106,30 @@ test("rejects a different series, missing point, or invalid period", () => {
   assert.throws(
     () => parseBlsResponse({ ...payload, Results: { series: [{ ...payload.Results.series[0], data: [{ ...payload.Results.series[0].data[0], footnotes: [{ code: "P" }] }] }] } }),
     /preliminary/,
+  );
+  assert.throws(
+    () => parseBlsResponse({ ...payload, Results: { series: [{ ...payload.Results.series[0], data: [{ ...payload.Results.series[0].data[0], footnotes: [{ code: "R" }] }] }] } }),
+    /revised.*revision-policy review/,
+  );
+});
+
+test("preserves the caller's publication timestamp and rejects future timestamps", () => {
+  const report = buildBlsReport(
+    {
+      payload,
+      baseIndex: "300.000",
+      chainId: "421614",
+      adapter: "0x1234567890123456789012345678901234567890",
+      sourceId: `0x${"ab".repeat(32)}`,
+      reportedAt: "1770000000",
+    },
+    1770000000,
+  );
+  assert.equal(report.reportedAt, "1770000000");
+  assert.equal(report.typedData.message.reportedAt, "1770000000");
+  assert.throws(
+    () => buildBlsReport({ payload, baseIndex: "300.000", chainId: "1", adapter: "0x1234567890123456789012345678901234567890", sourceId: `0x${"ab".repeat(32)}`, reportedAt: "1770000001" }, 1770000000),
+    /cannot be in the future/,
   );
 });
 
