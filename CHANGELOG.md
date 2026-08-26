@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.162 - 2026-08-26
+
+- Made pending vesting beneficiaries visible in the dApp so they can complete the two-step
+  beneficiary handoff; active-beneficiary release permissions remain unchanged.
+- Added an end-to-end two-wallet browser regression for proposal and acceptance.
+
 ## 0.1.0-alpha.161 - 2026-08-26
 
 - Added an accessible deployment-health summary action that copies the selected chain, timestamp,

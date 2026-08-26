@@ -25,7 +25,17 @@ export default function VestingPage() {
     !!address &&
     !!treasury.schedule &&
     treasury.schedule.beneficiary.toLowerCase() === address.toLowerCase();
-  const isAnyBeneficiary = isTeamBeneficiary || isTreasuryBeneficiary;
+  const isTeamPendingBeneficiary =
+    isConnected &&
+    !!address &&
+    !!team.schedule &&
+    team.schedule.pendingBeneficiary.toLowerCase() === address.toLowerCase();
+  const isTreasuryPendingBeneficiary =
+    isConnected &&
+    !!address &&
+    !!treasury.schedule &&
+    treasury.schedule.pendingBeneficiary.toLowerCase() === address.toLowerCase();
+  const isAnyBeneficiary = isTeamBeneficiary || isTreasuryBeneficiary || isTeamPendingBeneficiary || isTreasuryPendingBeneficiary;
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
@@ -56,6 +66,17 @@ export default function VestingPage() {
                     onReleased={team.refetch}
                   />
                 )}
+                {isTeamPendingBeneficiary && !isTeamBeneficiary && (
+                  <VestingScheduleCard
+                    label="Team"
+                    vestingAddress={deployment?.teamVesting}
+                    schedule={team.schedule}
+                    isLoading={team.isLoading}
+                    isError={team.isError}
+                    canRelease={false}
+                    onReleased={team.refetch}
+                  />
+                )}
                 {isTreasuryBeneficiary && (
                   <VestingScheduleCard
                     label="Treasury"
@@ -64,6 +85,17 @@ export default function VestingPage() {
                     isLoading={treasury.isLoading}
                     isError={treasury.isError}
                     canRelease
+                    onReleased={treasury.refetch}
+                  />
+                )}
+                {isTreasuryPendingBeneficiary && !isTreasuryBeneficiary && (
+                  <VestingScheduleCard
+                    label="Treasury"
+                    vestingAddress={deployment?.treasuryVesting}
+                    schedule={treasury.schedule}
+                    isLoading={treasury.isLoading}
+                    isError={treasury.isError}
+                    canRelease={false}
                     onReleased={treasury.refetch}
                   />
                 )}

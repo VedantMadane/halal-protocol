@@ -5,6 +5,7 @@ import { privateKeyToAccount } from "viem/accounts";
 
 const RPC_URL = "http://127.0.0.1:18545";
 const ANVIL_ACCOUNT = "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266" as const;
+const ANVIL_SECOND_ACCOUNT = "0x70997970c51812dc3a010c7d01b50e0d17dc79c8" as const;
 const ANVIL_UPDATER_KEY = "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d" as const;
 const ANVIL_UPDATER_ACCOUNT = privateKeyToAccount(ANVIL_UPDATER_KEY);
 const LOCAL_CHAIN = {
@@ -146,13 +147,14 @@ async function advanceLocalTime(seconds: number) {
   await testClient.mine({ blocks: 1 });
 }
 
-async function installAnvilProvider(page: Page, chainId: number = LOCAL_CHAIN.id) {
+async function installAnvilProvider(page: Page, chainId: number = LOCAL_CHAIN.id, account: string = ANVIL_ACCOUNT) {
   await page.addInitScript(({ rpcUrl, account, chainId: injectedChainId }) => {
     const listeners = new Map<string, Set<(...args: unknown[]) => void>>();
+    let currentAccount = account;
     const provider = {
       isMetaMask: true,
       request: async ({ method, params = [] }: { method: string; params?: unknown[] }) => {
-        if (method === "eth_accounts" || method === "eth_requestAccounts") return [account];
+        if (method === "eth_accounts" || method === "eth_requestAccounts") return [currentAccount];
         if (method === "eth_chainId") return `0x${injectedChainId.toString(16)}`;
         if (method === "wallet_switchEthereumChain" || method === "wallet_addEthereumChain") return null;
         const response = await fetch(rpcUrl, {
@@ -184,8 +186,15 @@ async function installAnvilProvider(page: Page, chainId: number = LOCAL_CHAIN.id
       },
       removeListener: (event: string, listener: (...args: unknown[]) => void) => listeners.get(event)?.delete(listener),
     };
+    Object.defineProperty(window, "__setAnvilAccount", {
+      configurable: true,
+      value: (nextAccount: string) => {
+        currentAccount = nextAccount;
+        listeners.get("accountsChanged")?.forEach((listener) => listener([nextAccount]));
+      },
+    });
     Object.defineProperty(window, "ethereum", { configurable: false, value: provider });
-  }, { rpcUrl: RPC_URL, account: ANVIL_ACCOUNT, chainId });
+  }, { rpcUrl: RPC_URL, account, chainId });
 }
 
 test("renders deployment health without a wallet provider", async ({ page }) => {
@@ -227,6 +236,38 @@ test("explains a supported network with no configured deployment", async ({ page
   await expect(page.getByRole("heading", { name: "Not deployed on this network" })).toBeVisible();
   await expect(page.getByText(/Halal has no contracts configured for Arbitrum Sepolia yet/)).toBeVisible();
   await expect(page.getByText("Connect to a supported network or check the project's deployment configuration for chain id 421614.")).toBeVisible();
+});
+
+test("moves the vesting beneficiary only after the proposed address accepts", async ({ page }) => {
+  await installAnvilProvider(page);
+  await page.goto("/vesting");
+
+  const connectButton = page.getByTestId("rk-connect-button");
+  if (await connectButton.count()) await connectButton.click();
+  await expect(page.getByRole("heading", { name: "Vesting", exact: true })).toBeVisible();
+
+  const teamCard = page.getByText("Team Vesting", { exact: true }).locator("..").locator("..");
+  const beneficiaryInput = teamCard.getByPlaceholder("New beneficiary address (0x…)");
+  await beneficiaryInput.fill(ANVIL_SECOND_ACCOUNT);
+  await teamCard.getByRole("button", { name: "Propose" }).click();
+  await expect(teamCard.getByText("Beneficiary proposed. The new address must accept the transfer.")).toBeVisible();
+  await expect(page.getByText(/Pending beneficiary: 0x7099…79c8/i)).toBeVisible();
+
+  const secondContext = await page.context().browser()!.newContext();
+  const secondPage = await secondContext.newPage();
+  await installAnvilProvider(secondPage, LOCAL_CHAIN.id, ANVIL_SECOND_ACCOUNT);
+  await secondPage.goto("/vesting");
+  const secondConnectButton = secondPage.getByTestId("rk-connect-button");
+  if (await secondConnectButton.count()) await secondConnectButton.click();
+  const secondBrowserWallet = secondPage.getByRole("button", { name: "Browser Wallet" });
+  if (await secondBrowserWallet.count()) await secondBrowserWallet.click();
+  await expect(secondPage.getByRole("heading", { name: "Vesting", exact: true })).toBeVisible();
+  const secondTeamCard = secondPage.getByText("Team Vesting", { exact: true }).locator("..").locator("..");
+  await expect(secondTeamCard.getByRole("button", { name: "Accept beneficiary transfer" })).toBeVisible();
+  await secondTeamCard.getByRole("button", { name: "Accept beneficiary transfer" }).click();
+  await expect(secondTeamCard.getByText("Beneficiary transfer accepted.")).toBeVisible();
+  await expect(secondTeamCard).toContainText("0x7099…79C8");
+  await secondContext.close();
 });
 
 test("blocks an invalid governance action before any transaction is submitted", async ({ page }) => {
