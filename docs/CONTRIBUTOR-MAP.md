@@ -13,8 +13,8 @@ operations. Report fund-risking findings through [`SECURITY.md`](../SECURITY.md)
 Choose the task that matches your interests; each issue includes a bounded scope, acceptance
 criteria, and a safe local verification path:
 
-- [dApp accessibility assertions (#63)](https://github.com/fredrikblau/halal-protocol/issues/63) —
-  protect keyboard access, accessible names, and safety-state announcements in the browser flow.
+- [Reserve-token metadata failure handling (#64)](https://github.com/fredrikblau/halal-protocol/issues/64) —
+  add deterministic dApp coverage for unreadable decimals/symbol metadata and fail-closed actions.
 
 The completed [CPI source-policy template (#54)](https://github.com/fredrikblau/halal-protocol/issues/54)
 is available as a reference for the documentation standard, but is no longer an active starter task.
