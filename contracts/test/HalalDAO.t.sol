@@ -74,6 +74,16 @@ contract HalalDAOTest is Deployers {
         new HalalDAO(token, HalalTimelock(payable(address(0))), 1, VOTING_PERIOD, PROPOSAL_THRESHOLD, QUORUM_PERCENT);
     }
 
+    function test_RevertWhen_DAOHasNonContractDependency() public {
+        // GovernorVotes probes the voting token's clock during base construction, so an EOA token
+        // may fail before HalalDAO's explicit dependency guard; either way deployment must revert.
+        vm.expectRevert();
+        new HalalDAO(IVotes(address(1)), timelock, 1, VOTING_PERIOD, PROPOSAL_THRESHOLD, QUORUM_PERCENT);
+
+        vm.expectRevert(HalalDAO.NotContract.selector);
+        new HalalDAO(token, HalalTimelock(payable(address(1))), 1, VOTING_PERIOD, PROPOSAL_THRESHOLD, QUORUM_PERCENT);
+    }
+
     function test_RevertWhen_DAOVotingPeriodIsZero() public {
         vm.expectRevert();
         new HalalDAO(token, timelock, 1, 0, PROPOSAL_THRESHOLD, QUORUM_PERCENT);

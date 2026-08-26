@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.155 - 2026-08-26
+
+- Hardened governance deployment checks so a non-contract timelock cannot produce an apparently
+  deployed but unusable `HalalDAO`; added constructor regression coverage.
+
 ## 0.1.0-alpha.154 - 2026-08-26
 
 - Hardened CPI adapter signer rotation so a pending ownership recipient cannot be added as a signer

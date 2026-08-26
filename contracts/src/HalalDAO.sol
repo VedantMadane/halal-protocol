@@ -26,6 +26,7 @@ contract HalalDAO is
     GovernorTimelockControl
 {
     error ZeroAddress();
+    error NotContract();
     error InvalidQuorum();
     error InvalidProposalThreshold();
 
@@ -45,6 +46,9 @@ contract HalalDAO is
     {
         if (address(token_) == address(0) || address(timelock_) == address(0)) {
             revert ZeroAddress();
+        }
+        if (address(token_).code.length == 0 || address(timelock_).code.length == 0) {
+            revert NotContract();
         }
         if (proposalThreshold_ == 0) revert InvalidProposalThreshold();
         if (quorumPercent_ == 0 || quorumPercent_ > 100) revert InvalidQuorum();
