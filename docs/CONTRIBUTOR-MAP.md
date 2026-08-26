@@ -30,6 +30,8 @@ criteria, and a safe local verification path:
   is available as the reference for both starter tasks.
 - The completed [machine-readable monitoring example](MONITORING-JSON-EXAMPLE.md) shows how to
   consume health JSON while preserving fail-closed exit behavior.
+- The completed [offline deployment preflight](../scripts/preflight-deployment.mjs) shows how to
+  report registry readiness without RPC access, credentials, signing, or file mutation (issue #93).
 - The completed [reserve-asset due-diligence example](RESERVE-ASSET-DUE-DILIGENCE-EXAMPLE.md)
   demonstrates how to separate observations, assumptions, residual risks, and decisions.
 - The completed [local deployment evidence example](LOCAL-DEPLOYMENT-EVIDENCE.md) shows how to
