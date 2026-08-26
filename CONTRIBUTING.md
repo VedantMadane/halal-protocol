@@ -40,7 +40,8 @@ CodeQL language analyses. Dependency review and OpenSSF Scorecard remain visible
 dependency review runs only on pull requests and Scorecard reports supply-chain posture.
 
 CI (`.github/workflows/ci.yml`) runs the contracts, dependency-light script, ABI, and frontend test
-suites on every relevant push and PR. A PR won't be merged with a red CI run.
+suites on every relevant push and PR. Markdown changes also run the local link and anchor checker
+(`make markdown-links`). A PR won't be merged with a red CI run.
 
 ## Running the test suites
 

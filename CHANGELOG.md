@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.256 - 2026-08-26
+
+- Added a dependency-free Markdown link and heading-anchor checker with regression coverage.
+- Added the checker to `make verify` and a path-filtered documentation CI job.
+
 ## 0.1.0-alpha.255 - 2026-08-26
 
 - Synchronized current public documentation with the verified 192-test Solidity suite and 73-test Node suite.

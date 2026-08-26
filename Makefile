@@ -1,11 +1,11 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help verify contracts-build contracts-test contracts-lint contracts-coverage app-lint app-build app-smoke app-e2e abis psm-health deployment-health deployment-preflight economic-model oracle-test adapter-demo registry-check shell-check cpi-policy-check
+.PHONY: help verify contracts-build contracts-test contracts-lint contracts-coverage app-lint app-build app-smoke app-e2e abis psm-health deployment-health deployment-preflight economic-model oracle-test adapter-demo registry-check shell-check cpi-policy-check markdown-links
 
 help:
-	@printf '%s\n' 'Halal development commands:' '' '  make verify             Run the complete local verification suite' '  make contracts-test     Run the Foundry contract tests' '  make app-build          Build the Next.js dApp' '  make app-smoke          Deploy disposable Anvil state and smoke-test the dApp' '  make app-e2e            Exercise the browser permit flow on disposable Anvil state' '  make adapter-demo       Rehearse signed CPI reporting on disposable Anvil state' '  make deployment-preflight  Check registry readiness without RPC or credentials' '  make cpi-policy-check   Validate draft/reviewable CPI policy record fixtures offline' '  make economic-model     Run the deterministic reserve-adequacy model' '' 'Read CONTRIBUTING.md before changing contracts/src/.'
+	@printf '%s\n' 'Halal development commands:' '' '  make verify             Run the complete local verification suite' '  make contracts-test     Run the Foundry contract tests' '  make app-build          Build the Next.js dApp' '  make app-smoke          Deploy disposable Anvil state and smoke-test the dApp' '  make app-e2e            Exercise the browser permit flow on disposable Anvil state' '  make adapter-demo       Rehearse signed CPI reporting on disposable Anvil state' '  make deployment-preflight  Check registry readiness without RPC or credentials' '  make cpi-policy-check   Validate draft/reviewable CPI policy record fixtures offline' '  make markdown-links     Validate tracked Markdown links and anchors' '  make economic-model     Run the deterministic reserve-adequacy model' '' 'Read CONTRIBUTING.md before changing contracts/src/.'
 
-verify: registry-check shell-check oracle-test adapter-demo contracts-build contracts-test contracts-lint app-lint app-smoke app-e2e
+verify: registry-check shell-check oracle-test markdown-links adapter-demo contracts-build contracts-test contracts-lint app-lint app-smoke app-e2e
 
 registry-check:
 	node scripts/validate-deployment-registry.mjs
@@ -19,6 +19,9 @@ oracle-test:
 cpi-policy-check:
 	node scripts/validate-cpi-policy.mjs --input scripts/test/fixtures/cpi-policy-draft.json
 	node scripts/validate-cpi-policy.mjs --input scripts/test/fixtures/cpi-policy-reviewed.json
+
+markdown-links:
+	node scripts/check-markdown-links.mjs
 
 adapter-demo:
 	./scripts/local-adapter-demo.sh

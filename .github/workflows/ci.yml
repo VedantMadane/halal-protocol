@@ -23,6 +23,7 @@ jobs:
     outputs:
       contracts: ${{ steps.filter.outputs.contracts }}
       app: ${{ steps.filter.outputs.app }}
+      docs: ${{ steps.filter.outputs.docs }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4
@@ -36,6 +37,10 @@ jobs:
             app:
               - 'app/**'
               - 'scripts/**'
+              - 'Makefile'
+            docs:
+              - '**/*.md'
+              - 'README.md'
               - 'Makefile'
 
   contracts:
@@ -205,6 +210,23 @@ jobs:
 
       - name: Node script tests
         run: node --test scripts/test/*.test.mjs
+
+  documentation:
+    name: Documentation (Markdown links)
+    needs: changes
+    if: needs.changes.outputs.docs == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Install Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: 22
+
+      - name: Validate Markdown links and anchors
+        run: make markdown-links
 
   app:
     name: Frontend (Next.js)
