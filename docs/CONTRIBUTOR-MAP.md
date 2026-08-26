@@ -15,8 +15,8 @@ criteria, and a safe local verification path:
 
 - [Release verification walkthrough (#68)](https://github.com/fredrikblau/halal-protocol/issues/68) —
   document clean-checkout verification of release tags, artifacts, ABIs, and hosted checks.
-- [Governance template switching (#77)](https://github.com/fredrikblau/halal-protocol/issues/77) —
-  add deterministic browser coverage for safe switching between CPI and advanced payloads.
+- [Advanced multi-action governance coverage (#78)](https://github.com/fredrikblau/halal-protocol/issues/78) —
+  add deterministic browser coverage proving multiple raw actions preserve order, values, and calldata.
 
 The completed [CPI source-policy template (#54)](https://github.com/fredrikblau/halal-protocol/issues/54)
 is available as a reference for the documentation standard, but is no longer an active starter task.

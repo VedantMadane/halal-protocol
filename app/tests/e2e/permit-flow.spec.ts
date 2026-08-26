@@ -477,6 +477,54 @@ test("accepts both inclusive CPI template boundaries without rounding", async ({
   }
 });
 
+test("rebuilds the proposal payload when switching governance templates", async ({ page }) => {
+  const env = readLocalEnv();
+  await seedRedeemableHlc();
+  await delegateLocalVotingPower();
+  await installAnvilProvider(page);
+  await page.goto("/governance/new");
+  await connectBrowserWallet(page);
+
+  await expect(page.getByRole("heading", { name: "New Proposal" })).toBeVisible();
+  const submitButton = page.getByRole("button", { name: "Submit proposal" });
+  const cpiRate = page.locator("input").first();
+  const cpiDescription = page.locator("textarea").first();
+  await cpiRate.fill("1.23");
+  await cpiDescription.fill("E2E CPI description must survive template switching.");
+  await expect(submitButton).toBeEnabled();
+
+  await page.getByRole("button", { name: "Advanced (raw calls)" }).click();
+  await expect(page.getByText('Invalid target address: ""', { exact: true })).toBeVisible();
+  await expect(submitButton).toBeDisabled();
+  expect(await page.evaluate(() => (window as Window & { __lastTransaction?: unknown }).__lastTransaction)).toBeUndefined();
+
+  await page.getByPlaceholder("Target address (0x…)").fill(env.NEXT_PUBLIC_HLC_PSM_31337);
+  await page.getByPlaceholder("What does this proposal do, and why?").fill("E2E advanced description must not leak into CPI.");
+  await expect(submitButton).toBeEnabled();
+  expect(await page.evaluate(() => (window as Window & { __lastTransaction?: unknown }).__lastTransaction)).toBeUndefined();
+
+  await page.getByRole("button", { name: "Update CPI rate" }).click();
+  await expect(cpiRate).toHaveValue("1.23");
+  await expect(cpiDescription).toHaveValue("E2E CPI description must survive template switching.");
+  await cpiDescription.fill("");
+  await expect(page.getByText("Description is required.", { exact: true })).toBeVisible();
+  await expect(submitButton).toBeDisabled();
+  expect(await page.evaluate(() => (window as Window & { __lastTransaction?: unknown }).__lastTransaction)).toBeUndefined();
+
+  await cpiDescription.fill("E2E CPI description must survive template switching.");
+  await expect(submitButton).toBeEnabled();
+  await submitButton.click();
+  await expect(page.getByText("Proposal created.")).toBeVisible();
+  await expect(page).toHaveURL(/\/governance$/, { timeout: 10_000 });
+
+  const proposalLink = page.getByText("E2E CPI description must survive template switching.", { exact: true });
+  await expect(proposalLink).toBeVisible();
+  await proposalLink.click();
+  await expect(page.getByRole("heading", { name: "Actions (1)" })).toBeVisible();
+  await expect(page.getByText("mockCPI(1230000)", { exact: true })).toBeVisible();
+  await expect(page.getByTitle(env.NEXT_PUBLIC_HLC_PSM_31337)).toBeVisible();
+});
+
 test("keeps invalid CPI template rates from reaching the wallet", async ({ page }) => {
   await installAnvilProvider(page);
   await page.goto("/governance/new");

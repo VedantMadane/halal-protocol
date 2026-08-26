@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.201 - 2026-08-26
+
+- Added browser coverage proving governance payloads are rebuilt safely when switching between CPI and
+  advanced templates, including invalid-state submission gating.
+- Replenished the contributor funnel with the labeled multi-action governance task in issue #78.
+
 ## 0.1.0-alpha.200 - 2026-08-26
 
 - Added end-to-end coverage for both inclusive CPI bounds and exact encoded governance calldata.
