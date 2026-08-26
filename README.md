@@ -34,8 +34,9 @@ Start with the [good first issues](https://github.com/fredrikblau/halal-protocol
 - Run `./scripts/local-demo.sh` to see the contracts and dApp together.
 - Follow the [local development walkthrough](docs/LOCAL-DEVELOPMENT.md) from a clean checkout.
 - Run `make verify` before opening a pull request.
-- Pick [standalone PSM health-check tests](https://github.com/fredrikblau/halal-protocol/issues/43)
-  or a [local CPI report walkthrough](https://github.com/fredrikblau/halal-protocol/issues/44).
+- Add [swap slippage and deadline safety coverage](https://github.com/fredrikblau/halal-protocol/issues/45),
+  [redeemable-credit browser coverage](https://github.com/fredrikblau/halal-protocol/issues/47),
+  or a [local-demo troubleshooting guide](https://github.com/fredrikblau/halal-protocol/issues/48).
 - Help coordinate the first carefully gated [Arbitrum Sepolia deployment](https://github.com/fredrikblau/halal-protocol/issues/40).
 - Review the bounded [security challenge](https://github.com/fredrikblau/halal-protocol/issues/16) or
   [production CPI adapter design](https://github.com/fredrikblau/halal-protocol/issues/17).

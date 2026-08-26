@@ -13,10 +13,12 @@ operations. Report fund-risking findings through [`SECURITY.md`](../SECURITY.md)
 Choose the task that matches your interests; each issue includes a bounded scope, acceptance
 criteria, and a safe local verification path:
 
-- [Standalone PSM health-check tests (#43)](https://github.com/fredrikblau/halal-protocol/issues/43) —
-  Node test coverage for fail-closed monitoring output.
-- [Local CPI report walkthrough (#44)](https://github.com/fredrikblau/halal-protocol/issues/44) —
-  copy-paste documentation for the disposable adapter rehearsal.
+- [Swap slippage and deadline safety coverage (#45)](https://github.com/fredrikblau/halal-protocol/issues/45) —
+  browser tests proving unsafe swap parameters fail closed.
+- [Redeemable-credit browser coverage (#47)](https://github.com/fredrikblau/halal-protocol/issues/47) —
+  end-to-end tests for transfer and claim retirement.
+- [Local-demo troubleshooting guide (#48)](https://github.com/fredrikblau/halal-protocol/issues/48) —
+  copy-paste recovery steps for first-time contributors.
 
 The [deployment review worksheet (#42)](https://github.com/fredrikblau/halal-protocol/issues/42)
 is a completed example of the contribution standard above.
