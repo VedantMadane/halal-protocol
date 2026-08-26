@@ -43,6 +43,13 @@ const PSM_ABI = [
     ],
     outputs: [],
   },
+  {
+    type: "function",
+    name: "redeemableBalance",
+    stateMutability: "view",
+    inputs: [{ name: "account", type: "address" }],
+    outputs: [{ name: "", type: "uint256" }],
+  },
 ] as const;
 
 function readLocalEnv(): Record<string, string> {
@@ -61,8 +68,16 @@ function readLocalEnv(): Record<string, string> {
 async function seedRedeemableHlc() {
   const env = readLocalEnv();
   const account = ANVIL_ACCOUNT;
-  const updaterWallet = createWalletClient({ account: ANVIL_UPDATER_ACCOUNT, chain: LOCAL_CHAIN, transport: http(RPC_URL) });
   const updaterPublicClient = createPublicClient({ chain: LOCAL_CHAIN, transport: http(RPC_URL) });
+  const existingCredit = await updaterPublicClient.readContract({
+    address: env.NEXT_PUBLIC_HLC_PSM_31337 as `0x${string}`,
+    abi: PSM_ABI,
+    functionName: "redeemableBalance",
+    args: [account],
+  });
+  if (existingCredit > 0n) return;
+
+  const updaterWallet = createWalletClient({ account: ANVIL_UPDATER_ACCOUNT, chain: LOCAL_CHAIN, transport: http(RPC_URL) });
   const block = await updaterPublicClient.getBlock({ blockTag: "latest" });
   const reportHash = await updaterWallet.writeContract({
     account: ANVIL_UPDATER_ACCOUNT,
@@ -109,6 +124,12 @@ async function submitDivergentPsmReport() {
     args: [1_000_000n, block.timestamp],
   });
   await publicClient.waitForTransactionReceipt({ hash: reportHash });
+}
+
+async function advanceLocalTime(seconds: number) {
+  const testClient = createTestClient({ chain: LOCAL_CHAIN, mode: "anvil", transport: http(RPC_URL) });
+  await testClient.increaseTime({ seconds });
+  await testClient.mine({ blocks: 1 });
 }
 
 async function installAnvilProvider(page: Page, chainId: number = LOCAL_CHAIN.id) {
@@ -249,6 +270,79 @@ test("withdraws through the real HLC permit flow on disposable Anvil state", asy
   const publicClient = createPublicClient({ chain: LOCAL_CHAIN, transport: http(RPC_URL) });
   const receipt = await publicClient.waitForTransactionReceipt({ hash: transactionHash as `0x${string}` });
   expect(receipt.status, `permit transaction reverted: ${transactionHash}`).toBe("success");
+});
+
+test("fails closed when CPI movement makes the quoted minimum withdrawal impossible", async ({ page }) => {
+  await seedRedeemableHlc();
+  await installAnvilProvider(page);
+  await page.goto("/psm");
+
+  const connectButton = page.getByTestId("rk-connect-button");
+  if (await connectButton.count()) await connectButton.click();
+  await expect(page.getByRole("button", { name: /0xf3.*2266/i })).toBeVisible();
+  await page.getByRole("button", { name: "Withdraw" }).click();
+  await page.locator("input[placeholder='0.0']").first().fill("100");
+  await expect(page.getByText(/Minimum received \(/)).toBeVisible();
+
+  // A 10% CPI decrease makes the old quoted reserve minimum unsafe; the bounded contract call
+  // must revert instead of silently paying an unbounded amount from the stale quote.
+  const testClient = createTestClient({ chain: LOCAL_CHAIN, mode: "anvil", transport: http(RPC_URL) });
+  const updaterWallet = createWalletClient({ account: ANVIL_UPDATER_ACCOUNT, chain: LOCAL_CHAIN, transport: http(RPC_URL) });
+  const publicClient = createPublicClient({ chain: LOCAL_CHAIN, transport: http(RPC_URL) });
+  await testClient.increaseTime({ seconds: 25 * 24 * 60 * 60 + 1 });
+  await testClient.mine({ blocks: 1 });
+  const block = await publicClient.getBlock({ blockTag: "latest" });
+  const env = readLocalEnv();
+  const reportHash = await updaterWallet.writeContract({
+    account: ANVIL_UPDATER_ACCOUNT,
+    address: env.NEXT_PUBLIC_HLC_PSM_31337 as `0x${string}`,
+    abi: PSM_ABI,
+    functionName: "updateCPIWithTimestamp",
+    args: [900_000n, block.timestamp],
+  });
+  await publicClient.waitForTransactionReceipt({ hash: reportHash });
+
+  await page.getByRole("button", { name: "Sign & withdraw in one transaction" }).click();
+  const transactionHash = await expect
+    .poll(() => page.evaluate(() => (window as Window & { __lastTransaction?: string }).__lastTransaction), {
+      timeout: 30_000,
+    })
+    .toBeTruthy()
+    .then(() => page.evaluate(() => (window as Window & { __lastTransaction?: string }).__lastTransaction));
+  await expect(page.getByText("Transaction failed")).toBeVisible();
+  await expect(page.getByText("Withdrawal confirmed.")).toHaveCount(0);
+
+  const receipt = await publicClient.waitForTransactionReceipt({ hash: transactionHash as `0x${string}` });
+  expect(receipt.status, `unsafe quoted withdrawal unexpectedly succeeded: ${transactionHash}`).toBe("reverted");
+});
+
+test("fails closed when the cached withdrawal deadline expires", async ({ page }) => {
+  await seedRedeemableHlc();
+  await installAnvilProvider(page);
+  await page.goto("/psm");
+
+  const connectButton = page.getByTestId("rk-connect-button");
+  if (await connectButton.count()) await connectButton.click();
+  await expect(page.getByRole("button", { name: /0xf3.*2266/i })).toBeVisible();
+  await page.getByRole("button", { name: "Withdraw" }).click();
+  await page.locator("input[placeholder='0.0']").first().fill("100");
+  await expect(page.getByRole("button", { name: "Sign & withdraw in one transaction" })).toBeVisible();
+
+  // Advance the disposable chain beyond the UI's cached 15-minute deadline before signing.
+  await advanceLocalTime(15 * 60 + 1);
+  await page.getByRole("button", { name: "Sign & withdraw in one transaction" }).click();
+  const transactionHash = await expect
+    .poll(() => page.evaluate(() => (window as Window & { __lastTransaction?: string }).__lastTransaction), {
+      timeout: 30_000,
+    })
+    .toBeTruthy()
+    .then(() => page.evaluate(() => (window as Window & { __lastTransaction?: string }).__lastTransaction));
+  await expect(page.getByText("Transaction failed")).toBeVisible();
+  await expect(page.getByText("Withdrawal confirmed.")).toHaveCount(0);
+
+  const publicClient = createPublicClient({ chain: LOCAL_CHAIN, transport: http(RPC_URL) });
+  const receipt = await publicClient.waitForTransactionReceipt({ hash: transactionHash as `0x${string}` });
+  expect(receipt.status, `expired withdrawal unexpectedly succeeded: ${transactionHash}`).toBe("reverted");
 });
 
 test("blocks health when the adapter and PSM report watermarks diverge", async ({ page }) => {

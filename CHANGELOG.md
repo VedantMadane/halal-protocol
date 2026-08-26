@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.152 - 2026-08-26
+
+- Added browser regressions proving stale minimum-output quotes and expired withdrawal deadlines
+  fail closed with reverted transactions and visible failure states.
+
 ## 0.1.0-alpha.151 - 2026-08-26
 
 - Hardened the reusable CPI adapter governance handoff builder against zero addresses and the
