@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.205 - 2026-08-26
+
+- Added a source-linked BLS CPI-U policy draft with reproducible scaling, timestamp, archive, and
+  custody requirements while explicitly preserving its draft/non-approval status.
+- Linked the draft from the deployment journal and operator runbook for safer handoff review.
+
 ## 0.1.0-alpha.204 - 2026-08-26
 
 - Added a 15-minute timeout to the configured frontend smoke-test job so local process hangs fail

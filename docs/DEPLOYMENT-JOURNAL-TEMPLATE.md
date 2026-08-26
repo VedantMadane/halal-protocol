@@ -78,7 +78,9 @@ Decision and scope:
 ## 5. CPI source and first report
 
 Complete and link [`CPI-SOURCE-POLICY-TEMPLATE.md`](CPI-SOURCE-POLICY-TEMPLATE.md) before granting
-`UPDATER_ROLE` to a relayer or adapter.
+`UPDATER_ROLE` to a relayer or adapter. The repository's non-approval example is
+[`CPI-SOURCE-POLICY-BLS-DRAFT.md`](CPI-SOURCE-POLICY-BLS-DRAFT.md); it must be reviewed and
+completed before use.
 
 | Artifact | Record |
 | --- | --- |

@@ -39,8 +39,10 @@ record the exact token address, implementation, transfer observations, issuer co
 and launch decision in the deployment journal.
 
 Complete the provider-neutral [`CPI source-policy record`](CPI-SOURCE-POLICY-TEMPLATE.md) for the
-exact source and parser before granting `UPDATER_ROLE`. Link its raw response hashes, parser
-version, revision policy, signer custody, and monitoring evidence from the deployment journal.
+exact source and parser before granting `UPDATER_ROLE`. The repository includes a clearly marked
+[`BLS CPI source-policy draft`](CPI-SOURCE-POLICY-BLS-DRAFT.md) as a worked example, not approval.
+Link its raw response hashes, parser version, revision policy, signer custody, and monitoring
+evidence from the deployment journal.
 
 The production deployment script rejects EOA vesting beneficiaries by checking that both addresses
 already contain contract bytecode. Use deployed multisig or custody contracts and record their
