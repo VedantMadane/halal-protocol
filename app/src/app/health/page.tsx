@@ -68,18 +68,25 @@ export default function HealthPage() {
   const reportState = reportCheck(psm, safety);
   const reserveState = reserveCheck(psm);
   const adapterState = adapterCheck(deployment, adapter, psm);
+  const checks = [
+    { label: "Contract wiring and roles", ...deploymentState },
+    { label: "CPI report freshness", ...reportState },
+    { label: "PSM reserve coverage", ...reserveState },
+    { label: "Signed CPI adapter", ...adapterState },
+  ];
+  const summary = [
+    "Halal deployment health",
+    `Chain ID: ${chainId}`,
+    `Checked at: ${new Date().toISOString()}`,
+    ...checks.map((check) => `${check.label}: ${check.status.toUpperCase()} — ${check.detail}`),
+  ].join("\n");
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <PageHeader title="Deployment health" description="Inspect the live contract wiring, CPI feed, reserve coverage, and adapter custody before signing." />
       <div className="space-y-6">
         <DeploymentIntegrityBanner />
-        <HealthStatusCard checks={[
-          { label: "Contract wiring and roles", ...deploymentState },
-          { label: "CPI report freshness", ...reportState },
-          { label: "PSM reserve coverage", ...reserveState },
-          { label: "Signed CPI adapter", ...adapterState },
-        ]} />
+        <HealthStatusCard checks={checks} summary={summary} />
 
         {psm.isError && <Alert tone="danger" title="Health data is incomplete">{getFriendlyErrorMessage(psm.error)} Refresh the page before relying on any status.</Alert>}
 

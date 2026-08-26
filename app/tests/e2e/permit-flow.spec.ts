@@ -201,6 +201,21 @@ test("renders deployment health without a wallet provider", async ({ page }) => 
   await expect(page.getByText("PSM reserve coverage")).toBeVisible();
   await expect(page.getByText("Signed CPI adapter")).toBeVisible();
   await expect(page.getByText(/2 of 2 configured signers; adapter and PSM watermarks match/)).toBeVisible();
+  await expect(page.getByRole("button", { name: "Copy deployment health summary" })).toBeVisible();
+  await page.evaluate(() => {
+    let copied = "";
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText: async (value: string) => { copied = value; } },
+    });
+    Object.defineProperty(window, "__copiedHealthSummary", { configurable: true, get: () => copied });
+  });
+  await page.getByRole("button", { name: "Copy deployment health summary" }).click();
+  await expect(page.getByText("Health summary copied to the clipboard.")).toBeVisible();
+  const copiedSummary = await page.evaluate(() => (window as Window & { __copiedHealthSummary?: string }).__copiedHealthSummary);
+  expect(copiedSummary).toMatch(/Halal deployment health/);
+  expect(copiedSummary).toMatch(/Chain ID: 31337/);
+  expect(copiedSummary).toMatch(/CPI report freshness: (PASS|WARN|FAIL|LOADING)/);
   await expect(page.getByRole("link", { name: "Open protocol dashboard" })).toHaveAttribute("href", "/");
 });
 

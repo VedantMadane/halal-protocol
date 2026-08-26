@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.161 - 2026-08-26
+
+- Added an accessible deployment-health summary action that copies the selected chain, timestamp,
+  and visible public check results without exposing wallet or signer data.
+- Added browser coverage for the copy feedback and summary contents.
+
 ## 0.1.0-alpha.160 - 2026-08-26
 
 - Added a deeper test-first contributor task for stateful PSM coverage across adversarial reserve
