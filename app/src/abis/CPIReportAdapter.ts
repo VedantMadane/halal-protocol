@@ -533,6 +533,11 @@ export const cpiReportAdapterAbi = [
   },
   {
     "type": "error",
+    "name": "NotContract",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "OwnableInvalidOwner",
     "inputs": [
       {

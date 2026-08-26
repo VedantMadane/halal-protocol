@@ -1196,6 +1196,11 @@ export const halalPsmAbi = [
   },
   {
     "type": "error",
+    "name": "NotContract",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "RateOutOfBounds",
     "inputs": []
   },

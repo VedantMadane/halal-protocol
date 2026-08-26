@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.148 - 2026-08-26
+
+- Regenerated the checked-in dApp ABIs for the constructor-level dependency validation errors added
+  in alpha147.
+- Restored generated-ABI verification consistency after the hosted CI gate identified the drift.
+
 ## 0.1.0-alpha.147 - 2026-08-26
 
 - Hardened `HalalPSM` and `CPIReportAdapter` constructors against non-contract token and sink
