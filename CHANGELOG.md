@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.212 - 2026-08-26
+
+- Added a 20-minute job bound to the extended fuzzing and invariant workflow so runner or Foundry
+  hangs become actionable failures instead of indefinite hosted checks.
+
 ## 0.1.0-alpha.211 - 2026-08-26
 
 - Hardened deployment manifest recording so the supplied deployment transaction must have a

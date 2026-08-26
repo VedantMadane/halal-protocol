@@ -14,6 +14,9 @@ jobs:
   fuzz-and-invariants:
     name: Extended fuzzing and invariants
     runs-on: ubuntu-latest
+    # Extended fuzzing is intentionally heavier than the PR gate, but it must still fail visibly
+    # if a runner or Foundry process stops making progress.
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: contracts
