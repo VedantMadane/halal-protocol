@@ -100,7 +100,8 @@ CPI_ADAPTER=0x... EXPECTED_CPI_SOURCE_ID=0x... \
 
 When a governed signed adapter is used, provide `CPI_ADAPTER` and `EXPECTED_CPI_SOURCE_ID` together;
 the verifier additionally checks adapter bytecode, PSM and timelock ownership, source identity,
-quorum, signer uniqueness/owner separation, and the adapter's `UPDATER_ROLE`. The verifier checks
+quorum, signer uniqueness/owner separation, the adapter's `UPDATER_ROLE`, and equality between the
+adapter and PSM accepted-report watermarks. The verifier checks
 bytecode, chain identity, immutable wiring, vesting policy, beneficiary custody boundaries, token
 roles, timelock roles, PSM roles, and the absence of deployer privileges. Stop the launch if it
 fails.

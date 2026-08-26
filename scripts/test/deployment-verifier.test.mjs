@@ -55,6 +55,8 @@ case "$1" in
       'psm()('* ) echo ${ADDRESSES.psm} ;;
       'owner()('* ) echo ${ADDRESSES.timelock} ;;
       'sourceId()('* ) echo ${SOURCE_ID} ;;
+      'lastSubmittedTimestamp()('* ) echo "\${FAKE_ADAPTER_WATERMARK:-0}" ;;
+      'lastReportTimestamp()('* ) echo "\${FAKE_PSM_WATERMARK:-0}" ;;
       'threshold()('* ) echo 2 ;;
       'signerCount()('* ) echo 2 ;;
       signerAt*) [[ "$4" == 0 ]] && echo ${ADDRESSES.signerOne} || echo ${ADDRESSES.signerTwo} ;;
@@ -66,7 +68,7 @@ esac
 `;
 }
 
-function runVerifier(withAdapter) {
+function runVerifier(withAdapter, overrides = {}) {
   const directory = mkdtempSync(path.join(tmpdir(), "halal-deployment-verifier-"));
   const fakeCast = path.join(directory, "cast");
   writeFileSync(fakeCast, fakeCastScript());
@@ -87,6 +89,7 @@ function runVerifier(withAdapter) {
     TREASURY_BENEFICIARY: ADDRESSES.treasuryBeneficiary,
     DEPLOYER_ADDRESS: ADDRESSES.deployer,
     ...(withAdapter ? { CPI_ADAPTER: ADDRESSES.adapter, EXPECTED_CPI_SOURCE_ID: SOURCE_ID } : {}),
+    ...overrides,
   };
   try {
     return spawnSync("bash", [VERIFIER], { cwd: ROOT, env, encoding: "utf8" });
@@ -104,4 +107,10 @@ test("deployment verifier checks governed CPI adapter metadata", () => {
 test("deployment verifier keeps the core path valid without an adapter", () => {
   const result = runVerifier(false);
   assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
+});
+
+test("deployment verifier rejects mismatched CPI adapter and PSM watermarks", () => {
+  const result = runVerifier(true, { FAKE_ADAPTER_WATERMARK: "10", FAKE_PSM_WATERMARK: "9" });
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /CPI adapter report watermark/);
 });

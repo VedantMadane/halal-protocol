@@ -182,6 +182,7 @@ if [[ -n "${CPI_ADAPTER:-}" ]]; then
   expect_equal "CPI adapter owner" "$(address_call "$CPI_ADAPTER" 'owner()(address)')" "$EXPECTED_CPI_ADAPTER_OWNER"
   expect_equal "CPI adapter source ID" "$(address_call "$CPI_ADAPTER" 'sourceId()(bytes32)')" "$EXPECTED_CPI_SOURCE_ID"
   expect_true "PSM has CPI adapter updater role" "$(call "$PSM" 'hasRole(bytes32,address)(bool)' "$psm_updater_role" "$CPI_ADAPTER")"
+  expect_equal "CPI adapter report watermark" "$(call "$CPI_ADAPTER" 'lastSubmittedTimestamp()(uint256)')" "$(call "$PSM" 'lastReportTimestamp()(uint256)')"
 
   adapter_threshold="$(call "$CPI_ADAPTER" 'threshold()(uint256)')"
   adapter_signer_count="$(call "$CPI_ADAPTER" 'signerCount()(uint256)')"
