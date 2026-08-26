@@ -16,7 +16,8 @@ criteria, and a safe local verification path:
 - The completed [release verification walkthrough](RELEASE-VERIFICATION.md) is a reference for
   clean-checkout tag, artifact, ABI, local-gate, and hosted-check review.
 - [Local deployment evidence example (#83)](https://github.com/fredrikblau/halal-protocol/issues/83) —
-  document a safe, reproducible local deployment-review record with healthy and unhealthy signals.
+  document a safe, reproducible local deployment-review record with healthy and unhealthy signals;
+  the completed walkthrough is [`LOCAL-DEPLOYMENT-EVIDENCE.md`](LOCAL-DEPLOYMENT-EVIDENCE.md).
 - [CPI source policy documentation (#80)](https://github.com/fredrikblau/halal-protocol/issues/80) —
   document how operators record source identity, cadence, custody, and fallback decisions.
 

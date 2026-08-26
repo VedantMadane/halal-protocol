@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.213 - 2026-08-26
+
+- Added a safe, Anvil-only local deployment evidence walkthrough covering healthy checks, an
+  intentional unhealthy result, journal mapping, and the registry recorder boundary.
+- Replenished the contributor funnel with the labeled reserve-asset due-diligence task in issue #84.
+
 ## 0.1.0-alpha.212 - 2026-08-26
 
 - Added a 20-minute job bound to the extended fuzzing and invariant workflow so runner or Foundry

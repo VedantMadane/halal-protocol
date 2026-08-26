@@ -75,3 +75,6 @@ For protocol behavior and deployment safety, read [`DESIGN-DECISIONS.md`](DESIGN
 the [`THREAT-MODEL.md`](THREAT-MODEL.md), and the [operator runbook](OPERATOR-RUNBOOK.md).
 Do not use the local demo as evidence that an arbitrary reserve token or production deployment is
 safe; the reference contracts remain unaudited.
+
+To rehearse how deployment output becomes review evidence, see the
+[local deployment evidence example](LOCAL-DEPLOYMENT-EVIDENCE.md).
