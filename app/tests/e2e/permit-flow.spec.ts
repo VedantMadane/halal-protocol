@@ -447,6 +447,36 @@ test("creates a valid CPI governance proposal from the template", async ({ page 
   expect(await page.evaluate(() => (window as Window & { __lastTransaction?: unknown }).__lastTransaction)).toBeTruthy();
 });
 
+test("accepts both inclusive CPI template boundaries without rounding", async ({ page }) => {
+  const env = readLocalEnv();
+  await seedRedeemableHlc();
+  await delegateLocalVotingPower();
+  await installAnvilProvider(page);
+
+  for (const boundary of [
+    { input: "0.1", encoded: "100000" },
+    { input: "2.0", encoded: "2000000" },
+  ]) {
+    await page.goto("/governance/new");
+    await connectBrowserWallet(page);
+    await expect(page.getByRole("heading", { name: "New Proposal" })).toBeVisible();
+    await page.locator("input").first().fill(boundary.input);
+    await page.locator("textarea").first().fill(`E2E inclusive CPI boundary ${boundary.input}.`);
+    const submitButton = page.getByRole("button", { name: "Submit proposal" });
+    await expect(submitButton).toBeEnabled();
+    await submitButton.click();
+    await expect(page.getByText("Proposal created.")).toBeVisible();
+    await expect(page).toHaveURL(/\/governance$/, { timeout: 10_000 });
+
+    const proposalLink = page.getByText(`E2E inclusive CPI boundary ${boundary.input}.`, { exact: true });
+    await expect(proposalLink).toBeVisible();
+    await proposalLink.click();
+    await expect(page.getByRole("heading", { name: "Actions (1)" })).toBeVisible();
+    await expect(page.getByText(new RegExp(`mockCPI\\(${boundary.encoded}\\)`))).toBeVisible();
+    await expect(page.getByTitle(env.NEXT_PUBLIC_HLC_PSM_31337)).toBeVisible();
+  }
+});
+
 test("keeps invalid CPI template rates from reaching the wallet", async ({ page }) => {
   await installAnvilProvider(page);
   await page.goto("/governance/new");

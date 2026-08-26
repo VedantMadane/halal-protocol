@@ -15,8 +15,8 @@ criteria, and a safe local verification path:
 
 - [Release verification walkthrough (#68)](https://github.com/fredrikblau/halal-protocol/issues/68) —
   document clean-checkout verification of release tags, artifacts, ABIs, and hosted checks.
-- [Valid CPI boundary rates (#76)](https://github.com/fredrikblau/halal-protocol/issues/76) —
-  add deterministic browser coverage for the inclusive `0.1` and `2.0` CPI limits.
+- [Governance template switching (#77)](https://github.com/fredrikblau/halal-protocol/issues/77) —
+  add deterministic browser coverage for safe switching between CPI and advanced payloads.
 
 The completed [CPI source-policy template (#54)](https://github.com/fredrikblau/halal-protocol/issues/54)
 is available as a reference for the documentation standard, but is no longer an active starter task.
