@@ -355,6 +355,36 @@ test("blocks reserve-deficit health and pauses new PSM deposits", async ({ page 
   await testClient.revert({ id: snapshot });
 });
 
+test("blocks stale CPI health and pauses new PSM deposits", async ({ page }) => {
+  await seedRedeemableHlc();
+  const testClient = createTestClient({ chain: LOCAL_CHAIN, mode: "anvil", transport: http(RPC_URL) });
+  const snapshot = await testClient.snapshot();
+  const staleSeconds = 90 * 24 * 60 * 60 + 1;
+  await testClient.increaseTime({ seconds: staleSeconds });
+  await testClient.mine({ blocks: 1 });
+  await page.addInitScript(({ seconds }) => {
+    const realNow = Date.now;
+    Date.now = () => realNow() + seconds * 1000;
+  }, { seconds: staleSeconds });
+
+  await page.goto("/health");
+  await expect(page.getByRole("status", { name: "Overall deployment health" })).toContainText("Blocking");
+  await expect(page.getByText("CPI report freshness")).toBeVisible();
+  await expect(page.getByText("The accepted CPI report is older than the contract freshness window.")).toBeVisible();
+
+  await installAnvilProvider(page);
+  await page.goto("/psm");
+  const connectButton = page.getByTestId("rk-connect-button");
+  if (await connectButton.count()) await connectButton.click();
+  await expect(page.getByRole("button", { name: /0xf3.*2266/i })).toBeVisible();
+  await expect(page.getByText("New PSM deposits are paused")).toBeVisible();
+  await expect(page.getByText("The CPI source report is stale. Deposits are paused until the updater publishes fresh data.").first()).toBeVisible();
+  await expect(page.getByRole("button", { name: "Deposits paused until the protocol is healthy" })).toBeDisabled();
+  expect(await page.evaluate(() => (window as Window & { __lastTransaction?: unknown }).__lastTransaction)).toBeUndefined();
+
+  await testClient.revert({ id: snapshot });
+});
+
 test("withdraws through the real HLC permit flow on disposable Anvil state", async ({ page }) => {
   await seedRedeemableHlc();
   await installAnvilProvider(page);
