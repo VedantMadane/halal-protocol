@@ -94,6 +94,10 @@ export function useDeploymentIntegrity() {
   const adapterSignerCount = get<bigint>(21);
   const adapterSigners = get<Address[]>(22);
   const expected = deployment;
+  const adapterConfigurationComplete =
+    expected?.cpiAdapter === undefined && expected?.cpiSourceId === undefined
+      ? true
+      : expected?.cpiAdapter !== undefined && expected?.cpiSourceId !== undefined;
 
   const readFailed = hasReadFailure(data);
   const isVerified =
@@ -116,8 +120,9 @@ export function useDeploymentIntegrity() {
     timelockProposer === true &&
     timelockExecutor === true &&
     timelockSelfAdmin === true &&
-    (expected?.cpiAdapter === undefined ||
-      (adapterPsm?.toLowerCase() === expected.psm.toLowerCase() &&
+    (adapterConfigurationComplete &&
+      (expected?.cpiAdapter === undefined ||
+        (adapterPsm?.toLowerCase() === expected.psm.toLowerCase() &&
         adapterOwner?.toLowerCase() === expected.timelock.toLowerCase() &&
         adapterSourceId?.toLowerCase() === expected.cpiSourceId?.toLowerCase() &&
         adapterThreshold !== undefined &&
@@ -125,7 +130,7 @@ export function useDeploymentIntegrity() {
         adapterSigners !== undefined &&
         adapterThreshold > 0n &&
         adapterThreshold <= adapterSignerCount &&
-        BigInt(adapterSigners.length) === adapterSignerCount));
+        BigInt(adapterSigners.length) === adapterSignerCount)));
 
   return {
     isVerified,

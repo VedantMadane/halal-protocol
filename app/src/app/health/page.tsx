@@ -47,7 +47,7 @@ function adapterCheck(deployment: DeploymentInfo["deployment"], adapter: ReturnT
   if (adapter.isLoading || psm.isLoading) return { status: "loading" as const, detail: "Reading adapter ownership, quorum, and report watermark." };
   if (adapter.isError) return { status: "fail" as const, detail: "The configured adapter state could not be read." };
   const quorumValid = adapter.threshold !== undefined && adapter.signerCount !== undefined && adapter.signers !== undefined && adapter.threshold > 0n && adapter.threshold <= adapter.signerCount && BigInt(adapter.signers.length) === adapter.signerCount;
-  const wiringValid = adapter.psm?.toLowerCase() === deployment.psm.toLowerCase() && adapter.owner?.toLowerCase() === deployment.timelock.toLowerCase() && adapter.sourceId?.toLowerCase() === deployment.cpiSourceId?.toLowerCase();
+  const wiringValid = deployment.cpiSourceId !== undefined && adapter.psm?.toLowerCase() === deployment.psm.toLowerCase() && adapter.owner?.toLowerCase() === deployment.timelock.toLowerCase() && adapter.sourceId?.toLowerCase() === deployment.cpiSourceId.toLowerCase();
   const watermarkValid = adapter.lastSubmittedTimestamp !== undefined && psm.lastReportTimestamp !== undefined && adapter.lastSubmittedTimestamp === psm.lastReportTimestamp;
   if (!quorumValid || !wiringValid || !watermarkValid) return { status: "fail" as const, detail: "Adapter quorum, ownership, source identity, or report watermark diverges from the deployment." };
   return { status: "pass" as const, detail: `${adapter.threshold} of ${adapter.signerCount} configured signers; adapter and PSM watermarks match.` };

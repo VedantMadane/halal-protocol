@@ -27,6 +27,7 @@ export function CpiAdapterCard() {
     adapter.threshold <= adapter.signerCount &&
     signerCountMatches;
   const wiringValid =
+    deployment.cpiSourceId !== undefined &&
     adapter.psm?.toLowerCase() === deployment.psm.toLowerCase() &&
     adapter.owner?.toLowerCase() === deployment.timelock.toLowerCase() &&
     adapter.sourceId?.toLowerCase() === deployment.cpiSourceId?.toLowerCase();
