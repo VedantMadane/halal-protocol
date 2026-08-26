@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.194 - 2026-08-26
+
+- Added a disposable-Anvil browser regression for creating a valid CPI governance proposal,
+  including delegated voting power, configured PSM targeting, decoded `mockCPI` calldata, and
+  proposal list/detail visibility.
+- Replenished the contributor funnel with a clearly scoped, labeled CPI-template validation task
+  after closing the completed governance-flow issue.
+
 ## 0.1.0-alpha.170 - 2026-08-26
 
 - Audited the contributor queue, closed the already-covered adapter health task, and opened a

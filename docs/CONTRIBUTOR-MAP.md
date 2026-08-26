@@ -13,8 +13,6 @@ operations. Report fund-risking findings through [`SECURITY.md`](../SECURITY.md)
 Choose the task that matches your interests; each issue includes a bounded scope, acceptance
 criteria, and a safe local verification path:
 
-- [Valid governance template flow (#67)](https://github.com/fredrikblau/halal-protocol/issues/67) —
-  add a disposable-browser test for building and submitting the bounded CPI proposal template.
 - [Release verification walkthrough (#68)](https://github.com/fredrikblau/halal-protocol/issues/68) —
   document clean-checkout verification of release tags, artifacts, ABIs, and hosted checks.
 
