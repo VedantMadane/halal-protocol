@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.255 - 2026-08-26
+
+- Synchronized current public documentation with the verified 192-test Solidity suite and 73-test Node suite.
+- Refreshed the contributor map and opened focused good-first issues for reserve-token documentation and Markdown link validation.
+
 ## 0.1.0-alpha.254 - 2026-08-26
 
 - Made the CPI adapter governance handoff builder reject empty source metadata, preventing an
