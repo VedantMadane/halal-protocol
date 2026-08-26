@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.231 - 2026-08-26
+
+- Marked the offline deployment preflight contribution complete in the contributor map and linked
+  its implementation as a reference for future tooling contributors.
+
 ## 0.1.0-alpha.230 - 2026-08-26
 
 - Added an offline, read-only deployment preflight that reports missing registry evidence, supports
