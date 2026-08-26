@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.168 - 2026-08-26
+
+- Replenished the contributor funnel with two active, labeled starter issues and removed completed
+  work from the README and contributor map's good-first-issue entry points.
+
 ## 0.1.0-alpha.167 - 2026-08-26
 
 - Hardened the production CPI adapter deployment preflight so its owner must already be a deployed

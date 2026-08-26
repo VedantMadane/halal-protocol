@@ -37,10 +37,8 @@ Start with the [good first issues](https://github.com/fredrikblau/halal-protocol
   port, or stale local configuration blocks the demo.
 - Run `make verify` before opening a pull request.
 - Pick a bounded task from the [open good-first-issue list](https://github.com/fredrikblau/halal-protocol/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22),
-  such as [vesting beneficiary browser coverage](https://github.com/fredrikblau/halal-protocol/issues/50),
-  [copyable deployment-health evidence](https://github.com/fredrikblau/halal-protocol/issues/51),
-  or a [worked redeemable-credit example](https://github.com/fredrikblau/halal-protocol/issues/52).
-- For a deeper security-testing contribution, see [the adversarial reserve-token invariant task](https://github.com/fredrikblau/halal-protocol/issues/53).
+  such as the [CPI source-policy template](https://github.com/fredrikblau/halal-protocol/issues/54) or
+  [configured adapter health-page coverage](https://github.com/fredrikblau/halal-protocol/issues/55).
 - Help coordinate the first carefully gated [Arbitrum Sepolia deployment](https://github.com/fredrikblau/halal-protocol/issues/40).
 - Review the bounded [security challenge](https://github.com/fredrikblau/halal-protocol/issues/16) or
   [production CPI adapter design](https://github.com/fredrikblau/halal-protocol/issues/17).

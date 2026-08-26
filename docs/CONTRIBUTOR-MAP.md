@@ -13,19 +13,17 @@ operations. Report fund-risking findings through [`SECURITY.md`](../SECURITY.md)
 Choose the task that matches your interests; each issue includes a bounded scope, acceptance
 criteria, and a safe local verification path:
 
-- [Vesting beneficiary browser coverage (#50)](https://github.com/fredrikblau/halal-protocol/issues/50) —
-  end-to-end coverage for the two-step beneficiary handoff.
-- [Copyable deployment-health evidence (#51)](https://github.com/fredrikblau/halal-protocol/issues/51) —
-  a keyboard-accessible frontend action for sharing safe, read-only health output.
-- [Worked redeemable-credit example (#52)](https://github.com/fredrikblau/halal-protocol/issues/52) —
-  documentation showing HLC balances and redemption credits through a complete flow.
+- [CPI source-policy template (#54)](https://github.com/fredrikblau/halal-protocol/issues/54) —
+  a provider-neutral, copy-paste record for source, parser, revision, and signer policy.
+- [Configured adapter health-page coverage (#55)](https://github.com/fredrikblau/halal-protocol/issues/55) —
+  deterministic browser coverage for healthy adapter metadata and one fail-closed mismatch.
 
 The completed [local-demo troubleshooting guide](LOCAL-DEMO-TROUBLESHOOTING.md) covers prerequisites,
 ports, stale configuration, cleanup, and expected success signals.
 
-For a deeper, test-first security contribution, see [adversarial reserve-token invariant coverage
-(#53)](https://github.com/fredrikblau/halal-protocol/issues/53). It is intentionally not marked as
-a good-first issue because it requires understanding the PSM accounting model and token fixtures.
+The completed [adversarial reserve-token invariant coverage (#53)](https://github.com/fredrikblau/halal-protocol/issues/53)
+shows the expected standard for a deeper, test-first security contribution. New contributors should
+start with the active tasks above.
 
 The [deployment review worksheet (#42)](https://github.com/fredrikblau/halal-protocol/issues/42)
 is a completed example of the contribution standard above.
