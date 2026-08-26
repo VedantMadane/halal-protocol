@@ -359,6 +359,12 @@ contract CPIReportAdapterTest is Test {
         harness.buildHandoff(address(sink), address(adapter), "BLS:CUUR0000SA0", address(adapter));
     }
 
+    function test_RevertWhen_HandoffSourceIsEmpty() public {
+        CPIAdapterGovernanceHarness harness = new CPIAdapterGovernanceHarness();
+        vm.expectRevert(CPIAdapterGovernance.EmptySource.selector);
+        harness.buildHandoff(address(sink), address(adapter), "", address(0));
+    }
+
     function _signReport(uint256 reportedCPI, uint256 reportedAt, uint256 firstKey)
         internal
         view

@@ -199,7 +199,7 @@ and optional old-updater revocation as zero-value DAO actions. The script requir
 immutable PSM binding, owner, and source ID, then prints calldata without broadcasting. Review the
 signer set and threshold separately before submitting the returned arrays. The shared handoff builder
 also rejects zero addresses and refuses to encode a proposal that grants `UPDATER_ROLE` to the adapter
-and then revokes that same adapter as the old updater.
+and then revokes that same adapter as the old updater; it also rejects an empty PSM source label.
 
 ### Signature verification
 

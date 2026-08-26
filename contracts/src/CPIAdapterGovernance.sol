@@ -9,6 +9,7 @@ library CPIAdapterGovernance {
     bytes32 internal constant UPDATER_ROLE = keccak256("UPDATER_ROLE");
 
     error InvalidHandoffAddresses();
+    error EmptySource();
 
     function buildHandoff(address psm, address adapter, string memory source, address oldUpdater)
         internal
@@ -18,6 +19,7 @@ library CPIAdapterGovernance {
         if (psm == address(0) || adapter == address(0) || (oldUpdater != address(0) && oldUpdater == adapter)) {
             revert InvalidHandoffAddresses();
         }
+        if (bytes(source).length == 0) revert EmptySource();
         uint256 actionCount = oldUpdater == address(0) ? 2 : 3;
         targets = new address[](actionCount);
         values = new uint256[](actionCount);

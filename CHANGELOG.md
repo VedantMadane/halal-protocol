@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.254 - 2026-08-26
+
+- Made the CPI adapter governance handoff builder reject empty source metadata, preventing an
+  otherwise valid proposal from clearing the source label during adapter activation.
+- Added a Foundry regression test for the fail-closed handoff path.
+
 ## 0.1.0-alpha.253 - 2026-08-26
 
 - Hardened reviewed CPI policy validation to reject impossible UTC calendar dates and malformed
