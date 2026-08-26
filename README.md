@@ -84,6 +84,7 @@ conservative accounting model:
 | Are generated frontend interfaces kept in sync? | ABI regeneration is a required CI check |
 | Does CI exercise a configured dApp? | `scripts/local-app-smoke.sh` deploys disposable Anvil state, builds with live addresses, and checks the main routes |
 | Is the CI supply chain independently scored? | The pinned-action [`Scorecard workflow`](.github/workflows/scorecard.yml) publishes OpenSSF SARIF results |
+| What static-analysis scope has been checked? | [`docs/STATIC-ANALYSIS.md`](docs/STATIC-ANALYSIS.md) records the pinned Slither command, source scope, and interpretation |
 | Can a permit-capable wallet approve and act in one transaction? | `HalalPSM` exposes bounded EIP-2612 paths for deposits, withdrawals, redeemable-credit transfers, and claim retirement |
 | Does the dApp expose permit transfers? | The redeemable-credit form offers “Sign & transfer in one transaction” with approval fallback |
 | Does the dApp expose permit claim retirement? | The same form offers selector-gated “Sign & retire claim” while preserving the approval fallback |

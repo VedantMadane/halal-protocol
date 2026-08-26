@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.227 - 2026-08-26
+
+- Added a scoped static-analysis record documenting the pinned Slither 0.11.6 reproduction, 66
+  contracts, 102 detectors, zero reported results, and the limits of that evidence.
+
 ## 0.1.0-alpha.226 - 2026-08-26
 
 - Refreshed the public onboarding path by removing a stale closed-issue link from the README and

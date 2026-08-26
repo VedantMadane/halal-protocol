@@ -88,3 +88,5 @@ link the issue, state whether it changes deployed behavior, and include the comm
 Do not disclose security vulnerabilities in an issue or pull request. Follow [`SECURITY.md`](../SECURITY.md)
 for private reporting. Contract changes require extra review because the reference contracts are
 immutable and unaudited.
+
+For the automated contract-review scope and its limitations, see the [static-analysis record](STATIC-ANALYSIS.md).
