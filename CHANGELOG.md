@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.263 - 2026-08-27
+
+- Added a release-workflow gate that fails if `CITATION.cff` does not identify the exact published
+  tag, preventing stale citation metadata from accompanying a release artifact.
+
 ## 0.1.0-alpha.262 - 2026-08-27
 
 - Synchronized `CITATION.cff` with the current published release for reproducible scholarly and
