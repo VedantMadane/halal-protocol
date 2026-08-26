@@ -13,8 +13,8 @@ operations. Report fund-risking findings through [`SECURITY.md`](../SECURITY.md)
 Choose the task that matches your interests; each issue includes a bounded scope, acceptance
 criteria, and a safe local verification path:
 
-- [Deployment journal template (#61)](https://github.com/fredrikblau/halal-protocol/issues/61) —
-  assemble the verifier, health, source, reserve, and registry evidence into one reproducible record.
+- [Protocol incident tabletop worksheet (#62)](https://github.com/fredrikblau/halal-protocol/issues/62) —
+  rehearse safe detection, governance recovery, and evidence collection for operational failures.
 
 The completed [CPI source-policy template (#54)](https://github.com/fredrikblau/halal-protocol/issues/54)
 is available as a reference for the documentation standard, but is no longer an active starter task.
