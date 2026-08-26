@@ -24,7 +24,8 @@ node scripts/record-deployment-manifest.mjs --chain-id 421614 \
 The recorder runs `scripts/verify-deployment.sh` first. If adapter metadata is supplied, that
 verifier also checks the adapter's bytecode, immutable PSM, timelock owner, source ID, signer
 quorum, signer/owner separation, `UPDATER_ROLE`, and equality between the adapter's accepted-report
-watermark and the PSM's accepted-report watermark before the registry can be changed. The command
+watermark and the PSM's accepted-report watermark before the registry can be changed. It also
+rejects signer thresholds or signer sets outside the adapter's 64-signer protocol bound. The command
 writes one object keyed by the numeric chain ID:
 
 ```json

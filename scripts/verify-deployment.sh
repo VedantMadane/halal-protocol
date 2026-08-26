@@ -58,6 +58,16 @@ expect_positive() {
   fi
 }
 
+expect_bounded_positive() {
+  local label="$1"
+  local actual="$2"
+  local maximum="$3"
+  if [[ ! "$actual" =~ ^[1-9][0-9]*$ || ${#actual} -gt ${#maximum} || ( ${#actual} -eq ${#maximum} && "$actual" > "$maximum" ) ]]; then
+    echo "FAILED: $label (expected an integer between 1 and $maximum, got $actual)" >&2
+    exit 1
+  fi
+}
+
 expect_contract() {
   local label="$1"
   local address="$2"
@@ -186,8 +196,8 @@ if [[ -n "${CPI_ADAPTER:-}" ]]; then
 
   adapter_threshold="$(call "$CPI_ADAPTER" 'threshold()(uint256)')"
   adapter_signer_count="$(call "$CPI_ADAPTER" 'signerCount()(uint256)')"
-  expect_positive "CPI adapter threshold" "$adapter_threshold"
-  expect_positive "CPI adapter signer count" "$adapter_signer_count"
+  expect_bounded_positive "CPI adapter threshold" "$adapter_threshold" "64"
+  expect_bounded_positive "CPI adapter signer count" "$adapter_signer_count" "64"
   if (( adapter_threshold > adapter_signer_count )); then
     echo "FAILED: CPI adapter threshold exceeds signer count" >&2
     exit 1

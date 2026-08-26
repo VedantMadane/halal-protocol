@@ -57,8 +57,8 @@ case "$1" in
       'sourceId()('* ) echo ${SOURCE_ID} ;;
       'lastSubmittedTimestamp()('* ) echo "\${FAKE_ADAPTER_WATERMARK:-0}" ;;
       'lastReportTimestamp()('* ) echo "\${FAKE_PSM_WATERMARK:-0}" ;;
-      'threshold()('* ) echo 2 ;;
-      'signerCount()('* ) echo 2 ;;
+      'threshold()('* ) echo "\${FAKE_ADAPTER_THRESHOLD:-2}" ;;
+      'signerCount()('* ) echo "\${FAKE_ADAPTER_SIGNER_COUNT:-2}" ;;
       signerAt*) [[ "$4" == 0 ]] && echo ${ADDRESSES.signerOne} || echo ${ADDRESSES.signerTwo} ;;
       *) echo "unexpected fake cast call: $*" >&2; exit 1 ;;
     esac
@@ -113,4 +113,10 @@ test("deployment verifier rejects mismatched CPI adapter and PSM watermarks", ()
   const result = runVerifier(true, { FAKE_ADAPTER_WATERMARK: "10", FAKE_PSM_WATERMARK: "9" });
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, /CPI adapter report watermark/);
+});
+
+test("deployment verifier rejects an oversized CPI adapter signer count", () => {
+  const result = runVerifier(true, { FAKE_ADAPTER_SIGNER_COUNT: "65" });
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /CPI adapter signer count/);
 });
