@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.243 - 2026-08-26
+
+- Corrected the deployment-health JSON wrapper so the underlying check's nonzero exit status is
+  passed to the formatter, making unexpected RPC or command failures fail closed as structured
+  `unhealthy` output with `health_check_failed`.
+- Added end-to-end regression coverage and reran the complete local verification gate.
+
 ## 0.1.0-alpha.240 - 2026-08-26
 
 - Made the offline governance verifier independently derive Ethereum function selectors with a

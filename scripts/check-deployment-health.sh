@@ -12,8 +12,8 @@ if [[ "${1:-}" == "--json" ]]; then
   health_output="$("$0" "$@" 2>&1)"
   health_status=$?
   set -e
-  HEALTH_CHECK_EXIT_STATUS="$health_status" printf '%s\n' "$health_output" |
-    node "$ROOT_DIR/scripts/health-output-json.mjs"
+  printf '%s\n' "$health_output" |
+    HEALTH_CHECK_EXIT_STATUS="$health_status" node "$ROOT_DIR/scripts/health-output-json.mjs"
   exit "$health_status"
 fi
 

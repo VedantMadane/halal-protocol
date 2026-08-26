@@ -17,10 +17,8 @@ function run(report) {
 }
 
 function runUnclassifiedHealthFailure() {
-  return spawnSync(process.execPath, [OUTPUT_JSON], {
+  return spawnSync("bash", ["-c", `printf '%s\\n' 'RPC connection failed' | HEALTH_CHECK_EXIT_STATUS=1 node '${OUTPUT_JSON}'`], {
     cwd: ROOT,
-    env: { ...process.env, HEALTH_CHECK_EXIT_STATUS: "1" },
-    input: "RPC connection failed\n",
     encoding: "utf8",
   });
 }
