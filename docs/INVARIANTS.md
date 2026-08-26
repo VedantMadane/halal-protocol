@@ -3,7 +3,8 @@
 The stateful harnesses in [`contracts/test/HalalPSMInvariant.t.sol`](../contracts/test/HalalPSMInvariant.t.sol)
 and [`contracts/test/HalalPSMAdversarialInvariant.t.sol`](../contracts/test/HalalPSMAdversarialInvariant.t.sol)
 exercise randomized deposits, withdrawals, `transferRedeemable`, `cancelRedeemable`, and
-governance CPI changes across standard, fee-on-transfer, and false-returning reserve tokens.
+governance CPI changes across standard, fee-on-transfer, false-returning, and no-return-data
+reserve tokens.
 Foundry runs each invariant for 64 sequences of 2,048 calls by default (the scheduled deep workflow
 raises this to 128 sequences of 8,192 calls).
 
@@ -17,7 +18,7 @@ raises this to 128 sequences of 8,192 calls).
 
 ## Reserve-token behavior boundary
 
-The adversarial suite records two distinct guarantees:
+The adversarial suite records three distinct reserve-token guarantees:
 
 - `MockFeeOnTransferERC20` charges 1% on transfers. Deposits remain accounted for because the PSM
   mints against the balance delta, and successful withdrawals preserve the reserve floor; a
@@ -25,6 +26,9 @@ The adversarial suite records two distinct guarantees:
 - `MockFalseReturnERC20` returns `false` without moving balances. Repeated deposit attempts revert
   through `SafeERC20`, leaving reserve balance, `totalHlcIssued`, redeemable credit, and HLC supply
   unchanged.
+- `MockNoReturnERC20` omits the boolean return data from transfers. Mixed deposit, withdrawal,
+  credit-transfer, and cancellation sequences preserve credit conservation, reserve collateral,
+  and the genesis-plus-PSM supply decomposition.
 
 These are tested sequences, not approval of any external issuer token. Blacklisting, pausing,
 upgrades, malicious callbacks, and other token-specific behavior still require launch due diligence.
