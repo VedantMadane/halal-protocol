@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { isAddress, parseSignature, parseUnits, toFunctionSelector, zeroAddress } from "viem";
-import { useAccount, useBlock, useBytecode, useChainId, useReadContract, useSignTypedData } from "wagmi";
+import { isAddress, parseSignature, parseUnits, toFunctionSelector, zeroAddress, type Address } from "viem";
+import { useAccount, useBlock, useBytecode, useChainId, useReadContract, useSignTypedData, useSimulateContract } from "wagmi";
 import { halalPsmAbi, halalTokenAbi } from "@/abis";
 import { useDeployment } from "@/hooks/useDeployment";
 import { useDeploymentIntegrity } from "@/hooks/useDeploymentIntegrity";
@@ -69,8 +69,6 @@ export function TransferRedeemableForm() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [approveTx.isConfirmed, transferTx.isConfirmed, cancelTx.isConfirmed]);
 
-  if (!deployment) return null;
-
   const parsedAmount = safeParseHlc(amount);
   const validRecipient = isAddress(recipient) && recipient.toLowerCase() !== zeroAddress;
   const hasBalance =
@@ -92,6 +90,29 @@ export function TransferRedeemableForm() {
   const canSubmit = isConnected && validRecipient && canAct;
   const permitDeadline = latestBlock?.timestamp !== undefined ? latestBlock.timestamp + 15n * 60n : undefined;
 
+  // Preflight approval-based accounting actions before asking the wallet to sign. Permit paths
+  // cannot be simulated here because their signature is only available after the wallet prompt.
+  const transferSimulation = useSimulateContract({
+    address: deployment?.psm,
+    abi: halalPsmAbi,
+    functionName: "transferRedeemable",
+    args: [recipient as Address, parsedAmount ?? 0n],
+    query: {
+      enabled: !!deployment && deploymentIntegrity.isVerified && canSubmit && !needsApproval,
+    },
+  });
+  const cancelSimulation = useSimulateContract({
+    address: deployment?.psm,
+    abi: halalPsmAbi,
+    functionName: "cancelRedeemable",
+    args: [parsedAmount ?? 0n],
+    query: {
+      enabled: !!deployment && deploymentIntegrity.isVerified && canAct && !needsApproval,
+    },
+  });
+
+  if (!deployment) return null;
+
   function handleMax() {
     if (user.redeemableBalance === undefined || user.hlcBalance === undefined) return;
     const max = user.redeemableBalance < user.hlcBalance ? user.redeemableBalance : user.hlcBalance;
@@ -109,13 +130,8 @@ export function TransferRedeemableForm() {
   }
 
   function handleTransfer() {
-    if (!canSubmit || parsedAmount === undefined || !isAddress(recipient)) return;
-    transferTx.writeContract({
-      address: deployment!.psm,
-      abi: halalPsmAbi,
-      functionName: "transferRedeemable",
-      args: [recipient, parsedAmount],
-    });
+    if (!canSubmit || parsedAmount === undefined || !isAddress(recipient) || !transferSimulation.data?.request) return;
+    transferTx.writeContract(transferSimulation.data.request);
   }
 
   async function handleTransferWithPermit() {
@@ -218,13 +234,8 @@ export function TransferRedeemableForm() {
   }
 
   function handleCancel() {
-    if (!isConnected || !canAct || parsedAmount === undefined) return;
-    cancelTx.writeContract({
-      address: deployment!.psm,
-      abi: halalPsmAbi,
-      functionName: "cancelRedeemable",
-      args: [parsedAmount],
-    });
+    if (!isConnected || !canAct || parsedAmount === undefined || !cancelSimulation.data?.request) return;
+    cancelTx.writeContract(cancelSimulation.data.request);
   }
 
   return (
@@ -247,6 +258,12 @@ export function TransferRedeemableForm() {
       {permitError && (
         <Alert tone="danger" title="Permit action was not signed">
           {permitError} You can approve HLC first and retry the transfer or claim retirement.
+        </Alert>
+      )}
+
+      {(transferSimulation.isError || cancelSimulation.isError) && (
+        <Alert tone="danger" title="Transaction preflight failed">
+          {getFriendlyErrorMessage(transferSimulation.error ?? cancelSimulation.error)} Refresh your balance and retry.
         </Alert>
       )}
 
@@ -344,18 +361,19 @@ export function TransferRedeemableForm() {
           <Button
             className="w-full"
             onClick={handleTransfer}
-            disabled={!canSubmit}
+            disabled={!canSubmit || transferSimulation.isLoading || transferSimulation.isError}
             loading={transferTx.isPending || transferTx.isConfirming}
           >
-            {validRecipient ? "Transfer redemption credit" : "Enter a valid recipient"}
+            {!validRecipient ? "Enter a valid recipient" : transferSimulation.isLoading ? "Checking transaction" : transferSimulation.isError ? "Transaction would fail" : "Transfer redemption credit"}
           </Button>
           <Button
             className="w-full"
             variant="secondary"
             onClick={handleCancel}
+            disabled={cancelSimulation.isLoading || cancelSimulation.isError}
             loading={cancelTx.isPending || cancelTx.isConfirming}
           >
-            Retire claim without reserve
+            {cancelSimulation.isLoading ? "Checking transaction" : cancelSimulation.isError ? "Transaction would fail" : "Retire claim without reserve"}
           </Button>
         </div>
       )}
