@@ -31,6 +31,10 @@ controls, upgradeability, decimals, and the issuer's admin powers before deploym
 accounts for balance deltas and rejects unsupported decimals, but it cannot make a hostile or frozen
 reserve token safe.
 
+Use the standalone [reserve-asset due-diligence checklist](RESERVE-ASSET-DUE-DILIGENCE.md) to
+record the exact token address, implementation, transfer observations, issuer controls, evidence,
+and launch decision in the deployment journal.
+
 Complete the provider-neutral [`CPI source-policy record`](CPI-SOURCE-POLICY-TEMPLATE.md) for the
 exact source and parser before granting `UPDATER_ROLE`. Link its raw response hashes, parser
 version, revision policy, signer custody, and monitoring evidence from the deployment journal.

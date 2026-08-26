@@ -101,7 +101,8 @@ and the verifier output as the authority for this section.
 The PSM can account for several transfer behaviors, but it cannot make a hostile, frozen, censored,
 upgradeable, or issuer-controlled reserve token safe. Use the compatibility matrix in the
 [operator runbook](OPERATOR-RUNBOOK.md#11-confirm-the-deployment-inputs) and record conclusions
-for the exact token address.
+for the exact token address. Complete the standalone [reserve-asset due-diligence checklist]
+(RESERVE-ASSET-DUE-DILIGENCE.md) and link the completed record from the journal.
 
 - [ ] Record reserve token address, symbol, decimals, implementation/proxy details, and issuer.
 - [ ] Confirm decimals are within the PSM-supported range and match the live contract.

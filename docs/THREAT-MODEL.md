@@ -40,9 +40,10 @@ The system is intended to preserve these properties:
   official statistics agency.
 - The reserve token is an external dependency. Its transfer, balance, decimals, and fee behavior
   affect PSM operation; the PSM accounts for fee-on-transfer behavior but cannot make a malicious
-  token honest. Stateful tests cover a 1% fee token and a false-returning token: the former is
-  supported only when balance-delta accounting and reserve-floor checks hold, while the latter
-  must revert without mutating PSM accounting. This does not cover arbitrary issuer behavior.
+  token honest. Stateful tests cover a 1% fee token, a false-returning token, and a no-return-data
+  token: the former is supported only when balance-delta accounting and reserve-floor checks hold,
+  while the latter two exercise SafeERC20 compatibility boundaries. This does not cover arbitrary
+  issuer behavior.
 - Beneficiary wallets are trusted to secure their own vesting keys. Two-step beneficiary rotation
   limits typo risk but cannot recover a compromised beneficiary.
 
