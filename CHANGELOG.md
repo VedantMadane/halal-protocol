@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.145 - 2026-08-26
+
+- Added deterministic standalone PSM health-check tests for healthy output, stale CPI reports, and
+  reserve deficits using a local fake-`cast` harness.
+- Completed issue #43 without requiring an RPC endpoint, private key, funds, or contract changes.
+
 ## 0.1.0-alpha.144 - 2026-08-26
 
 - Added `docs/DEPLOYMENT-REVIEW-CHECKLIST.md`, a copyable evidence worksheet for public testnet
