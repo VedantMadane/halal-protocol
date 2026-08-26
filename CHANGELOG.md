@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.207 - 2026-08-26
+
+- Hardened the read-only PSM health check against timestamp-addition overflow and future RPC
+  timestamps, with structured unhealthy reasons and regression coverage.
+
 ## 0.1.0-alpha.206 - 2026-08-26
 
 - Added a clean-clone release verification walkthrough covering tag identity, source-bundle checksums,

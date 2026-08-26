@@ -235,13 +235,21 @@ if [[ "$last_report" == "0" ]]; then
   echo "status=unhealthy"
   echo "reason=timestamped_cpi_report_missing"
   failure=1
-elif (( now > last_report + max_report_age )); then
+elif (( last_report > now )); then
+  echo "status=unhealthy"
+  echo "reason=timestamped_cpi_report_in_future"
+  failure=1
+elif (( now - last_report > max_report_age )); then
   echo "status=unhealthy"
   echo "reason=timestamped_cpi_report_stale"
   failure=1
 fi
 
-if (( now > last_updated + min_update_interval )); then
+if (( last_updated > now )); then
+  echo "status=unhealthy"
+  echo "reason=last_updated_in_future"
+  failure=1
+elif (( now - last_updated > min_update_interval )); then
   echo "warning=normal_cpi_update_overdue"
   if [[ "${FAIL_ON_UPDATE_OVERDUE:-true}" == "true" ]]; then
     failure=1

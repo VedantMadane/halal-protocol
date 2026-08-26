@@ -173,6 +173,32 @@ test("standalone PSM health check rejects an oversized arithmetic value", () => 
   assert.match(result.output, /^reason=invalid_last_report_timestamp_range$/m);
 });
 
+test("standalone PSM health check avoids timestamp-addition overflow", () => {
+  const maximum = "9223372036854775807";
+  const result = runPsmHealthWithFakeCast({
+    timestamp: maximum,
+    lastReportTimestamp: "9223372036854775707",
+    maxReportAge: "200",
+    lastUpdated: "9223372036854775707",
+    minUpdateInterval: "200",
+  });
+  assert.equal(result.status, 0, result.output);
+  assert.doesNotMatch(result.output, /^warning=normal_cpi_update_overdue$/m);
+  assert.match(result.output, /^status=healthy$/m);
+});
+
+test("standalone PSM health check rejects future timestamps", () => {
+  const result = runPsmHealthWithFakeCast({
+    timestamp: "1000",
+    lastReportTimestamp: "1001",
+    lastUpdated: "1001",
+  });
+  assert.notEqual(result.status, 0, result.output);
+  assert.match(result.output, /^status=unhealthy$/m);
+  assert.match(result.output, /^reason=timestamped_cpi_report_in_future$/m);
+  assert.match(result.output, /^reason=last_updated_in_future$/m);
+});
+
 test("standalone PSM health check rejects an invalid overdue mode", () => {
   const result = run(PSM_HEALTH_CHECK, {
     ...process.env,
