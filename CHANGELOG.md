@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.208 - 2026-08-26
+
+- Added a paused-reserve-token regression proving a failed withdrawal preserves HLC supply,
+  redemption credit, and reserve accounting.
+- Expanded the operator compatibility matrix with the tested pause/freeze behavior and refreshed
+  current documentation to the verified 190-test suite.
+
 ## 0.1.0-alpha.207 - 2026-08-26
 
 - Hardened the read-only PSM health check against timestamp-addition overflow and future RPC

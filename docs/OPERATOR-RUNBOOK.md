@@ -63,7 +63,7 @@ against the exact token implementation and repeat the checks on the intended cha
 | Fee or extra debit on outgoing transfers | [Withdrawal and reserve-floor tests](../contracts/test/HalalPSM.t.sol) cover recipient deltas and floor protection | Mechanically covered for the tested fee model; validate recipient receipts and reserve solvency under the issuer's rules |
 | False-returning or reverting transfers | [Safe-transfer regression tests](../contracts/test/HalalPSM.t.sol) use a token that returns `false` | Covered for this failure mode; arbitrary non-standard call behavior still needs review |
 | Reentrancy or callback behavior | [Admin-transfer reentrancy test](../contracts/test/HalalPSM.t.sol) verifies the guard | Covered for the supplied callback mock; review hooks, callbacks, and upgrade paths on the real token |
-| Pausable, blacklistable, upgradeable, or issuer-controlled token | Threat-model discussion of the [reserve dependency](THREAT-MODEL.md) | Operator due diligence only; the PSM cannot make a frozen, censored, malicious, or later-upgraded token safe |
+| Pausable, blacklistable, upgradeable, or issuer-controlled token | [Paused-token withdrawal regression test](../contracts/test/HalalPSM.t.sol) plus threat-model discussion of the [reserve dependency](THREAT-MODEL.md) | The PSM preserves accounting when a tested transfer reverts; operator due diligence remains required because it cannot make a frozen, censored, malicious, or later-upgraded token safe |
 
 The matrix does not approve any particular reserve asset. Record the token address, implementation
 and proxy details, admin powers, fee policy, pause/blacklist policy, and test evidence in the

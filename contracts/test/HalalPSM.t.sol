@@ -6,6 +6,7 @@ import { HalalPSM } from "../src/HalalPSM.sol";
 import { MockERC20 } from "./mocks/MockERC20.sol";
 import { MockFeeOnTransferERC20 } from "./mocks/MockFeeOnTransferERC20.sol";
 import { MockOutgoingFeeERC20 } from "./mocks/MockOutgoingFeeERC20.sol";
+import { MockPausableERC20 } from "./mocks/MockPausableERC20.sol";
 import { MockReentrantERC20 } from "./mocks/MockReentrantERC20.sol";
 import { MockFalseReturnERC20 } from "./mocks/MockFalseReturnERC20.sol";
 import { MockNoReturnERC20 } from "./mocks/MockNoReturnERC20.sol";
@@ -711,6 +712,29 @@ contract HalalPSMTest is Deployers {
 
         assertEq(outgoingFeePsm.totalHlcIssued(), 2_000e18);
         assertEq(outgoingFeeReserve.balanceOf(address(outgoingFeePsm)), 2_005e18);
+    }
+
+    function test_RevertWhen_ReserveTokenIsPausedAfterDeposit() public {
+        MockPausableERC20 pausableReserve = new MockPausableERC20();
+        HalalPSM pausablePsm = new HalalPSM(address(pausableReserve), address(token), address(timelock), address(0));
+        _grantPsmTokenRoles(pausablePsm);
+        _bootstrapPsm(pausablePsm);
+
+        pausableReserve.mint(alice, 1_000e18);
+        vm.startPrank(alice);
+        pausableReserve.approve(address(pausablePsm), 1_000e18);
+        pausablePsm.deposit(1_000e18);
+        token.approve(address(pausablePsm), 1_000e18);
+        vm.stopPrank();
+
+        pausableReserve.setPaused(true);
+        vm.prank(alice);
+        vm.expectRevert(MockPausableERC20.TransfersPaused.selector);
+        pausablePsm.withdraw(1_000e18);
+
+        assertEq(pausablePsm.totalHlcIssued(), 1_000e18);
+        assertEq(pausablePsm.redeemableBalance(alice), 1_000e18);
+        assertEq(pausableReserve.balanceOf(address(pausablePsm)), 1_000e18);
     }
 
     function test_RevertWhen_DAOReserveTransferWouldBreachFloor() public {
