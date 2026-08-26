@@ -376,6 +376,7 @@ function SwapFormInner({
           <button
             type="button"
             onClick={() => setMode("deposit")}
+            aria-pressed={mode === "deposit"}
             className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
               mode === "deposit" ? "bg-card text-foreground shadow-sm" : "text-muted"
             }`}
@@ -385,6 +386,7 @@ function SwapFormInner({
           <button
             type="button"
             onClick={() => setMode("withdraw")}
+            aria-pressed={mode === "withdraw"}
             className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
               mode === "withdraw" ? "bg-card text-foreground shadow-sm" : "text-muted"
             }`}
@@ -429,6 +431,7 @@ function SwapFormInner({
           <input
             inputMode="decimal"
             placeholder="0.0"
+            aria-label={mode === "deposit" ? "Amount to deposit" : "Amount to withdraw"}
             value={amountInput}
             onChange={(e) => {
               const v = e.target.value;

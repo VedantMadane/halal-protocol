@@ -208,6 +208,7 @@ test("renders deployment health without a wallet provider", async ({ page }) => 
   await page.goto("/health");
 
   await expect(page.getByRole("heading", { name: "Deployment health" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Deployment health", level: 1 })).toBeVisible();
   await expect(page.getByText("Read-only checks from the selected chain.")).toBeVisible();
   await expect(page.getByText("Deployment checks")).toBeVisible();
   await expect(page.getByRole("status", { name: "Overall deployment health" })).toContainText(/Healthy|Review|Blocking|Checking/);
@@ -394,8 +395,12 @@ test("withdraws through the real HLC permit flow on disposable Anvil state", asy
   if (await connectButton.count()) await connectButton.click();
   await expect(page.getByRole("button", { name: /0xf3.*2266/i })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Not deployed on this network" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Deposit" }).first()).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("textbox", { name: "Amount to deposit" })).toBeVisible();
 
   await page.getByRole("button", { name: "Withdraw" }).click();
+  await expect(page.getByRole("button", { name: "Withdraw" }).first()).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("textbox", { name: "Amount to withdraw" })).toBeVisible();
   await page.locator("input[placeholder='0.0']").first().fill("100");
   await expect(page.getByRole("button", { name: "Sign & withdraw in one transaction" })).toBeVisible();
   await page.getByRole("button", { name: "Sign & withdraw in one transaction" }).click();

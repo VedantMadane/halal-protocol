@@ -11,7 +11,7 @@ const TONE_CLASSES: Record<Tone, string> = {
 
 export function Alert({ tone = "info", title, children }: { tone?: Tone; title?: string; children: ReactNode }) {
   return (
-    <div className={`rounded-xl border px-4 py-3 text-sm ${TONE_CLASSES[tone]}`}>
+    <div className={`rounded-xl border px-4 py-3 text-sm ${TONE_CLASSES[tone]}`} role="alert">
       {title && <p className="mb-0.5 font-semibold">{title}</p>}
       <div className="text-sm opacity-90">{children}</div>
     </div>
