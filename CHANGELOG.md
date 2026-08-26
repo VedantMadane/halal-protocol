@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.151 - 2026-08-26
+
+- Hardened the reusable CPI adapter governance handoff builder against zero addresses and the
+  self-revoking adapter edge case, with regression coverage.
+
 ## 0.1.0-alpha.150 - 2026-08-26
 
 - Added deterministic economic-model regression tests for exact CPI progression, reserve shortfall,

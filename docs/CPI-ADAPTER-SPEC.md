@@ -186,7 +186,9 @@ The repository includes `script/PrepareCPIAdapterHandoff.s.sol` to prepare the g
 and optional old-updater revocation as zero-value DAO actions. The script requires `PSM`,
 `CPI_ADAPTER`, `TIMELOCK`, `CPI_SOURCE`, and `EXPECTED_CPI_SOURCE_ID`; it checks the adapter's
 immutable PSM binding, owner, and source ID, then prints calldata without broadcasting. Review the
-signer set and threshold separately before submitting the returned arrays.
+signer set and threshold separately before submitting the returned arrays. The shared handoff builder
+also rejects zero addresses and refuses to encode a proposal that grants `UPDATER_ROLE` to the adapter
+and then revokes that same adapter as the old updater.
 
 ### Signature verification
 

@@ -8,11 +8,16 @@ pragma solidity 0.8.24;
 library CPIAdapterGovernance {
     bytes32 internal constant UPDATER_ROLE = keccak256("UPDATER_ROLE");
 
+    error InvalidHandoffAddresses();
+
     function buildHandoff(address psm, address adapter, string memory source, address oldUpdater)
         internal
         pure
         returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
     {
+        if (psm == address(0) || adapter == address(0) || (oldUpdater != address(0) && oldUpdater == adapter)) {
+            revert InvalidHandoffAddresses();
+        }
         uint256 actionCount = oldUpdater == address(0) ? 2 : 3;
         targets = new address[](actionCount);
         values = new uint256[](actionCount);

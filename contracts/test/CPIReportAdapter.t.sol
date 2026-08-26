@@ -10,6 +10,16 @@ import { IAccessControl } from "@openzeppelin/contracts/access/IAccessControl.so
 import { MockCPIReportSink } from "./mocks/MockCPIReportSink.sol";
 import { MockERC20 } from "./mocks/MockERC20.sol";
 
+contract CPIAdapterGovernanceHarness {
+    function buildHandoff(address psm, address adapter, string calldata source, address oldUpdater)
+        external
+        pure
+        returns (address[] memory targets, uint256[] memory values, bytes[] memory calldatas)
+    {
+        return CPIAdapterGovernance.buildHandoff(psm, adapter, source, oldUpdater);
+    }
+}
+
 contract CPIReportAdapterTest is Test {
     uint256 internal constant SIGNER_ONE_KEY = 0xA11CE;
     uint256 internal constant SIGNER_TWO_KEY = 0xB0B;
@@ -310,6 +320,12 @@ contract CPIReportAdapterTest is Test {
         assertEq(calldatas.length, 2);
         assertEq(calldatas[0], abi.encodeCall(IAccessControl.grantRole, (keccak256("UPDATER_ROLE"), address(adapter))));
         assertEq(calldatas[1], abi.encodeCall(HalalPSM.setSource, ("BLS:CUUR0000SA0")));
+    }
+
+    function test_RevertWhen_HandoffWouldRevokeTheAdapter() public {
+        CPIAdapterGovernanceHarness harness = new CPIAdapterGovernanceHarness();
+        vm.expectRevert(CPIAdapterGovernance.InvalidHandoffAddresses.selector);
+        harness.buildHandoff(address(sink), address(adapter), "BLS:CUUR0000SA0", address(adapter));
     }
 
     function _signReport(uint256 reportedCPI, uint256 reportedAt, uint256 firstKey)
