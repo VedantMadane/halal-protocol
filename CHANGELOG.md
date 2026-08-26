@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.226 - 2026-08-26
+
+- Refreshed the public onboarding path by removing a stale closed-issue link from the README and
+  documenting the hosted contracts, scripts, ABI, and frontend CI coverage accurately.
+
 ## 0.1.0-alpha.225 - 2026-08-26
 
 - Increased the frontend CI job timeout from 15 to 30 minutes after a hosted run completed all 26

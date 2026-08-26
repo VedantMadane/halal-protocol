@@ -31,8 +31,8 @@ from the code owner, pass the path-detection check, use linear history, and reso
 conversations. Administrators may bypass the rule for repository recovery, but normal development
 should use the review path.
 
-CI (`.github/workflows/ci.yml`) runs the contracts and frontend test suites on every push and PR.
-A PR won't be merged with a red CI run.
+CI (`.github/workflows/ci.yml`) runs the contracts, dependency-light script, ABI, and frontend test
+suites on every relevant push and PR. A PR won't be merged with a red CI run.
 
 ## Running the test suites
 
