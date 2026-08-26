@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.224 - 2026-08-26
+
+- Fixed the hosted `Scripts (Node)` CI job to install Foundry, matching the local script suite's
+  disposable CPI-adapter rehearsal dependency after the first hosted run exposed the omission.
+
 ## 0.1.0-alpha.223 - 2026-08-26
 
 - Added a hosted `Scripts (Node)` CI job for shell syntax, deployment-registry validation, and all
