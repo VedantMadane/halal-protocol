@@ -19,7 +19,17 @@ library CPIAdapterGovernance {
         if (psm == address(0) || adapter == address(0) || (oldUpdater != address(0) && oldUpdater == adapter)) {
             revert InvalidHandoffAddresses();
         }
-        if (bytes(source).length == 0) revert EmptySource();
+        bytes memory sourceBytes = bytes(source);
+        if (sourceBytes.length == 0) revert EmptySource();
+        bool hasNonWhitespace;
+        for (uint256 i = 0; i < sourceBytes.length; ++i) {
+            bytes1 character = sourceBytes[i];
+            if (character != 0x09 && character != 0x0a && character != 0x0d && character != 0x20) {
+                hasNonWhitespace = true;
+                break;
+            }
+        }
+        if (!hasNonWhitespace) revert EmptySource();
         uint256 actionCount = oldUpdater == address(0) ? 2 : 3;
         targets = new address[](actionCount);
         values = new uint256[](actionCount);

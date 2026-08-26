@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.266 - 2026-08-27
+
+- Made the offline CPI adapter handoff builder reject the same empty and whitespace-only source
+  labels rejected by the PSM, preventing doomed governance payloads from being generated.
+
 ## 0.1.0-alpha.265 - 2026-08-27
 
 - Extended PSM source-label hardening to reject ASCII whitespace-only values, while preserving
