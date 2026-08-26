@@ -13,8 +13,6 @@ operations. Report fund-risking findings through [`SECURITY.md`](../SECURITY.md)
 Choose the task that matches your interests; each issue includes a bounded scope, acceptance
 criteria, and a safe local verification path:
 
-- [Stale CPI report safety coverage (#57)](https://github.com/fredrikblau/halal-protocol/issues/57) —
-  deterministic browser coverage for stale-report visibility and blocked deposits.
 - [Machine-readable deployment health (#58)](https://github.com/fredrikblau/halal-protocol/issues/58) —
   a stable JSON mode for read-only operator checks, with shell tests and runbook documentation.
 
