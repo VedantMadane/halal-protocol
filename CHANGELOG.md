@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.235 - 2026-08-26
+
+- Added a dated engineering security review log for PSM accounting and CPI adapter boundaries,
+  including reproducible evidence and explicit residual risks without overstating the result as an
+  audit.
+
 ## 0.1.0-alpha.234 - 2026-08-26
 
 - Added a dated engineering security review log covering the PSM accounting and CPI adapter
