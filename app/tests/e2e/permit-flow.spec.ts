@@ -158,11 +158,12 @@ async function installAnvilProvider(page: Page, chainId: number = LOCAL_CHAIN.id
   await page.addInitScript(({ rpcUrl, account, chainId: injectedChainId }) => {
     const listeners = new Map<string, Set<(...args: unknown[]) => void>>();
     let currentAccount = account;
+    let currentChainId = injectedChainId;
     const provider = {
       isMetaMask: true,
       request: async ({ method, params = [] }: { method: string; params?: unknown[] }) => {
         if (method === "eth_accounts" || method === "eth_requestAccounts") return [currentAccount];
-        if (method === "eth_chainId") return `0x${injectedChainId.toString(16)}`;
+        if (method === "eth_chainId") return `0x${currentChainId.toString(16)}`;
         if (method === "wallet_switchEthereumChain" || method === "wallet_addEthereumChain") return null;
         const response = await fetch(rpcUrl, {
           method: "POST",
@@ -198,6 +199,13 @@ async function installAnvilProvider(page: Page, chainId: number = LOCAL_CHAIN.id
       value: (nextAccount: string) => {
         currentAccount = nextAccount;
         listeners.get("accountsChanged")?.forEach((listener) => listener([nextAccount]));
+      },
+    });
+    Object.defineProperty(window, "__setAnvilChain", {
+      configurable: true,
+      value: (nextChainId: number) => {
+        currentChainId = nextChainId;
+        listeners.get("chainChanged")?.forEach((listener) => listener(`0x${nextChainId.toString(16)}`));
       },
     });
     Object.defineProperty(window, "ethereum", { configurable: false, value: provider });
@@ -264,6 +272,22 @@ test("blocks an unsupported wallet network before signing", async ({ page }) => 
   await expect(page.getByRole("heading", { name: "Unsupported network" })).toBeVisible();
   await expect(page.getByText(/Your wallet is connected to a network Halal doesn.t support/)).toBeVisible();
   await expect(page.getByRole("button", { name: "Switch to Arbitrum Sepolia" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Deposit" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Withdraw" })).toHaveCount(0);
+  expect(await page.evaluate(() => (window as Window & { __lastTransaction?: unknown }).__lastTransaction)).toBeUndefined();
+});
+
+test("recovers safely across wallet network changes", async ({ page }) => {
+  await installAnvilProvider(page, 1);
+  await page.goto("/psm");
+  await expect(page.getByRole("heading", { name: "Unsupported network" })).toBeVisible();
+
+  await page.evaluate(() => (window as unknown as { __setAnvilChain: (chainId: number) => void }).__setAnvilChain(31_337));
+  await expect(page.getByRole("heading", { name: "Swap", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Unsupported network" })).toHaveCount(0);
+
+  await page.evaluate(() => (window as unknown as { __setAnvilChain: (chainId: number) => void }).__setAnvilChain(1));
+  await expect(page.getByRole("heading", { name: "Unsupported network" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Deposit" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Withdraw" })).toHaveCount(0);
   expect(await page.evaluate(() => (window as Window & { __lastTransaction?: unknown }).__lastTransaction)).toBeUndefined();
