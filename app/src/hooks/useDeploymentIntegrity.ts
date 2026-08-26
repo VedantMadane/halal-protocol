@@ -55,6 +55,7 @@ export function useDeploymentIntegrity() {
         { address: deployment.token, abi: halalTokenAbi, functionName: "hasRole", args: [zeroHash, deployment.timelock] },
         { address: deployment.psm, abi: halalPsmAbi, functionName: "hasRole", args: [zeroHash, deployment.timelock] },
         { address: deployment.psm, abi: halalPsmAbi, functionName: "hasRole", args: [PARAM_ROLE, deployment.timelock] },
+        { address: deployment.psm, abi: halalPsmAbi, functionName: "source" },
         { address: deployment.timelock, abi: halalTimelockAbi, functionName: "hasRole", args: [PROPOSER_ROLE, deployment.dao] },
         { address: deployment.timelock, abi: halalTimelockAbi, functionName: "hasRole", args: [EXECUTOR_ROLE, zeroAddress] },
         { address: deployment.timelock, abi: halalTimelockAbi, functionName: "hasRole", args: [zeroHash, deployment.timelock] },
@@ -84,20 +85,21 @@ export function useDeploymentIntegrity() {
   const tokenAdmin = get<boolean>(11);
   const psmAdmin = get<boolean>(12);
   const psmParam = get<boolean>(13);
-  const timelockProposer = get<boolean>(14);
-  const timelockExecutor = get<boolean>(15);
-  const timelockSelfAdmin = get<boolean>(16);
-  const adapterPsm = get<Address>(17);
-  const adapterOwner = get<Address>(18);
-  const adapterSourceId = get<`0x${string}`>(19);
-  const adapterThreshold = get<bigint>(20);
-  const adapterSignerCount = get<bigint>(21);
-  const adapterSigners = get<Address[]>(22);
+  const psmSource = get<string>(14);
+  const timelockProposer = get<boolean>(15);
+  const timelockExecutor = get<boolean>(16);
+  const timelockSelfAdmin = get<boolean>(17);
+  const adapterPsm = get<Address>(18);
+  const adapterOwner = get<Address>(19);
+  const adapterSourceId = get<`0x${string}`>(20);
+  const adapterThreshold = get<bigint>(21);
+  const adapterSignerCount = get<bigint>(22);
+  const adapterSigners = get<Address[]>(23);
   const expected = deployment;
   const adapterConfigurationComplete =
-    expected?.cpiAdapter === undefined && expected?.cpiSourceId === undefined
+    expected?.cpiAdapter === undefined && expected?.cpiSource === undefined && expected?.cpiSourceId === undefined
       ? true
-      : expected?.cpiAdapter !== undefined && expected?.cpiSourceId !== undefined;
+      : expected?.cpiAdapter !== undefined && expected?.cpiSource !== undefined && expected?.cpiSourceId !== undefined;
 
   const readFailed = hasReadFailure(data);
   const isVerified =
@@ -122,7 +124,8 @@ export function useDeploymentIntegrity() {
     timelockSelfAdmin === true &&
     (adapterConfigurationComplete &&
       (expected?.cpiAdapter === undefined ||
-        (adapterPsm?.toLowerCase() === expected.psm.toLowerCase() &&
+        (psmSource === expected.cpiSource &&
+        adapterPsm?.toLowerCase() === expected.psm.toLowerCase() &&
         adapterOwner?.toLowerCase() === expected.timelock.toLowerCase() &&
         adapterSourceId?.toLowerCase() === expected.cpiSourceId?.toLowerCase() &&
         adapterThreshold !== undefined &&

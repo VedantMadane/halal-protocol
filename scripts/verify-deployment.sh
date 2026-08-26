@@ -3,7 +3,8 @@ set -euo pipefail
 
 # Read-only post-deployment verifier. Required: RPC_URL, EXPECTED_CHAIN_ID, TIMELOCK, TOKEN,
 # TEAM_VESTING, TREASURY_VESTING, DAO, PSM, RESERVE_TOKEN, TEAM_BENEFICIARY, TREASURY_BENEFICIARY,
-# and DEPLOYER_ADDRESS. Optional: CPI_UPDATER, CPI_ADAPTER, and EXPECTED_CPI_SOURCE_ID. The
+# and DEPLOYER_ADDRESS. Optional: CPI_UPDATER, CPI_ADAPTER, EXPECTED_CPI_SOURCE,
+# EXPECTED_CPI_SOURCE_ID. The
 # adapter metadata is verified against the PSM and timelock when supplied. ALLOW_DEPLOYER_BENEFICIARY=true
 # is for the disposable local demo only.
 
@@ -28,6 +29,10 @@ call() {
 
 address_call() {
   call "$@" | tr '[:upper:]' '[:lower:]'
+}
+
+string_call() {
+  cast call "$1" "$2" --rpc-url "$RPC_URL" | sed -e 's/^"//' -e 's/"$//'
 }
 
 expect_equal() {
@@ -92,9 +97,13 @@ TEAM_BENEFICIARY="${TEAM_BENEFICIARY,,}"
 TREASURY_BENEFICIARY="${TREASURY_BENEFICIARY,,}"
 DEPLOYER_ADDRESS="${DEPLOYER_ADDRESS,,}"
 
-if [[ -n "${CPI_ADAPTER:-}" || -n "${EXPECTED_CPI_SOURCE_ID:-}" ]]; then
-  if [[ -z "${CPI_ADAPTER:-}" || -z "${EXPECTED_CPI_SOURCE_ID:-}" ]]; then
-    echo "CPI_ADAPTER and EXPECTED_CPI_SOURCE_ID must be provided together" >&2
+if [[ -n "${CPI_ADAPTER:-}" || -n "${EXPECTED_CPI_SOURCE:-}" || -n "${EXPECTED_CPI_SOURCE_ID:-}" ]]; then
+  if [[ -z "${CPI_ADAPTER:-}" || -z "${EXPECTED_CPI_SOURCE:-}" || -z "${EXPECTED_CPI_SOURCE_ID:-}" ]]; then
+    echo "CPI_ADAPTER, EXPECTED_CPI_SOURCE, and EXPECTED_CPI_SOURCE_ID must be provided together" >&2
+    exit 1
+  fi
+  if [[ -z "${EXPECTED_CPI_SOURCE//[[:space:]]/}" ]]; then
+    echo "EXPECTED_CPI_SOURCE must contain non-whitespace source metadata" >&2
     exit 1
   fi
   if [[ ! "$CPI_ADAPTER" =~ ^0x[0-9a-fA-F]{40}$ || "$CPI_ADAPTER" =~ ^0x0{40}$ ]]; then
@@ -191,6 +200,7 @@ if [[ -n "${CPI_ADAPTER:-}" ]]; then
   expect_equal "CPI adapter PSM" "$(address_call "$CPI_ADAPTER" 'psm()(address)')" "$PSM"
   expect_equal "CPI adapter owner" "$(address_call "$CPI_ADAPTER" 'owner()(address)')" "$EXPECTED_CPI_ADAPTER_OWNER"
   expect_equal "CPI adapter source ID" "$(address_call "$CPI_ADAPTER" 'sourceId()(bytes32)')" "$EXPECTED_CPI_SOURCE_ID"
+  expect_equal "PSM CPI source" "$(string_call "$PSM" 'source()(string)')" "$EXPECTED_CPI_SOURCE"
   expect_true "PSM has CPI adapter updater role" "$(call "$PSM" 'hasRole(bytes32,address)(bool)' "$psm_updater_role" "$CPI_ADAPTER")"
   expect_equal "CPI adapter report watermark" "$(call "$CPI_ADAPTER" 'lastSubmittedTimestamp()(uint256)')" "$(call "$PSM" 'lastReportTimestamp()(uint256)')"
 

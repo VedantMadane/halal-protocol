@@ -31,6 +31,7 @@ function deployment(overrides = {}) {
     reserveTokenSymbol: "mDAI",
     deploymentBlock: "1",
     cpiAdapter: `0x${"8".repeat(40)}`,
+    cpiSource: "BLS:CUUR0000SA0",
     cpiSourceId: `0x${"9".repeat(64)}`,
     cpiPolicyUrl: "https://example.com/cpi-policy",
     ...overrides,
@@ -78,6 +79,12 @@ test("requires CPI policy evidence when adapter metadata is present", async () =
   const result = await runValidator(deployment({ cpiPolicyUrl: undefined }));
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, /invalid cpiPolicyUrl/);
+});
+
+test("requires a non-empty CPI source label when adapter metadata is present", async () => {
+  const result = await runValidator(deployment({ cpiSource: "   " }));
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /invalid cpiSource/);
 });
 
 test("rejects a chain the frontend does not support", async () => {
@@ -153,6 +160,12 @@ test("preflight requires HTTPS CPI policy evidence for adapter entries", () => {
   const report = preflightDeploymentRegistry({ "31337": deployment({ cpiPolicyUrl: "http://unsafe.example" }) });
   assert.equal(report.status, "not_ready");
   assert.match(report.checks.find(({ label }) => label === "chain 31337: CPI adapter policy evidence").detail, /HTTPS policy/);
+});
+
+test("preflight requires a non-empty CPI source label for adapter entries", () => {
+  const report = preflightDeploymentRegistry({ "31337": deployment({ cpiSource: "" }) });
+  assert.equal(report.status, "not_ready");
+  assert.match(report.checks.find(({ label }) => label === "chain 31337: CPI adapter policy evidence").detail, /source label/);
 });
 
 test("preflight CLI emits JSON and a zero exit for a ready fixture", async () => {

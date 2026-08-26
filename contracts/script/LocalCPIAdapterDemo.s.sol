@@ -40,6 +40,7 @@ contract LocalCPIAdapterDemo is Script {
         token.grantRole(token.MINTER_ROLE(), address(psm));
         token.grantRole(token.BURNER_ROLE(), address(psm));
         psm.grantRole(psm.UPDATER_ROLE(), address(adapter));
+        psm.setSource("BLS-CPI");
 
         uint256 reportedAt = block.timestamp - 1;
         bytes[] memory signatures = _signReport(adapter, 1_000_000, reportedAt, signerOneKey, signerTwoKey);

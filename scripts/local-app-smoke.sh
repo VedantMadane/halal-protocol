@@ -54,7 +54,7 @@ done
 DEPLOYER_KEY="$(cast wallet derive --insecure "$LOCAL_MNEMONIC" | awk '/Private key:/ { print $3; exit }')"
 UPDATER_KEY="$(cast wallet derive --insecure --accounts 2 "$LOCAL_MNEMONIC" | awk '/Private key:/ { key=$3 } END { print key }')"
 UPDATER_ADDRESS="$(cast wallet address --private-key "$UPDATER_KEY")"
-
+CPI_SOURCE="LOCAL:APP:CPI"
 (
   cd "$ROOT_DIR/contracts"
   PRIVATE_KEY="$DEPLOYER_KEY" CPI_UPDATER="$UPDATER_ADDRESS" \
@@ -68,11 +68,15 @@ value_from_env() {
 
 PSM_ADDRESS="$(value_from_env NEXT_PUBLIC_HLC_PSM_31337)"
 TIMELOCK_ADDRESS="$(value_from_env NEXT_PUBLIC_HLC_TIMELOCK_31337)"
+SOURCE_ID="$(cast keccak 'local-app-cpi-v1')"
 SIGNER_ONE_KEY="$(cast wallet derive --insecure --accounts 3 "$LOCAL_MNEMONIC" | awk '/Private key:/ { key=$3 } END { print key }')"
 SIGNER_TWO_KEY="$(cast wallet derive --insecure --accounts 4 "$LOCAL_MNEMONIC" | awk '/Private key:/ { key=$3 } END { print key }')"
 SIGNER_ONE_ADDRESS="$(cast wallet address --private-key "$SIGNER_ONE_KEY")"
 SIGNER_TWO_ADDRESS="$(cast wallet address --private-key "$SIGNER_TWO_KEY")"
-SOURCE_ID="$(cast keccak 'local-app-cpi-v1')"
+
+cast rpc anvil_impersonateAccount "$TIMELOCK_ADDRESS" --rpc-url "$LOCAL_RPC_URL" >/dev/null
+cast rpc anvil_setBalance "$TIMELOCK_ADDRESS" 0x3635C9ADC5DEA00000 --rpc-url "$LOCAL_RPC_URL" >/dev/null
+cast send "$PSM_ADDRESS" 'setSource(string)' "$CPI_SOURCE" --from "$TIMELOCK_ADDRESS" --unlocked --rpc-url "$LOCAL_RPC_URL" >/dev/null
 
 (
   cd "$ROOT_DIR/contracts"
@@ -85,7 +89,6 @@ SOURCE_ID="$(cast keccak 'local-app-cpi-v1')"
 
 ADAPTER_ADDRESS="$(awk '/CPI report adapter:/ { print $NF; exit }' "$DEPLOY_LOG")"
 test -n "$ADAPTER_ADDRESS"
-
 if [[ -e "$APP_ENV_FILE" ]]; then
   APP_ENV_BACKUP="$(mktemp)"
   cp -p "$APP_ENV_FILE" "$APP_ENV_BACKUP"
@@ -100,6 +103,7 @@ DEPLOYMENT_BLOCK="$(cast block latest --field number --rpc-url "$LOCAL_RPC_URL")
     | sed -e 's/^ *//' -e 's/= /=/' \
     | sed "s/^NEXT_PUBLIC_HLC_DEPLOYMENT_BLOCK_31337=.*/NEXT_PUBLIC_HLC_DEPLOYMENT_BLOCK_31337=$DEPLOYMENT_BLOCK/"
   echo "NEXT_PUBLIC_HLC_CPI_ADAPTER_31337=$ADAPTER_ADDRESS"
+  echo "NEXT_PUBLIC_HLC_CPI_SOURCE_31337=$CPI_SOURCE"
   echo "NEXT_PUBLIC_HLC_CPI_SOURCE_ID_31337=$SOURCE_ID"
 } > "$APP_ENV_FILE"
 

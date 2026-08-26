@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.260 - 2026-08-27
+
+- Made the governed CPI source label a required, end-to-end deployment identity alongside the
+  adapter address and immutable source ID.
+- Added fail-closed verifier, registry, monitoring, frontend, and local rehearsal coverage when
+  the on-chain PSM `source()` label diverges from recorded evidence.
+
 ## 0.1.0-alpha.259 - 2026-08-27
 
 - Added an evidence-driven reserve-token integration decision tree and linked it from the public deployment worksheet.

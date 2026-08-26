@@ -69,6 +69,9 @@ if [[ -n "${CPI_ADAPTER:-}" ]]; then
   if [[ ! "${EXPECTED_CPI_ADAPTER_OWNER}" =~ ^0x[0-9a-fA-F]{40}$ || "${EXPECTED_CPI_ADAPTER_OWNER}" =~ ^0x0{40}$ ]]; then
     unhealthy_input "expected_cpi_adapter_owner" "${EXPECTED_CPI_ADAPTER_OWNER}"
   fi
+  if [[ -z "${EXPECTED_CPI_SOURCE:-}" || "${EXPECTED_CPI_SOURCE//[[:space:]]/}" == "" ]]; then
+    unhealthy_reason "cpi_source_expectation_missing" ""
+  fi
   if [[ -z "${EXPECTED_CPI_SOURCE_ID:-}" ]]; then
     unhealthy_reason "cpi_adapter_source_id_expectation_missing" ""
   fi

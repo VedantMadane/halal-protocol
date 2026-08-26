@@ -70,7 +70,7 @@ After a report is accepted, the team records the transaction and reruns the inde
 ```sh
 ./scripts/verify-cpi-report.mjs --help
 RPC_URL="$RPC_URL" PSM="$PSM" CPI_ADAPTER="$CPI_ADAPTER" \
-  EXPECTED_CPI_SOURCE_ID="$EXPECTED_CPI_SOURCE_ID" \
+  EXPECTED_CPI_SOURCE="$EXPECTED_CPI_SOURCE" EXPECTED_CPI_SOURCE_ID="$EXPECTED_CPI_SOURCE_ID" \
   ./scripts/check-deployment-health.sh --json > deployment-health-after.json
 node scripts/consume-health-json.mjs < deployment-health-after.json
 ```

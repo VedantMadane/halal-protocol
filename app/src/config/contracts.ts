@@ -38,6 +38,8 @@ export interface HalalDeployment {
   journalUrl?: string;
   /** Policy record supporting a governed CPI adapter deployment. */
   cpiPolicyUrl?: string;
+  /** Human-readable PSM source label expected for a governed CPI adapter deployment. */
+  cpiSource?: string;
   /** HalalToken (HLC) — ERC20Votes + ERC20Permit + AccessControl. */
   token: Address;
   /** HalalVesting instance for the team allocation (6M HLC, 4yr, 1yr cliff, revocable). */
@@ -68,6 +70,7 @@ interface DeploymentSource {
   sourceVerificationUrl?: string;
   journalUrl?: string;
   cpiPolicyUrl?: string;
+  cpiSource?: string;
   token?: string;
   teamVesting?: string;
   treasuryVesting?: string;
@@ -92,6 +95,7 @@ interface DeploymentEnvironment {
   reserveTokenSymbol: string | undefined;
   deploymentBlock: string | undefined;
   cpiAdapter: string | undefined;
+  cpiSource: string | undefined;
   cpiSourceId: string | undefined;
 }
 
@@ -108,6 +112,7 @@ function deploymentFromSource(source: DeploymentSource): HalalDeployment | undef
     reserveTokenSymbol: source.reserveTokenSymbol,
     deploymentBlock: source.deploymentBlock === undefined ? undefined : String(source.deploymentBlock),
     cpiAdapter: source.cpiAdapter,
+    cpiSource: source.cpiSource,
     cpiSourceId: source.cpiSourceId,
   };
   const addresses = [
@@ -123,9 +128,10 @@ function deploymentFromSource(source: DeploymentSource): HalalDeployment | undef
   if (!env.reserveTokenSymbol || !env.deploymentBlock || !/^\d+$/.test(env.deploymentBlock)) return undefined;
   const deploymentBlock = BigInt(env.deploymentBlock);
   if (deploymentBlock === 0n) return undefined;
-  const hasAdapter = env.cpiAdapter !== undefined || env.cpiSourceId !== undefined;
+  const hasAdapter = env.cpiAdapter !== undefined || env.cpiSource !== undefined || env.cpiSourceId !== undefined;
   if (hasAdapter) {
     if (!env.cpiAdapter || !isAddress(env.cpiAdapter) || env.cpiAdapter === zeroAddress) return undefined;
+    if (!env.cpiSource || env.cpiSource.trim() === "") return undefined;
     if (!env.cpiSourceId || !/^0x[0-9a-fA-F]{64}$/.test(env.cpiSourceId) || /^0x0{64}$/i.test(env.cpiSourceId)) {
       return undefined;
     }
@@ -147,7 +153,7 @@ function deploymentFromSource(source: DeploymentSource): HalalDeployment | undef
     reserveTokenSymbol: env.reserveTokenSymbol,
     deploymentBlock,
     ...(hasAdapter
-      ? { cpiAdapter: env.cpiAdapter as Address, cpiSourceId: env.cpiSourceId as `0x${string}` }
+      ? { cpiAdapter: env.cpiAdapter as Address, cpiSource: env.cpiSource, cpiSourceId: env.cpiSourceId as `0x${string}` }
       : {}),
   };
 }
@@ -174,6 +180,7 @@ function configuredDeployment(chainId: number): HalalDeployment | undefined {
       reserveTokenSymbol: process.env.NEXT_PUBLIC_HLC_RESERVE_SYMBOL_31337,
       deploymentBlock: process.env.NEXT_PUBLIC_HLC_DEPLOYMENT_BLOCK_31337,
       cpiAdapter: process.env.NEXT_PUBLIC_HLC_CPI_ADAPTER_31337,
+      cpiSource: process.env.NEXT_PUBLIC_HLC_CPI_SOURCE_31337,
       cpiSourceId: process.env.NEXT_PUBLIC_HLC_CPI_SOURCE_ID_31337,
     },
     "421614": {
@@ -187,6 +194,7 @@ function configuredDeployment(chainId: number): HalalDeployment | undefined {
       reserveTokenSymbol: process.env.NEXT_PUBLIC_HLC_RESERVE_SYMBOL_421614,
       deploymentBlock: process.env.NEXT_PUBLIC_HLC_DEPLOYMENT_BLOCK_421614,
       cpiAdapter: process.env.NEXT_PUBLIC_HLC_CPI_ADAPTER_421614,
+      cpiSource: process.env.NEXT_PUBLIC_HLC_CPI_SOURCE_421614,
       cpiSourceId: process.env.NEXT_PUBLIC_HLC_CPI_SOURCE_ID_421614,
     },
     "42161": {
@@ -200,6 +208,7 @@ function configuredDeployment(chainId: number): HalalDeployment | undefined {
       reserveTokenSymbol: process.env.NEXT_PUBLIC_HLC_RESERVE_SYMBOL_42161,
       deploymentBlock: process.env.NEXT_PUBLIC_HLC_DEPLOYMENT_BLOCK_42161,
       cpiAdapter: process.env.NEXT_PUBLIC_HLC_CPI_ADAPTER_42161,
+      cpiSource: process.env.NEXT_PUBLIC_HLC_CPI_SOURCE_42161,
       cpiSourceId: process.env.NEXT_PUBLIC_HLC_CPI_SOURCE_ID_42161,
     },
   };

@@ -111,14 +111,14 @@ TIMELOCK=0x... TOKEN=0x... TEAM_VESTING=0x... TREASURY_VESTING=0x... \
 DAO=0x... PSM=0x... RESERVE_TOKEN=0x... \
 TEAM_BENEFICIARY=0x... TREASURY_BENEFICIARY=0x... \
 DEPLOYER_ADDRESS=0x... CPI_UPDATER=0x... \
-CPI_ADAPTER=0x... EXPECTED_CPI_SOURCE_ID=0x... \
+CPI_ADAPTER=0x... EXPECTED_CPI_SOURCE='BLS:CUUR0000SA0' EXPECTED_CPI_SOURCE_ID=0x... \
 ./scripts/verify-deployment.sh
 ```
 
-When a governed signed adapter is used, provide `CPI_ADAPTER` and `EXPECTED_CPI_SOURCE_ID` together;
-the verifier additionally checks adapter bytecode, PSM and timelock ownership, source identity,
-quorum, signer uniqueness/owner separation, the adapter's `UPDATER_ROLE`, and equality between the
-adapter and PSM accepted-report watermarks. The verifier checks
+When a governed signed adapter is used, provide `CPI_ADAPTER`, `EXPECTED_CPI_SOURCE`, and
+`EXPECTED_CPI_SOURCE_ID` together; the verifier additionally checks adapter bytecode, PSM and
+timelock ownership, source identity, quorum, signer uniqueness/owner separation, the adapter's
+`UPDATER_ROLE`, and equality between the adapter and PSM accepted-report watermarks. The verifier checks
 bytecode, chain identity, immutable wiring, vesting policy, beneficiary custody boundaries, token
 roles, timelock roles, PSM roles, and the absence of deployer privileges. Stop the launch if it
 fails.
@@ -174,7 +174,8 @@ RPC_URL=https://... PSM=0x... ./scripts/check-psm-health.sh
 ```
 
 For a deployment with a governed adapter and recorded source metadata, pass the adapter and both
-source expectations; `EXPECTED_CPI_SOURCE_ID` is mandatory whenever `CPI_ADAPTER` is set. Include
+source expectations; `EXPECTED_CPI_SOURCE` and `EXPECTED_CPI_SOURCE_ID` are mandatory whenever
+`CPI_ADAPTER` is set. Include
 the timelock as the expected adapter owner. The check then fails if
 governance removed the updater role, changed the source label, pointed the adapter at another PSM,
 changed its owner, or changed its quorum:
@@ -183,7 +184,7 @@ changed its owner, or changed its quorum:
 RPC_URL=https://... PSM=0x... \
 CPI_UPDATER=0x... CPI_ADAPTER=0x... \
 EXPECTED_CPI_ADAPTER_OWNER=0x<timelock> \
-EXPECTED_CPI_SOURCE=https://... EXPECTED_CPI_SOURCE_ID=0x... \
+EXPECTED_CPI_SOURCE='BLS:CUUR0000SA0' EXPECTED_CPI_SOURCE_ID=0x... \
 ./scripts/check-psm-health.sh
 ```
 

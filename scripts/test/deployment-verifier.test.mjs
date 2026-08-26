@@ -55,6 +55,7 @@ case "$1" in
       'psm()('* ) echo ${ADDRESSES.psm} ;;
       'owner()('* ) echo ${ADDRESSES.timelock} ;;
       'sourceId()('* ) echo ${SOURCE_ID} ;;
+      'source()('* ) echo '"BLS:CUUR0000SA0"' ;;
       'lastSubmittedTimestamp()('* ) echo "\${FAKE_ADAPTER_WATERMARK:-0}" ;;
       'lastReportTimestamp()('* ) echo "\${FAKE_PSM_WATERMARK:-0}" ;;
       'threshold()('* ) echo "\${FAKE_ADAPTER_THRESHOLD:-2}" ;;
@@ -88,7 +89,7 @@ function runVerifier(withAdapter, overrides = {}) {
     TEAM_BENEFICIARY: ADDRESSES.teamBeneficiary,
     TREASURY_BENEFICIARY: ADDRESSES.treasuryBeneficiary,
     DEPLOYER_ADDRESS: ADDRESSES.deployer,
-    ...(withAdapter ? { CPI_ADAPTER: ADDRESSES.adapter, EXPECTED_CPI_SOURCE_ID: SOURCE_ID } : {}),
+    ...(withAdapter ? { CPI_ADAPTER: ADDRESSES.adapter, EXPECTED_CPI_SOURCE: "BLS:CUUR0000SA0", EXPECTED_CPI_SOURCE_ID: SOURCE_ID } : {}),
     ...overrides,
   };
   try {
@@ -119,4 +120,10 @@ test("deployment verifier rejects an oversized CPI adapter signer count", () => 
   const result = runVerifier(true, { FAKE_ADAPTER_SIGNER_COUNT: "65" });
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, /CPI adapter signer count/);
+});
+
+test("deployment verifier rejects a changed PSM CPI source label", () => {
+  const result = runVerifier(true, { EXPECTED_CPI_SOURCE: "different-source" });
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /PSM CPI source/);
 });

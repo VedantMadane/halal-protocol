@@ -149,7 +149,7 @@ operational contacts before the adapter receives `UPDATER_ROLE`.
   ```sh
   RPC_URL="$RPC_URL" PSM="$PSM" \
   CPI_UPDATER=0x... CPI_ADAPTER=0x... \
-  EXPECTED_CPI_ADAPTER_OWNER=0x... EXPECTED_CPI_SOURCE_ID=0x... \
+  EXPECTED_CPI_ADAPTER_OWNER=0x... EXPECTED_CPI_SOURCE='BLS:CUUR0000SA0' EXPECTED_CPI_SOURCE_ID=0x... \
   ./scripts/check-psm-health.sh 2>&1 | tee psm-health.txt
   ```
 

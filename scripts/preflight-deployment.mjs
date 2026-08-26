@@ -66,13 +66,14 @@ function validateEntry(report, chainId, deployment) {
     const valid = nonZeroAddress(deployment[field]);
     check(report, `${prefix}: ${field}`, valid, valid ? "non-zero address" : "missing or invalid non-zero address");
   }
-  const adapterFieldsPresent = deployment.cpiAdapter !== undefined || deployment.cpiSourceId !== undefined || deployment.cpiPolicyUrl !== undefined;
+  const adapterFieldsPresent = deployment.cpiAdapter !== undefined || deployment.cpiSource !== undefined || deployment.cpiSourceId !== undefined || deployment.cpiPolicyUrl !== undefined;
   if (adapterFieldsPresent) {
     const adapterValid = nonZeroAddress(deployment.cpiAdapter);
     const sourceIdValid = typeof deployment.cpiSourceId === "string" && hashPattern.test(deployment.cpiSourceId) && !/^0x0{64}$/i.test(deployment.cpiSourceId);
+    const sourceValid = typeof deployment.cpiSource === "string" && deployment.cpiSource.trim() !== "";
     let policyValid = false;
     try { policyValid = typeof deployment.cpiPolicyUrl === "string" && new URL(deployment.cpiPolicyUrl).protocol === "https:"; } catch { policyValid = false; }
-    check(report, `${prefix}: CPI adapter policy evidence`, adapterValid && sourceIdValid && policyValid, adapterValid && sourceIdValid && policyValid ? "adapter, source ID, and policy evidence are present" : "provide valid adapter, source ID, and HTTPS policy evidence");
+    check(report, `${prefix}: CPI adapter policy evidence`, adapterValid && sourceValid && sourceIdValid && policyValid, adapterValid && sourceValid && sourceIdValid && policyValid ? "adapter, source label, source ID, and policy evidence are present" : "provide valid adapter, non-empty source label, source ID, and HTTPS policy evidence");
   }
   const symbolValid = typeof deployment.reserveTokenSymbol === "string" && deployment.reserveTokenSymbol.trim() !== "";
   check(report, `${prefix}: reserve token symbol`, symbolValid, symbolValid ? "present" : "missing or blank");

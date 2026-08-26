@@ -31,5 +31,6 @@ provides the implementation history for this format and validator.
 
 When a governed adapter is registered in the public deployment registry, include the URL of the
 corresponding policy record as `cpiPolicyUrl`. Registry validation requires that field alongside
-`cpiAdapter` and `cpiSourceId`; this links deployment evidence to the policy without treating a URL
-as proof that the policy is correct.
+`cpiAdapter`, `cpiSource`, and `cpiSourceId`; `cpiSource` must exactly match the PSM's on-chain
+`source()` label. This links deployment evidence to the policy without treating a URL as proof that
+the policy is correct.
