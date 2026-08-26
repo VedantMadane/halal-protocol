@@ -43,8 +43,6 @@ criteria, and a safe local verification path:
   document how operators record source identity, cadence, custody, and fallback decisions.
 - [Reserve-token integration decision tree (#97)](https://github.com/fredrikblau/halal-protocol/issues/97) —
   make the compatibility, issuer-risk, and evidence path easy for a first-time operator to follow.
-- [Markdown link validation in CI (#98)](https://github.com/fredrikblau/halal-protocol/issues/98) —
-  add a focused, deterministic check that catches broken internal documentation links.
 - [First Arbitrum Sepolia reference deployment (#40)](https://github.com/fredrikblau/halal-protocol/issues/40) —
   coordinate a reviewed testnet deployment and publish reproducible address, source, health, and
   journal evidence; this requires maintainer coordination and is not a casual copy-paste task.
@@ -57,6 +55,10 @@ criteria, and a safe local verification path:
 
 The completed [CPI source-policy template (#54)](https://github.com/fredrikblau/halal-protocol/issues/54)
 is available as a reference for the documentation standard, but is no longer an active starter task.
+
+The completed [Markdown link validation (#98)](https://github.com/fredrikblau/halal-protocol/issues/98)
+is available as a reference for adding a dependency-free repository quality gate with regression
+coverage.
 
 The completed [CPI parser revision fixtures (#92)](https://github.com/fredrikblau/halal-protocol/issues/92)
 are available as a reference for conservative, offline oracle testing and explicit revision policy.

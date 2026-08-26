@@ -2,6 +2,10 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.257 - 2026-08-26
+
+- Kept the contributor map synchronized after completing the Markdown link validation issue.
+
 ## 0.1.0-alpha.256 - 2026-08-26
 
 - Added a dependency-free Markdown link and heading-anchor checker with regression coverage.
