@@ -33,6 +33,54 @@ cast calldata 'grantRole(bytes32,address)' \
 cast calldata 'setSource(string)' 'BLS:CUUR0000SA0'
 ```
 
+The repository also includes an offline, read-only preflight. Give it a bundle containing the exact
+arrays and a separately reviewed policy that maps each target to its permitted selectors and value
+limit:
+
+```json
+{
+  "description": "Rotate routine CPI reporting to the reviewed adapter and publish the BLS source label.",
+  "descriptionHash": "0x4ea5061a2d4ee348f0293031254afd9cae9c90b3718062258fcab19287b0745d",
+  "targets": ["0x3333333333333333333333333333333333333333", "0x3333333333333333333333333333333333333333"],
+  "values": ["0", "0"],
+  "calldatas": [
+    "0x2f2ff15d73e573f9566d61418a34d5de3ff49360f9c51fec37f7486551670290f6285dab0000000000000000000000002222222222222222222222222222222222222222",
+    "0x99d254550000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000f424c533a43555552303030305341300000000000000000000000000000000000"
+  ]
+}
+```
+
+```json
+// governance-policy.json
+{
+  "targets": {
+    "0x3333333333333333333333333333333333333333": {
+      "label": "fictional PSM",
+      "maxValue": "0",
+      "selectors": {
+        "0x2f2ff15d": "grantRole(bytes32,address)",
+        "0x99d25455": "setSource(string)"
+      }
+    }
+  }
+}
+```
+
+Run it before submitting or queueing the proposal:
+
+```shell
+node scripts/verify-governance-payload.mjs \
+  --bundle proposal-bundle.json --policy governance-policy.json
+```
+
+Exit status zero means only that the bundle matches the supplied policy. A non-zero result preserves
+raw action data and reports the reason for rejecting unknown targets, malformed calldata, disallowed
+selectors, array mismatches, or unexpected ETH values. It does not replace source review, wallet
+simulation, reserve analysis, or governance authority.
+
+The verifier's policy is an allowlist maintained by the reviewer; it is not inferred from the dApp,
+an explorer label, or the proposal description.
+
 ## Independent review
 
 The reviewer checks each layer separately:

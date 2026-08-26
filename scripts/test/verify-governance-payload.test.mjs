@@ -1,0 +1,80 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { verifyGovernancePayload } from "../verify-governance-payload.mjs";
+
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+const SCRIPT = path.join(ROOT, "scripts/verify-governance-payload.mjs");
+const PSM = "0x3333333333333333333333333333333333333333";
+const ADAPTER = "0x2222222222222222222222222222222222222222";
+const POLICY = {
+  targets: {
+    [PSM]: {
+      label: "fictional PSM",
+      maxValue: "0",
+      selectors: {
+        "0x2f2ff15d": "grantRole(bytes32,address)",
+        "0x99d25455": "setSource(string)",
+      },
+    },
+  },
+};
+const GRANT = "0x2f2ff15d73e573f9566d61418a34d5de3ff49360f9c51fec37f7486551670290f6285dab0000000000000000000000002222222222222222222222222222222222222222";
+const SOURCE = "0x99d254550000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000f424c533a43555552303030305341300000000000000000000000000000000000";
+
+const safeBundle = () => ({ targets: [PSM, PSM], values: ["0", "0"], calldatas: [GRANT, SOURCE], description: "fictional safe handoff" });
+
+test("accepts an exact, zero-value known-target bundle", () => {
+  const result = verifyGovernancePayload(safeBundle(), POLICY);
+  assert.equal(result.authorized, true);
+  assert.deepEqual(result.actions.map((action) => action.decoded), ["grantRole(bytes32,address)", "setSource(string)"]);
+});
+
+test("rejects unknown targets while preserving raw calldata", () => {
+  const bundle = { targets: [ADAPTER], values: ["0"], calldatas: [GRANT] };
+  const result = verifyGovernancePayload(bundle, POLICY);
+  assert.equal(result.authorized, false);
+  assert.equal(result.actions[0].calldata, GRANT);
+  assert.equal(result.actions[0].decoded, null);
+  assert.match(result.errors[0], /not present in the explicit policy/);
+});
+
+test("rejects malformed, disallowed, and non-zero-value actions", () => {
+  const malformed = verifyGovernancePayload({ targets: [PSM], values: ["0"], calldatas: ["0x2f2ff1"] }, POLICY);
+  assert.equal(malformed.authorized, false);
+  assert.match(malformed.errors.join(" "), /shorter than a 4-byte selector/);
+
+  const disallowed = verifyGovernancePayload({ targets: [PSM], values: ["0"], calldatas: ["0x12345678"] }, POLICY);
+  assert.equal(disallowed.authorized, false);
+  assert.match(disallowed.errors.join(" "), /not allowed/);
+
+  const value = verifyGovernancePayload({ targets: [PSM], values: ["1"], calldatas: [SOURCE] }, POLICY);
+  assert.equal(value.authorized, false);
+  assert.match(value.errors.join(" "), /exceeds the policy maximum/);
+});
+
+test("rejects action-array mismatches and unsafe JSON numbers", () => {
+  assert.throws(() => verifyGovernancePayload({ targets: [PSM], values: [], calldatas: [] }, POLICY), /identical lengths/);
+  const result = verifyGovernancePayload({ targets: [PSM], values: [1], calldatas: [SOURCE] }, POLICY);
+  assert.equal(result.authorized, false);
+  assert.match(result.errors[0], /decimal string/);
+});
+
+test("CLI returns non-zero for an unknown target and JSON diagnostics", () => {
+  const directory = mkdtempSync(path.join(os.tmpdir(), "halal-governance-payload-"));
+  try {
+    const bundlePath = path.join(directory, "bundle.json");
+    const policyPath = path.join(directory, "policy.json");
+    writeFileSync(bundlePath, JSON.stringify({ targets: [ADAPTER], values: ["0"], calldatas: [GRANT] }));
+    writeFileSync(policyPath, JSON.stringify(POLICY));
+    const result = spawnSync(process.execPath, [SCRIPT, "--bundle", bundlePath, "--policy", policyPath], { encoding: "utf8" });
+    assert.equal(result.status, 1, result.stderr);
+    assert.equal(JSON.parse(result.stdout).authorized, false);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+});

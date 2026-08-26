@@ -389,7 +389,9 @@ Before voting or queueing a proposal, reviewers should:
 Use the [governance proposal review example](GOVERNANCE-PROPOSAL-REVIEW-EXAMPLE.md) as a fictional
 walkthrough of raw calldata, independent simulation, role impact, reserve impact, and timelock
 evidence. It includes an intentionally unsafe proposal that must be rejected. Copy the [governance
-review evidence template](GOVERNANCE-REVIEW-EVIDENCE-TEMPLATE.md) for each real review.
+review evidence template](GOVERNANCE-REVIEW-EVIDENCE-TEMPLATE.md) for each real review. Run the
+offline `scripts/verify-governance-payload.mjs` preflight with a separately reviewed target policy;
+its successful exit confirms policy alignment only, not payload safety.
 
 - decode every target, value, and calldata field;
 - compare the target and selector with the published contract source;

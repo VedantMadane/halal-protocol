@@ -22,9 +22,8 @@ criteria, and a safe local verification path:
 - [Governance calldata decoder fixtures (#88)](https://github.com/fredrikblau/halal-protocol/issues/88) —
   add focused known-target, unknown-target, and malformed-calldata fixtures; explain why UI decoding
   is not a safety or authorization check.
-- [Read-only governance payload verifier (#90)](https://github.com/fredrikblau/halal-protocol/issues/90) —
-  validate target/address policy, array shape, selectors, raw calldata, and unexpected ETH values
-  before a proposal is submitted or queued.
+- The completed [read-only governance payload verifier (#90)](https://github.com/fredrikblau/halal-protocol/issues/90)
+  is available at [`scripts/verify-governance-payload.mjs`](../scripts/verify-governance-payload.mjs).
 - The completed [governance review evidence template (#89)](https://github.com/fredrikblau/halal-protocol/issues/89)
   is available for recording the review outcome.
 - The completed [governance proposal review case study (#87)](https://github.com/fredrikblau/halal-protocol/issues/87)
