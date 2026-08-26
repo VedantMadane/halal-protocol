@@ -17,21 +17,6 @@ export function NotDeployedState() {
   const { chainId, isSupportedChain } = useDeployment();
   const switchChain = useSwitchChain();
 
-  if (!isConnected) {
-    return (
-      <EmptyState
-        title="No public deployment configured"
-        description={
-          <>
-            The dApp can show a configured deployment without a wallet. Set the read-only chain and deployment
-            variables in <code>.env.local</code>, or connect a wallet to inspect another supported network. Supported
-            networks: {supportedChains.map((c) => c.name).join(", ")}.
-          </>
-        }
-      />
-    );
-  }
-
   if (!isSupportedChain) {
     return (
       <EmptyState
@@ -55,6 +40,21 @@ export function NotDeployedState() {
               <p className="max-w-md text-xs text-danger">{getFriendlyErrorMessage(switchChain.error)}</p>
             )}
           </div>
+        }
+      />
+    );
+  }
+
+  if (!isConnected) {
+    return (
+      <EmptyState
+        title="No public deployment configured"
+        description={
+          <>
+            The dApp can show a configured deployment without a wallet. Set the read-only chain and deployment
+            variables in <code>.env.local</code>, or connect a wallet to inspect another supported network. Supported
+            networks: {supportedChains.map((c) => c.name).join(", ")}.
+          </>
         }
       />
     );

@@ -252,6 +252,23 @@ test("explains a supported network with no configured deployment", async ({ page
   expect(await page.evaluate(() => (window as Window & { __lastTransaction?: unknown }).__lastTransaction)).toBeUndefined();
 });
 
+test("blocks an unsupported wallet network before signing", async ({ page }) => {
+  await installAnvilProvider(page, 1);
+  await page.goto("/psm");
+
+  const connectButton = page.getByTestId("rk-connect-button");
+  if (await connectButton.count()) await connectButton.click();
+  const browserWallet = page.getByRole("button", { name: "Browser Wallet" });
+  if (await browserWallet.count()) await browserWallet.click();
+
+  await expect(page.getByRole("heading", { name: "Unsupported network" })).toBeVisible();
+  await expect(page.getByText(/Your wallet is connected to a network Halal doesn.t support/)).toBeVisible();
+  await expect(page.getByRole("button", { name: "Switch to Arbitrum Sepolia" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Deposit" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Withdraw" })).toHaveCount(0);
+  expect(await page.evaluate(() => (window as Window & { __lastTransaction?: unknown }).__lastTransaction)).toBeUndefined();
+});
+
 test("moves the vesting beneficiary only after the proposed address accepts", async ({ page }) => {
   await installAnvilProvider(page);
   await page.goto("/vesting");
