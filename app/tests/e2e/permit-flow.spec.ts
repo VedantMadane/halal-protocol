@@ -525,6 +525,56 @@ test("rebuilds the proposal payload when switching governance templates", async 
   await expect(page.getByTitle(env.NEXT_PUBLIC_HLC_PSM_31337)).toBeVisible();
 });
 
+test("preserves ordered advanced multi-action governance payloads", async ({ page }) => {
+  const env = readLocalEnv();
+  await seedRedeemableHlc();
+  await delegateLocalVotingPower();
+  await installAnvilProvider(page);
+  await page.goto("/governance/new");
+  await connectBrowserWallet(page);
+
+  await expect(page.getByRole("heading", { name: "New Proposal" })).toBeVisible();
+  await page.getByRole("button", { name: "Advanced (raw calls)" }).click();
+
+  const targets = page.getByPlaceholder("Target address (0x…)");
+  const values = page.getByPlaceholder("ETH value (default 0)");
+  const calldatas = page.getByPlaceholder("Calldata (0x…)");
+  await targets.nth(0).fill(env.NEXT_PUBLIC_HLC_PSM_31337);
+  await values.nth(0).fill("0.25");
+  await calldatas.nth(0).fill("0x1234");
+  await page.getByRole("button", { name: "+ Add action" }).click();
+  await targets.nth(1).fill(env.NEXT_PUBLIC_HLC_DAO_31337);
+  await values.nth(1).fill("1.5");
+  await calldatas.nth(1).fill("0xabcd");
+  await page.getByPlaceholder("What does this proposal do, and why?").fill("E2E ordered multi-action governance payload.");
+
+  const submitButton = page.getByRole("button", { name: "Submit proposal" });
+  await expect(submitButton).toBeEnabled();
+  await targets.nth(1).fill("");
+  await expect(page.getByText('Invalid target address: ""', { exact: true })).toBeVisible();
+  await expect(submitButton).toBeDisabled();
+  expect(await page.evaluate(() => (window as Window & { __lastTransaction?: unknown }).__lastTransaction)).toBeUndefined();
+
+  await targets.nth(1).fill(env.NEXT_PUBLIC_HLC_DAO_31337);
+  await expect(submitButton).toBeEnabled();
+  await submitButton.click();
+  await expect(page.getByText("Proposal created.")).toBeVisible();
+  await expect(page).toHaveURL(/\/governance$/, { timeout: 10_000 });
+
+  const proposalLink = page.getByText("E2E ordered multi-action governance payload.", { exact: true });
+  await expect(proposalLink).toBeVisible();
+  await proposalLink.click();
+  await expect(page.getByRole("heading", { name: "Actions (2)" })).toBeVisible();
+  const actions = page.locator("ol > li");
+  await expect(actions).toHaveCount(2);
+  await expect(actions.nth(0).getByTitle(env.NEXT_PUBLIC_HLC_PSM_31337)).toBeVisible();
+  await expect(actions.nth(0)).toContainText("0.25 ETH value");
+  await expect(actions.nth(0)).toContainText("0x1234");
+  await expect(actions.nth(1).getByTitle(env.NEXT_PUBLIC_HLC_DAO_31337)).toBeVisible();
+  await expect(actions.nth(1)).toContainText("1.5 ETH value");
+  await expect(actions.nth(1)).toContainText("0xabcd");
+});
+
 test("keeps invalid CPI template rates from reaching the wallet", async ({ page }) => {
   await installAnvilProvider(page);
   await page.goto("/governance/new");

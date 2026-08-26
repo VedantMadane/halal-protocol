@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.202 - 2026-08-26
+
+- Added browser coverage proving advanced proposals preserve multiple actions, ordering, ETH values, and raw calldata.
+- Replenished the contributor funnel with the labeled action-decoder task in issue #79.
+
 ## 0.1.0-alpha.201 - 2026-08-26
 
 - Added browser coverage proving governance payloads are rebuilt safely when switching between CPI and
