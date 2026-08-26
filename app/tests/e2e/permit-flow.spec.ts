@@ -279,6 +279,10 @@ test("renders deployment health without a wallet provider", async ({ page }) => 
   await expect(page.getByText("PSM reserve coverage")).toBeVisible();
   await expect(page.getByText("Signed CPI adapter")).toBeVisible();
   await expect(page.getByText(/2 of 2 configured signers; adapter and PSM watermarks match/)).toBeVisible();
+  const healthChecks = page.getByRole("list", { name: "Deployment health checks" });
+  await expect(healthChecks.getByRole("listitem", { name: "Contract wiring and roles Healthy" })).toContainText("Addresses, roles, and timelock wiring match the configured deployment.");
+  const cpiHealthCheck = healthChecks.getByRole("listitem", { name: /CPI report freshness (Healthy|Review|Blocking|Checking)/ });
+  await expect(cpiHealthCheck).toContainText(/No timestamped CPI report has been accepted\.|The accepted CPI report is present and within the freshness window\.|The normal updater cadence has elapsed|Reading CPI report timestamps/);
   await expect(page.getByRole("button", { name: "Copy deployment health summary" })).toBeVisible();
   await page.evaluate(() => {
     let copied = "";
@@ -775,8 +779,8 @@ test("blocks reserve-deficit health and pauses new PSM deposits", async ({ page 
 
   await page.goto("/health");
   await expect(page.getByRole("status", { name: "Overall deployment health" })).toContainText("Blocking");
-  await expect(page.getByText("PSM reserve coverage")).toBeVisible();
-  await expect(page.getByText("The PSM reserve is below the amount required to redeem all outstanding claims.")).toBeVisible();
+  const healthChecks = page.getByRole("list", { name: "Deployment health checks" });
+  await expect(healthChecks.getByRole("listitem", { name: "PSM reserve coverage Blocking" })).toContainText("The PSM reserve is below the amount required to redeem all outstanding claims.");
 
   await installAnvilProvider(page);
   await page.goto("/psm");

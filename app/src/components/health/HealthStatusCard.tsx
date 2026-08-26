@@ -61,15 +61,26 @@ export function HealthStatusCard({
         </div>
       </CardHeader>
       <CardBody className="space-y-3">
-        {checks.map((check) => (
-          <div className="flex items-start justify-between gap-4 rounded-xl bg-background-subtle px-3 py-2.5" key={check.label}>
-            <div>
-              <p className="text-sm font-medium">{check.label}</p>
-              <p className="mt-0.5 text-xs text-muted">{check.detail}</p>
-            </div>
-            <Badge tone={STATUS_TONES[check.status]}>{STATUS_LABELS[check.status]}</Badge>
-          </div>
-        ))}
+        <div className="space-y-3" role="list" aria-label="Deployment health checks">
+          {checks.map((check, index) => {
+            const checkId = `health-check-${index}`;
+            return (
+              <div
+                className="flex items-start justify-between gap-4 rounded-xl bg-background-subtle px-3 py-2.5"
+                key={check.label}
+                role="listitem"
+                aria-labelledby={`${checkId}-label ${checkId}-status`}
+                aria-describedby={`${checkId}-detail`}
+              >
+                <div>
+                  <p className="text-sm font-medium" id={`${checkId}-label`}>{check.label}</p>
+                  <p className="mt-0.5 text-xs text-muted" id={`${checkId}-detail`}>{check.detail}</p>
+                </div>
+                <Badge id={`${checkId}-status`} tone={STATUS_TONES[check.status]}>{STATUS_LABELS[check.status]}</Badge>
+              </div>
+            );
+          })}
+        </div>
         <p className="text-xs text-muted">
           Read-only checks from the selected chain. Resolve blocking items before signing protocol transactions.
         </p>
