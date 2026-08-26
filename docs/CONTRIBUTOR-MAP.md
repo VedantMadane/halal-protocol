@@ -38,9 +38,6 @@ criteria, and a safe local verification path:
   record safe Anvil-only wiring and health rehearsals.
 - [CPI source policy documentation (#80)](https://github.com/fredrikblau/halal-protocol/issues/80) —
   document how operators record source identity, cadence, custody, and fallback decisions.
-- [CPI policy record validator (#94)](https://github.com/fredrikblau/halal-protocol/issues/94) —
-  build an offline, machine-readable check for complete policy evidence without approving an oracle
-  or making any deployment change.
 - [First Arbitrum Sepolia reference deployment (#40)](https://github.com/fredrikblau/halal-protocol/issues/40) —
   coordinate a reviewed testnet deployment and publish reproducible address, source, health, and
   journal evidence; this requires maintainer coordination and is not a casual copy-paste task.
@@ -56,6 +53,10 @@ is available as a reference for the documentation standard, but is no longer an 
 
 The completed [CPI parser revision fixtures (#92)](https://github.com/fredrikblau/halal-protocol/issues/92)
 are available as a reference for conservative, offline oracle testing and explicit revision policy.
+
+The completed [CPI policy record validator (#94)](https://github.com/fredrikblau/halal-protocol/issues/94)
+is available at [`scripts/validate-cpi-policy.mjs`](../scripts/validate-cpi-policy.mjs) as a reference
+for offline, fail-closed evidence validation; it is not an active starter task.
 
 The completed [local-demo troubleshooting guide](LOCAL-DEMO-TROUBLESHOOTING.md) covers prerequisites,
 ports, stale configuration, cleanup, and expected success signals.
