@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.158 - 2026-08-26
+
+- Synchronized current README, contributor, architecture, DAO, technical, and contracts
+  documentation with the verified 178-test Foundry suite (175 unit/configuration tests plus
+  3 stateful invariants).
+
 ## 0.1.0-alpha.157 - 2026-08-26
 
 - Refreshed the checked-in dApp ABIs after the vesting dependency validation added in alpha156.
