@@ -40,6 +40,15 @@ const ERC20_ABI = [
     outputs: [{ name: "", type: "uint256" }],
   },
 ] as const;
+const TOKEN_ABI = [
+  {
+    type: "function",
+    name: "delegate",
+    stateMutability: "nonpayable",
+    inputs: [{ name: "delegatee", type: "address" }],
+    outputs: [],
+  },
+] as const;
 const PSM_ABI = [
   {
     type: "function",
@@ -128,6 +137,20 @@ async function seedRedeemableHlc() {
     args: [reserveAmount],
   });
   await publicClient.waitForTransactionReceipt({ hash: depositHash });
+}
+
+async function delegateLocalVotingPower() {
+  const env = readLocalEnv();
+  const wallet = createWalletClient({ account: ANVIL_ACCOUNT, chain: LOCAL_CHAIN, transport: http(RPC_URL) });
+  const publicClient = createPublicClient({ chain: LOCAL_CHAIN, transport: http(RPC_URL) });
+  const hash = await wallet.writeContract({
+    account: ANVIL_ACCOUNT,
+    address: env.NEXT_PUBLIC_HLC_TOKEN_31337 as `0x${string}`,
+    abi: TOKEN_ABI,
+    functionName: "delegate",
+    args: [ANVIL_ACCOUNT],
+  });
+  await publicClient.waitForTransactionReceipt({ hash });
 }
 
 async function submitDivergentPsmReport() {
@@ -393,6 +416,35 @@ test("blocks a malformed governance value before any transaction is submitted", 
   await expect(page.getByText('Invalid ETH value: "1e3"')).toBeVisible();
   await expect(page.getByRole("button", { name: "Submit proposal" })).toBeDisabled();
   expect(await page.evaluate(() => (window as Window & { __lastTransaction?: unknown }).__lastTransaction)).toBeUndefined();
+});
+
+test("creates a valid CPI governance proposal from the template", async ({ page }) => {
+  const env = readLocalEnv();
+  await seedRedeemableHlc();
+  await delegateLocalVotingPower();
+  await installAnvilProvider(page);
+  await page.goto("/governance/new");
+
+  const connectButton = page.getByTestId("rk-connect-button");
+  if (await connectButton.count()) await connectButton.click();
+  await expect(page.getByRole("button", { name: /0xf3.*2266/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "New Proposal" })).toBeVisible();
+
+  await page.locator("input").first().fill("1.05");
+  const description = page.locator("textarea").first();
+  await description.fill("E2E CPI template proposal for the local governance flow.");
+  const submitButton = page.getByRole("button", { name: "Submit proposal" });
+  await expect(submitButton).toBeEnabled();
+  await submitButton.click();
+  await expect(page.getByText("Proposal created.")).toBeVisible();
+
+  await expect(page).toHaveURL(/\/governance$/, { timeout: 10_000 });
+  await expect(page.getByText("E2E CPI template proposal for the local governance flow.")).toBeVisible();
+  await page.getByText("E2E CPI template proposal for the local governance flow.").click();
+  await expect(page.getByRole("heading", { name: "Actions (1)" })).toBeVisible();
+  await expect(page.getByText("mockCPI", { exact: true })).toBeVisible();
+  await expect(page.getByTitle(env.NEXT_PUBLIC_HLC_PSM_31337)).toBeVisible();
+  expect(await page.evaluate(() => (window as Window & { __lastTransaction?: unknown }).__lastTransaction)).toBeTruthy();
 });
 
 test("fails closed when reserve-token metadata cannot be read", async ({ page }) => {
