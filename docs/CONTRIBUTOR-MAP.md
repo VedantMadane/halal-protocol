@@ -38,6 +38,15 @@ criteria, and a safe local verification path:
   record safe Anvil-only wiring and health rehearsals.
 - [CPI source policy documentation (#80)](https://github.com/fredrikblau/halal-protocol/issues/80) —
   document how operators record source identity, cadence, custody, and fallback decisions.
+- [First Arbitrum Sepolia reference deployment (#40)](https://github.com/fredrikblau/halal-protocol/issues/40) —
+  coordinate a reviewed testnet deployment and publish reproducible address, source, health, and
+  journal evidence; this requires maintainer coordination and is not a casual copy-paste task.
+- [Production CPI adapter design (#17)](https://github.com/fredrikblau/halal-protocol/issues/17) —
+  review the adapter boundary, signer custody, source provenance, freshness, rotation, and failure
+  handling before any real deployment.
+- [HalalPSM security review challenge (#16)](https://github.com/fredrikblau/halal-protocol/issues/16) —
+  inspect accounting, reserve-token assumptions, CPI boundaries, and governance paths using the
+  threat model and invariant suite; report suspected vulnerabilities privately.
 
 The completed [CPI source-policy template (#54)](https://github.com/fredrikblau/halal-protocol/issues/54)
 is available as a reference for the documentation standard, but is no longer an active starter task.

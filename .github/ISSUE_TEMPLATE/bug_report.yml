@@ -31,3 +31,10 @@ body:
     attributes:
       label: Logs or screenshots
       description: Remove private keys, seed phrases, API keys, and personal information.
+  - type: checkboxes
+    id: safe-reporting
+    attributes:
+      label: Safe public report
+      options:
+        - label: I confirm this is not a suspected security vulnerability; I will use [`SECURITY.md`](../../SECURITY.md) for fund-risking or access-control concerns.
+          required: true

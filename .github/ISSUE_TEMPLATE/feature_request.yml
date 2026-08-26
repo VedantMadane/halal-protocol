@@ -24,3 +24,10 @@ body:
       options:
         - label: I understand contract changes require additional design review and security analysis.
           required: true
+  - type: checkboxes
+    id: safe-reporting
+    attributes:
+      label: Safe public proposal
+      options:
+        - label: I confirm this is a public design request, not a report of a suspected vulnerability or a request to disclose exploit details.
+          required: true
