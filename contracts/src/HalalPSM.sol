@@ -102,6 +102,7 @@ contract HalalPSM is AccessControl, ReentrancyGuard {
     error ReportTooOld();
     error CpiReportMissing();
     error CpiReportStale();
+    error EmptySource();
 
     /// @param reserve_ Reserve asset (e.g. DAI). Any ERC20Metadata-compliant token works; decimals
     /// are normalized against HLC's 18 decimals.
@@ -427,6 +428,7 @@ contract HalalPSM is AccessControl, ReentrancyGuard {
     }
 
     function setSource(string calldata newSource) external onlyRole(PARAM_ROLE) {
+        if (bytes(newSource).length == 0) revert EmptySource();
         source = newSource;
         emit SourceUpdated(newSource);
     }

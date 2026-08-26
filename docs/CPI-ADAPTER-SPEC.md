@@ -200,6 +200,8 @@ immutable PSM binding, owner, and source ID, then prints calldata without broadc
 signer set and threshold separately before submitting the returned arrays. The shared handoff builder
 also rejects zero addresses and refuses to encode a proposal that grants `UPDATER_ROLE` to the adapter
 and then revokes that same adapter as the old updater; it also rejects an empty PSM source label.
+The PSM itself also rejects an empty `setSource` value, so governance cannot clear the source label
+after the adapter handoff.
 
 ### Signature verification
 

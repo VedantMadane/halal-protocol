@@ -1171,6 +1171,11 @@ export const halalPsmAbi = [
   },
   {
     "type": "error",
+    "name": "EmptySource",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "InsufficientOutput",
     "inputs": []
   },

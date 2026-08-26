@@ -106,6 +106,8 @@ Before a testnet or mainnet deployment, independently verify:
   and both vesting beneficiary addresses instead of treating those identity checks as optional;
 - reserve balance versus `reserveRequired()` after every CPI change and treasury action;
 - updater source provenance, freshness monitoring, key rotation, and emergency governance procedure;
+- source-label continuity: `setSource` rejects empty metadata, and any non-empty source change must
+  be reviewed together with the adapter source ID and policy record;
 - independent contract, frontend, and operational review before accepting meaningful funds.
 
 Report suspected vulnerabilities privately according to [`SECURITY.md`](../SECURITY.md), not in a

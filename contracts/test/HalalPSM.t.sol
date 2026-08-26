@@ -812,6 +812,12 @@ contract HalalPSMTest is Deployers {
         assertEq(psm.source(), "https://example.com/cpi.js");
     }
 
+    function test_RevertWhen_DAOSetSourceEmpty() public {
+        vm.prank(address(timelock));
+        vm.expectRevert(HalalPSM.EmptySource.selector);
+        psm.setSource("");
+    }
+
     function test_DecimalNormalization_SixDecimalReserve() public {
         MockERC20 usdc = new MockERC20("Mock USDC", "mUSDC", 6);
         HalalPSM usdcPsm = new HalalPSM(address(usdc), address(token), address(timelock), address(0));

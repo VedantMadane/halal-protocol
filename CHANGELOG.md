@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.264 - 2026-08-27
+
+- Made the PSM reject empty CPI source labels at the contract boundary, adding defense in depth
+  beyond adapter-handoff validation.
+- Synchronized current evidence to 194 Solidity, 81 Node, and 26 browser tests.
+
 ## 0.1.0-alpha.263 - 2026-08-27
 
 - Added a release-workflow gate that fails if `CITATION.cff` does not identify the exact published
