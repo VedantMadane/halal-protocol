@@ -8,7 +8,7 @@ const ADDRESS = /^0x[0-9a-fA-F]{40}$/;
 const HASH = /^[0-9a-fA-F]{64}$/;
 const COMMIT = /^[0-9a-fA-F]{40}$/;
 const DECIMAL = /^(?:0*[1-9]\d*)(?:\.\d+)?$/;
-const UTC = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/;
+const UTC_SHAPE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/;
 const SECTIONS = ["source", "valuePolicy", "retrieval", "authorization", "review"];
 
 const isObject = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
@@ -16,6 +16,11 @@ const isPending = (value) => typeof value === "string" && /^(?:pending|tbd|not y
 const isBlank = (value) => value === undefined || value === null || (typeof value === "string" && value.trim() === "");
 function https(value) {
   try { return typeof value === "string" && new URL(value).protocol === "https:"; } catch { return false; }
+}
+function validUtcTimestamp(value) {
+  if (typeof value !== "string" || !UTC_SHAPE.test(value)) return false;
+  const parsed = new Date(value);
+  return !Number.isNaN(parsed.valueOf()) && parsed.toISOString().replace(".000Z", "Z") === value;
 }
 
 export function validateCpiPolicy(policy) {
@@ -43,7 +48,7 @@ export function validateCpiPolicy(policy) {
     const source = policy.source;
     for (const field of ["publishingAgency", "indexName", "seriesId", "geography", "publicationCadence", "releaseTimezone", "policyOwner"]) required(`source.${field}`, source[field]);
     if (required("source.sourceUrl", source.sourceUrl) && !https(source.sourceUrl)) error("source.sourceUrl", "must be an HTTPS URL");
-    if (required("source.reviewDate", source.reviewDate) && !UTC.test(source.reviewDate)) error("source.reviewDate", "must use an ISO-8601 UTC timestamp");
+    if (required("source.reviewDate", source.reviewDate) && !validUtcTimestamp(source.reviewDate)) error("source.reviewDate", "must use a valid ISO-8601 UTC timestamp");
   }
 
   if (section("valuePolicy")) {
@@ -55,7 +60,8 @@ export function validateCpiPolicy(policy) {
 
   if (section("retrieval")) {
     const retrieval = policy.retrieval;
-    for (const field of ["transport", "parserRepository", "parserVersion", "retrievalTimestamp", "parserTestCommand", "reviewer"]) required(`retrieval.${field}`, retrieval[field]);
+    for (const field of ["transport", "parserRepository", "parserVersion", "parserTestCommand", "reviewer"]) required(`retrieval.${field}`, retrieval[field]);
+    if (required("retrieval.retrievalTimestamp", retrieval.retrievalTimestamp) && !validUtcTimestamp(retrieval.retrievalTimestamp)) error("retrieval.retrievalTimestamp", "must use a valid ISO-8601 UTC timestamp");
     if (required("retrieval.parserCommit", retrieval.parserCommit) && (!COMMIT.test(retrieval.parserCommit) || /^0+$/.test(retrieval.parserCommit))) error("retrieval.parserCommit", "must be a non-zero 40-character hexadecimal commit");
     if (required("retrieval.rawResponseSha256", retrieval.rawResponseSha256) && (!HASH.test(retrieval.rawResponseSha256) || /^0+$/.test(retrieval.rawResponseSha256))) error("retrieval.rawResponseSha256", "must be a non-zero 64-character hexadecimal SHA-256 without 0x");
     if (required("retrieval.rawResponseArchive", retrieval.rawResponseArchive) && !https(retrieval.rawResponseArchive)) error("retrieval.rawResponseArchive", "must be an HTTPS evidence URL");
@@ -82,7 +88,7 @@ export function validateCpiPolicy(policy) {
 
   if (section("review")) {
     const review = policy.review;
-    if (required("review.decisionDate", review.decisionDate) && !UTC.test(review.decisionDate)) error("review.decisionDate", "must use an ISO-8601 UTC timestamp");
+    if (required("review.decisionDate", review.decisionDate) && !validUtcTimestamp(review.decisionDate)) error("review.decisionDate", "must use a valid ISO-8601 UTC timestamp");
     const links = review.evidenceLinks;
     if (Array.isArray(links)) {
       if (links.length === 0) error("review.evidenceLinks", "must contain at least one HTTPS link");

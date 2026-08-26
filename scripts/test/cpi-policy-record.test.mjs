@@ -48,6 +48,18 @@ test("rejects zero-value evidence placeholders", async () => {
   assert.match(report.errors.join("\n"), /rawResponseSha256/);
 });
 
+test("rejects impossible UTC calendar dates in reviewed records", async () => {
+  const invalid = await fixture("cpi-policy-reviewed.json");
+  invalid.source.reviewDate = "2026-02-31T00:00:00Z";
+  invalid.retrieval.retrievalTimestamp = "2026-13-01T00:00:00Z";
+  invalid.review.decisionDate = "2026-00-01T00:00:00Z";
+  const report = validateCpiPolicy(invalid);
+  assert.equal(report.status, "invalid");
+  assert.match(report.errors.join("\n"), /source\.reviewDate.*valid ISO-8601/);
+  assert.match(report.errors.join("\n"), /retrieval\.retrievalTimestamp.*valid ISO-8601/);
+  assert.match(report.errors.join("\n"), /review\.decisionDate.*valid ISO-8601/);
+});
+
 test("rejects contradictory signer quorum and rejected status", async () => {
   const invalid = await fixture("cpi-policy-reviewed.json");
   invalid.status = "rejected";
