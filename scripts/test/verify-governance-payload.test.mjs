@@ -78,3 +78,34 @@ test("CLI returns non-zero for an unknown target and JSON diagnostics", () => {
     rmSync(directory, { recursive: true, force: true });
   }
 });
+
+function nextRandom(state) {
+  state.value = (state.value + 0x6d2b79f5) >>> 0;
+  let result = Math.imul(state.value ^ (state.value >>> 15), 1 | state.value);
+  result ^= result + Math.imul(result ^ (result >>> 7), 61 | result);
+  return ((result ^ (result >>> 14)) >>> 0) / 0x1_0000_0000;
+}
+
+function randomAddress(state) {
+  let value = "0x";
+  for (let index = 0; index < 40; index += 1) value += Math.floor(nextRandom(state) * 16).toString(16);
+  return value === "0x" + "0".repeat(40) ? ADAPTER : value;
+}
+
+test("seeded property coverage never authorizes malformed or unauthorized bundles", () => {
+  const state = { value: 0x91_5eed };
+  for (let iteration = 0; iteration < 256; iteration += 1) {
+    const seed = state.value;
+    const cases = [
+      { targets: [randomAddress(state)], values: ["0"], calldatas: [GRANT] },
+      { targets: [PSM], values: ["0"], calldatas: [`0x${Math.floor(nextRandom(state) * 0x1_0000).toString(16).padStart(4, "0")}`] },
+      { targets: [PSM], values: [String(1 + Math.floor(nextRandom(state) * 1_000_000))], calldatas: [SOURCE] },
+      { targets: [PSM], values: ["0"], calldatas: ["0xdeadbeef"] },
+      { targets: [PSM], values: ["00"], calldatas: [SOURCE] },
+    ];
+    for (const bundle of cases) {
+      const result = verifyGovernancePayload(bundle, POLICY);
+      assert.equal(result.authorized, false, `seed ${seed} was unexpectedly authorized: ${JSON.stringify(bundle)}`);
+    }
+  }
+});

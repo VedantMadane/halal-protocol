@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.222 - 2026-08-26
+
+- Added fixed-seed property coverage for governance payload verification, exercising 1,280 malformed
+  and unauthorized cases without RPC, signing, or network access.
+- Closed contributor issue #91 and retained the test as a reproducible negative-testing example.
+
 ## 0.1.0-alpha.221 - 2026-08-26
 
 - Refreshed the contributor map and README with the offline governance verifier and replaced the

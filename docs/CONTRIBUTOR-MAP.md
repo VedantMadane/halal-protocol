@@ -24,6 +24,9 @@ criteria, and a safe local verification path:
   decoding is not a safety or authorization check.
 - The completed [read-only governance payload verifier (#90)](https://github.com/fredrikblau/halal-protocol/issues/90)
   is available at [`scripts/verify-governance-payload.mjs`](../scripts/verify-governance-payload.mjs).
+- The completed [deterministic governance payload property coverage (#91)](https://github.com/fredrikblau/halal-protocol/issues/91)
+  is available in [`verify-governance-payload.test.mjs`](../scripts/test/verify-governance-payload.test.mjs)
+  as a reproducible example of seeded negative testing.
 - The completed [governance review evidence template (#89)](https://github.com/fredrikblau/halal-protocol/issues/89)
   is available for recording the review outcome.
 - The completed [governance proposal review case study (#87)](https://github.com/fredrikblau/halal-protocol/issues/87)
