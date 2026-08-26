@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.250 - 2026-08-26
+
+- Required adapter-backed deployment records to link an HTTPS CPI policy evidence URL alongside
+  adapter and source identity metadata; deployment recorder and offline preflight now fail closed
+  when that evidence is missing.
+- Displayed the CPI policy link in the dApp deployment-evidence card and added regression coverage.
+- Full local verification passed with 72 Node, 191 Solidity, and 26 browser tests.
+
 ## 0.1.0-alpha.249 - 2026-08-26
 
 - Required adapter-backed deployment registry entries to include an HTTPS CPI policy evidence URL
