@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.233 - 2026-08-26
+
+- Refreshed the contributor map after completing the CPI parser fixture task, leaving the active
+  starter list focused on unresolved policy, deployment, adapter, and security-review work.
+
 ## 0.1.0-alpha.232 - 2026-08-26
 
 - Hardened the BLS CPI parser against duplicate periods and revision-marked (`R`) observations;

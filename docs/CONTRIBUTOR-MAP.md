@@ -38,15 +38,12 @@ criteria, and a safe local verification path:
   record safe Anvil-only wiring and health rehearsals.
 - [CPI source policy documentation (#80)](https://github.com/fredrikblau/halal-protocol/issues/80) —
   document how operators record source identity, cadence, custody, and fallback decisions.
-- [CPI parser revision fixtures (#92)](https://github.com/fredrikblau/halal-protocol/issues/92) —
-  add deterministic fixtures for duplicate periods, revised observations, and timestamp semantics
-  without contacting a live endpoint.
-- [Read-only deployment preflight (#93)](https://github.com/fredrikblau/halal-protocol/issues/93) —
-  add a report-only command that checks deployment-registry and environment readiness while
-  preserving the repository's fail-closed behavior and never broadcasting a transaction.
 
 The completed [CPI source-policy template (#54)](https://github.com/fredrikblau/halal-protocol/issues/54)
 is available as a reference for the documentation standard, but is no longer an active starter task.
+
+The completed [CPI parser revision fixtures (#92)](https://github.com/fredrikblau/halal-protocol/issues/92)
+are available as a reference for conservative, offline oracle testing and explicit revision policy.
 
 The completed [local-demo troubleshooting guide](LOCAL-DEMO-TROUBLESHOOTING.md) covers prerequisites,
 ports, stale configuration, cleanup, and expected success signals.
