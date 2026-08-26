@@ -42,6 +42,12 @@ browser tests, plus contract lint, frontend lint/build, local Anvil smoke tests,
 adapter rehearsal. The pinned Slither record is maintained separately in
 [`STATIC-ANALYSIS.md`](STATIC-ANALYSIS.md).
 
+As an additional challenge after the baseline run, the PSM invariant suites passed with
+`FOUNDRY_INVARIANT_RUNS=128` and `FOUNDRY_INVARIANT_DEPTH=64` (8,192 calls per invariant suite),
+and `testFuzz_RoundTripNeverOverpays` passed 10,000 fuzz cases. These deeper runs increase
+confidence in the tested properties but do not expand the contract's stated guarantees or replace
+independent review.
+
 ### Residual questions
 
 - The reserve token's issuer controls, upgrade path, pause/blacklist behavior, and fee policy

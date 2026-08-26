@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.237 - 2026-08-26
+
+- Recorded higher-depth PSM invariant evidence: 128 runs at depth 64 and 10,000 round-trip fuzz
+  cases passed, while preserving the explicit non-audit limitations.
+
 ## 0.1.0-alpha.236 - 2026-08-26
 
 - Made the release-verification walkthrough select the newest published alpha tag automatically,
