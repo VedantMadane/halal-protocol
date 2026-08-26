@@ -197,6 +197,14 @@ contract HalalPSMTest is Deployers {
         psm.deposit(0);
     }
 
+    function test_RevertWhen_PsmDependencyIsNotContract() public {
+        vm.expectRevert(HalalPSM.NotContract.selector);
+        new HalalPSM(address(reserve), address(1), address(timelock), address(0));
+
+        vm.expectRevert(HalalPSM.NotContract.selector);
+        new HalalPSM(address(1), address(token), address(timelock), address(0));
+    }
+
     function test_RevertWhen_DepositRoundsDownToZeroHLC() public {
         MockERC20 highDecimal = new MockERC20("High Decimal", "mHD", 24);
         HalalPSM highDecimalPsm = new HalalPSM(address(highDecimal), address(token), address(timelock), address(0));

@@ -37,7 +37,8 @@ contract HalalPSMArithmeticTest is Test {
     function _newPsm(uint256 decimals) internal returns (HalalPSM) {
         // forge-lint: disable-next-line(unsafe-typecast)
         MockERC20 reserve = new MockERC20("Arithmetic Reserve", "aRES", uint8(decimals));
-        return new HalalPSM(address(reserve), address(1), address(this), address(0));
+        MockERC20 hlc = new MockERC20("Arithmetic HLC", "aHLC", 18);
+        return new HalalPSM(address(reserve), address(hlc), address(this), address(0));
     }
 
     function _referenceDeposit(uint256 amount, uint256 decimals, uint256 cpi) internal pure returns (uint256) {

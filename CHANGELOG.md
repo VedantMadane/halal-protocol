@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.147 - 2026-08-26
+
+- Hardened `HalalPSM` and `CPIReportAdapter` constructors against non-contract token and sink
+  dependencies.
+- Added regression coverage for the EOA sink edge, which could otherwise make an adapter advance
+  its report watermark after a successful empty-data call without changing PSM state.
+
 ## 0.1.0-alpha.146 - 2026-08-26
 
 - Added a copy-paste local CPI report walkthrough covering preparation, signer ordering, live

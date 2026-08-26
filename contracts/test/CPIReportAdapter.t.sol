@@ -167,6 +167,15 @@ contract CPIReportAdapterTest is Test {
         new CPIReportAdapter(address(sink), address(this), signers, 2, SOURCE_ID);
     }
 
+    function test_RevertWhen_AdapterPsmIsNotContract() public {
+        address[] memory signers = new address[](2);
+        signers[0] = signerOne;
+        signers[1] = signerTwo;
+
+        vm.expectRevert(CPIReportAdapter.NotContract.selector);
+        new CPIReportAdapter(address(1), address(this), signers, 2, SOURCE_ID);
+    }
+
     function test_RevertWhen_OwnerIsAddedAsSigner() public {
         vm.expectRevert(CPIReportAdapter.SignerOwnerOverlap.selector);
         adapter.addSigner(address(this));

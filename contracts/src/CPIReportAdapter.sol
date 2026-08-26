@@ -33,6 +33,7 @@ contract CPIReportAdapter is EIP712, Ownable2Step, ReentrancyGuard {
     uint256 public lastSubmittedTimestamp;
 
     error ZeroAddress();
+    error NotContract();
     error ZeroSourceId();
     error InvalidSignerSet();
     error SignerOwnerOverlap();
@@ -57,6 +58,9 @@ contract CPIReportAdapter is EIP712, Ownable2Step, ReentrancyGuard {
         Ownable(owner_)
     {
         if (psm_ == address(0)) revert ZeroAddress();
+        // Calls to an EOA return success with no data, which could otherwise make the adapter mark
+        // a report submitted even though no PSM state changed.
+        if (psm_.code.length == 0) revert NotContract();
         if (sourceId_ == bytes32(0)) revert ZeroSourceId();
         if (signers_.length == 0 || threshold_ == 0 || threshold_ > signers_.length) revert InvalidSignerSet();
         if (signers_.length > MAX_SIGNERS) revert SignerSetTooLarge();

@@ -67,6 +67,7 @@ The system is intended to preserve these properties:
 | Reentrancy or unusual ERC20 transfer behavior | `ReentrancyGuard` on user and DAO reserve paths, `SafeERC20`, balance-delta accounting, and post-transfer checks | Unsupported token semantics or malicious tokens can still make a deployment unusable; select reserve assets carefully |
 | Beneficiary address is mistyped or compromised | Two-step beneficiary acceptance; deployment and `initialMint` reject a shared team/treasury vesting boundary and production deployment rejects deployer-controlled beneficiaries; funds always release to the current beneficiary | A beneficiary that accepts a malicious address or loses its key cannot be rescued by the contract |
 | Frontend displays stale or incomplete chain data | Reads validate complete deployment configuration and surface partial-read errors | Treat wallet simulation and on-chain transaction data as authoritative |
+| A dependency address is an EOA or inert account | PSM and CPI adapter constructors reject non-contract dependencies; deployment verifier also checks bytecode | Review the exact deployed bytecode and wiring before granting roles |
 
 ## Explicit non-goals and unresolved risks
 

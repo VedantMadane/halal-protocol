@@ -85,6 +85,7 @@ contract HalalPSM is AccessControl, ReentrancyGuard {
     error ZeroAmount();
     error ZeroReceived();
     error InsufficientOutput();
+    error NotContract();
     error UnsupportedDecimals();
     error ZeroAddress();
     error RateOutOfBounds();
@@ -111,6 +112,11 @@ contract HalalPSM is AccessControl, ReentrancyGuard {
     /// deployment; the DAO timelock remains the role admin and can revoke or replace it later.
     constructor(address reserve_, address hlc_, address dao, address updater_) {
         if (reserve_ == address(0) || hlc_ == address(0) || dao == address(0)) revert ZeroAddress();
+        // A low-level call to an EOA succeeds with empty return data. Rejecting non-contract
+        // token dependencies prevents a misconfigured PSM from accepting reserve while silently
+        // failing to mint HLC. `dao` remains an address because the PSM only needs an AccessControl
+        // role holder; production policy requires the timelock and the verifier checks it.
+        if (reserve_.code.length == 0 || hlc_.code.length == 0) revert NotContract();
 
         reserve = IERC20(reserve_);
         hlc = HalalToken(hlc_);
