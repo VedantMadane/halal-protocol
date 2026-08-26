@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.219 - 2026-08-26
+
+- Added a copyable governance review evidence template for preserving raw action arrays, independent
+  impact checks, observed facts, assumptions, decisions, and timelock receipts.
+- Closed #89 and opened labeled read-only governance payload verifier issue #90.
+
 ## 0.1.0-alpha.218 - 2026-08-26
 
 - Added a fictional governance proposal review case study with reproducible raw calldata, an unsafe
