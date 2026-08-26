@@ -162,6 +162,18 @@ For a configured adapter it also emits one `cpi_adapter_signer_<index>` record p
 compare those addresses with the deployment journal after each rotation. Alert on a nonzero exit
 code and retain the emitted values:
 
+For integrations that need structured output, pass `--json` to the combined check. It preserves the
+same exit status and emits a stable versioned object with `status`, de-duplicated `reasons` and
+`warnings`, plus string-valued `observed` fields. The default human-readable output is unchanged:
+
+```shell
+./scripts/check-deployment-health.sh --json > health.json
+node -e 'const h = require("./health.json"); if (h.status !== "healthy") process.exit(1)'
+```
+
+The JSON mode uses only the Node runtime already required by the repository and never includes
+private keys. Treat `schemaVersion` as the compatibility boundary and alert on a nonzero exit code.
+
 | Signal | Meaning | First response |
 | --- | --- | --- |
 | `reason=timestamped_cpi_report_missing` | No timestamped source report has been accepted | The PSM rejects deposits; bootstrap a reviewed report through the updater |

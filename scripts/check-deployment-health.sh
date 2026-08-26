@@ -6,6 +6,16 @@ set -euo pipefail
 # expectations. It requires no private key.
 ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 
+if [[ "${1:-}" == "--json" ]]; then
+  shift
+  set +e
+  health_output="$("$0" "$@" 2>&1)"
+  health_status=$?
+  set -e
+  printf '%s\n' "$health_output" | node "$ROOT_DIR/scripts/health-output-json.mjs"
+  exit "$health_status"
+fi
+
 for variable in RPC_URL EXPECTED_CHAIN_ID PSM; do
   if [[ -z "${!variable:-}" ]]; then
     echo "Missing required environment variable: $variable" >&2

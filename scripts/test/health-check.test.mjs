@@ -21,6 +21,16 @@ function run(script, env, options = {}) {
   return { ...result, output: `${result.stdout ?? ""}${result.stderr ?? ""}` };
 }
 
+function runDeploymentHealthJson(env) {
+  const result = spawnSync("bash", [HEALTH_CHECK, "--json"], {
+    cwd: ROOT,
+    env,
+    encoding: "utf8",
+    timeout: 30_000,
+  });
+  return { ...result, output: `${result.stdout ?? ""}${result.stderr ?? ""}` };
+}
+
 function runPsmHealthWithFakeCast(overrides = {}) {
   const tempDir = mkdtempSync(path.join(os.tmpdir(), "halal-health-check-"));
   const fakeCast = path.join(tempDir, "cast");
@@ -99,6 +109,21 @@ test("missing deployment-health configuration is classified and nonzero", () => 
   assert.match(result.output, /status=unhealthy/);
   assert.match(result.output, /reason=missing_required_environment_variable/);
   assert.match(result.output, /missing_variable=RPC_URL/);
+});
+
+test("deployment-health JSON mode preserves unhealthy exit status and structured diagnostics", () => {
+  const env = { ...process.env };
+  delete env.RPC_URL;
+  delete env.EXPECTED_CHAIN_ID;
+  delete env.PSM;
+
+  const result = runDeploymentHealthJson(env);
+  assert.notEqual(result.status, 0, result.output);
+  const report = JSON.parse(result.stdout);
+  assert.equal(report.schemaVersion, 1);
+  assert.equal(report.status, "unhealthy");
+  assert.deepEqual(report.reasons, ["missing_required_environment_variable"]);
+  assert.equal(report.observed.missing_variable, "RPC_URL");
 });
 
 test("failed deployment wiring is classified and nonzero", () => {
