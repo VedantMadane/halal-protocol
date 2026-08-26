@@ -565,6 +565,11 @@ export const cpiReportAdapterAbi = [
   },
   {
     "type": "error",
+    "name": "ReportNotAccepted",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "ReportTimestampNotIncreasing",
     "inputs": []
   },

@@ -20,6 +20,14 @@ contract CPIAdapterGovernanceHarness {
     }
 }
 
+contract MockNoOpCPIReportSink {
+    function updateCPIWithTimestamp(uint256, uint256) external { }
+
+    function lastReportTimestamp() external pure returns (uint256) {
+        return 0;
+    }
+}
+
 contract CPIReportAdapterTest is Test {
     uint256 internal constant SIGNER_ONE_KEY = 0xA11CE;
     uint256 internal constant SIGNER_TWO_KEY = 0xB0B;
@@ -184,6 +192,21 @@ contract CPIReportAdapterTest is Test {
 
         vm.expectRevert(CPIReportAdapter.NotContract.selector);
         new CPIReportAdapter(address(1), address(this), signers, 2, SOURCE_ID);
+    }
+
+    function test_RevertWhen_SinkDoesNotAcceptReport() public {
+        MockNoOpCPIReportSink noOpSink = new MockNoOpCPIReportSink();
+        address[] memory signers = new address[](2);
+        signers[0] = signerOne;
+        signers[1] = signerTwo;
+        CPIReportAdapter noOpAdapter = new CPIReportAdapter(address(noOpSink), address(this), signers, 2, SOURCE_ID);
+        uint256 reportedAt = block.timestamp - 1;
+        bytes[] memory signatures = _signReportFor(noOpAdapter, 1_000_000, reportedAt, SIGNER_ONE_KEY, SIGNER_TWO_KEY);
+
+        vm.expectRevert(CPIReportAdapter.ReportNotAccepted.selector);
+        noOpAdapter.submitReport(1_000_000, reportedAt, signatures);
+
+        assertEq(noOpAdapter.lastSubmittedTimestamp(), 0);
     }
 
     function test_RevertWhen_OwnerIsAddedAsSigner() public {
