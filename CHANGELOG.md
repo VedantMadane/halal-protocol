@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.223 - 2026-08-26
+
+- Added a hosted `Scripts (Node)` CI job for shell syntax, deployment-registry validation, and all
+  dependency-light script tests, making governance and health-tool regressions visible to contributors.
+
 ## 0.1.0-alpha.222 - 2026-08-26
 
 - Added fixed-seed property coverage for governance payload verification, exercising 1,280 malformed
