@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.153 - 2026-08-26
+
+- Added browser coverage for ordinary approval-based redeemable-credit transfers and irreversible
+  claim retirement, including on-chain HLC balance, credit, and total-supply assertions.
+
 ## 0.1.0-alpha.152 - 2026-08-26
 
 - Added browser regressions proving stale minimum-output quotes and expired withdrawal deadlines

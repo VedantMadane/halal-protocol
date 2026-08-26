@@ -24,6 +24,20 @@ const ERC20_ABI = [
     ],
     outputs: [{ name: "", type: "bool" }],
   },
+  {
+    type: "function",
+    name: "balanceOf",
+    stateMutability: "view",
+    inputs: [{ name: "account", type: "address" }],
+    outputs: [{ name: "", type: "uint256" }],
+  },
+  {
+    type: "function",
+    name: "totalSupply",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256" }],
+  },
 ] as const;
 const PSM_ABI = [
   {
@@ -343,6 +357,158 @@ test("fails closed when the cached withdrawal deadline expires", async ({ page }
   const publicClient = createPublicClient({ chain: LOCAL_CHAIN, transport: http(RPC_URL) });
   const receipt = await publicClient.waitForTransactionReceipt({ hash: transactionHash as `0x${string}` });
   expect(receipt.status, `expired withdrawal unexpectedly succeeded: ${transactionHash}`).toBe("reverted");
+});
+
+test("transfers HLC and redemption credit through the ordinary approval flow", async ({ page }) => {
+  await seedRedeemableHlc();
+  const env = readLocalEnv();
+  const publicClient = createPublicClient({ chain: LOCAL_CHAIN, transport: http(RPC_URL) });
+  const recipient = "0x70997970c51812dc3a010c7d01b50e0d17dc79c8" as const;
+  const amount = 100n * 10n ** 18n;
+  const senderCreditBefore = await publicClient.readContract({
+    address: env.NEXT_PUBLIC_HLC_PSM_31337 as `0x${string}`,
+    abi: PSM_ABI,
+    functionName: "redeemableBalance",
+    args: [ANVIL_ACCOUNT],
+  });
+  const recipientCreditBefore = await publicClient.readContract({
+    address: env.NEXT_PUBLIC_HLC_PSM_31337 as `0x${string}`,
+    abi: PSM_ABI,
+    functionName: "redeemableBalance",
+    args: [recipient],
+  });
+  const senderBalanceBefore = await publicClient.readContract({
+    address: env.NEXT_PUBLIC_HLC_TOKEN_31337 as `0x${string}`,
+    abi: ERC20_ABI,
+    functionName: "balanceOf",
+    args: [ANVIL_ACCOUNT],
+  });
+  const recipientBalanceBefore = await publicClient.readContract({
+    address: env.NEXT_PUBLIC_HLC_TOKEN_31337 as `0x${string}`,
+    abi: ERC20_ABI,
+    functionName: "balanceOf",
+    args: [recipient],
+  });
+
+  await installAnvilProvider(page);
+  await page.goto("/psm");
+  const connectButton = page.getByTestId("rk-connect-button");
+  if (await connectButton.count()) await connectButton.click();
+  await expect(page.getByRole("button", { name: /0xf3.*2266/i })).toBeVisible();
+  await page.locator("#redeemable-recipient").fill(recipient);
+  await page.locator("#redeemable-amount").fill("100");
+  await page.getByRole("button", { name: "Approve HLC first" }).click();
+  await expect(page.getByText("HLC approval confirmed.")).toBeVisible();
+  await page.getByRole("button", { name: "Transfer redemption credit" }).click();
+  const transactionHash = await expect
+    .poll(() => page.evaluate(() => (window as Window & { __lastTransaction?: string }).__lastTransaction), {
+      timeout: 30_000,
+    })
+    .toBeTruthy()
+    .then(() => page.evaluate(() => (window as Window & { __lastTransaction?: string }).__lastTransaction));
+  await expect(page.getByText("HLC and redemption credit transferred.")).toBeVisible();
+
+  const receipt = await publicClient.waitForTransactionReceipt({ hash: transactionHash as `0x${string}` });
+  expect(receipt.status, `redemption-credit transfer reverted: ${transactionHash}`).toBe("success");
+  expect(
+    await publicClient.readContract({
+      address: env.NEXT_PUBLIC_HLC_PSM_31337 as `0x${string}`,
+      abi: PSM_ABI,
+      functionName: "redeemableBalance",
+      args: [ANVIL_ACCOUNT],
+    }),
+  ).toBe(senderCreditBefore - amount);
+  expect(
+    await publicClient.readContract({
+      address: env.NEXT_PUBLIC_HLC_PSM_31337 as `0x${string}`,
+      abi: PSM_ABI,
+      functionName: "redeemableBalance",
+      args: [recipient],
+    }),
+  ).toBe(recipientCreditBefore + amount);
+  expect(
+    await publicClient.readContract({
+      address: env.NEXT_PUBLIC_HLC_TOKEN_31337 as `0x${string}`,
+      abi: ERC20_ABI,
+      functionName: "balanceOf",
+      args: [ANVIL_ACCOUNT],
+    }),
+  ).toBe(senderBalanceBefore - amount);
+  expect(
+    await publicClient.readContract({
+      address: env.NEXT_PUBLIC_HLC_TOKEN_31337 as `0x${string}`,
+      abi: ERC20_ABI,
+      functionName: "balanceOf",
+      args: [recipient],
+    }),
+  ).toBe(recipientBalanceBefore + amount);
+});
+
+test("retires a redeemable claim through the ordinary approval flow", async ({ page }) => {
+  await seedRedeemableHlc();
+  const env = readLocalEnv();
+  const publicClient = createPublicClient({ chain: LOCAL_CHAIN, transport: http(RPC_URL) });
+  const amount = 100n * 10n ** 18n;
+  const creditBefore = await publicClient.readContract({
+    address: env.NEXT_PUBLIC_HLC_PSM_31337 as `0x${string}`,
+    abi: PSM_ABI,
+    functionName: "redeemableBalance",
+    args: [ANVIL_ACCOUNT],
+  });
+  const balanceBefore = await publicClient.readContract({
+    address: env.NEXT_PUBLIC_HLC_TOKEN_31337 as `0x${string}`,
+    abi: ERC20_ABI,
+    functionName: "balanceOf",
+    args: [ANVIL_ACCOUNT],
+  });
+  const supplyBefore = await publicClient.readContract({
+    address: env.NEXT_PUBLIC_HLC_TOKEN_31337 as `0x${string}`,
+    abi: ERC20_ABI,
+    functionName: "totalSupply",
+  });
+
+  await installAnvilProvider(page);
+  await page.goto("/psm");
+  const connectButton = page.getByTestId("rk-connect-button");
+  if (await connectButton.count()) await connectButton.click();
+  await expect(page.getByRole("button", { name: /0xf3.*2266/i })).toBeVisible();
+  await page.locator("#redeemable-amount").fill("100");
+  await page.getByRole("button", { name: "Approve HLC first" }).click();
+  await expect(page.getByText("HLC approval confirmed.")).toBeVisible();
+  await page.getByRole("button", { name: "Retire claim without reserve" }).click();
+  const transactionHash = await expect
+    .poll(() => page.evaluate(() => (window as Window & { __lastTransaction?: string }).__lastTransaction), {
+      timeout: 30_000,
+    })
+    .toBeTruthy()
+    .then(() => page.evaluate(() => (window as Window & { __lastTransaction?: string }).__lastTransaction));
+  await expect(page.getByText("HLC burned and redemption claim retired.")).toBeVisible();
+
+  const receipt = await publicClient.waitForTransactionReceipt({ hash: transactionHash as `0x${string}` });
+  expect(receipt.status, `claim retirement reverted: ${transactionHash}`).toBe("success");
+  expect(
+    await publicClient.readContract({
+      address: env.NEXT_PUBLIC_HLC_PSM_31337 as `0x${string}`,
+      abi: PSM_ABI,
+      functionName: "redeemableBalance",
+      args: [ANVIL_ACCOUNT],
+    }),
+  ).toBe(creditBefore - amount);
+  expect(
+    await publicClient.readContract({
+      address: env.NEXT_PUBLIC_HLC_TOKEN_31337 as `0x${string}`,
+      abi: ERC20_ABI,
+      functionName: "balanceOf",
+      args: [ANVIL_ACCOUNT],
+    }),
+  ).toBe(balanceBefore - amount);
+  expect(
+    await publicClient.readContract({
+      address: env.NEXT_PUBLIC_HLC_TOKEN_31337 as `0x${string}`,
+      abi: ERC20_ABI,
+      functionName: "totalSupply",
+    }),
+  ).toBe(supplyBefore - amount);
 });
 
 test("blocks health when the adapter and PSM report watermarks diverge", async ({ page }) => {
