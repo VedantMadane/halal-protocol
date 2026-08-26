@@ -196,6 +196,14 @@ contract CPIReportAdapterTest is Test {
         adapter.transferOwnership(signerOne);
     }
 
+    function test_RevertWhen_PendingOwnerIsAddedAsSigner() public {
+        address newOwner = address(0xCAFE);
+        adapter.transferOwnership(newOwner);
+
+        vm.expectRevert(CPIReportAdapter.SignerOwnerOverlap.selector);
+        adapter.addSigner(newOwner);
+    }
+
     function test_RevertWhen_RemovedSignerSubmitsReport() public {
         adapter.removeSigner(signerThree);
         uint256 reportedAt = block.timestamp - 1;

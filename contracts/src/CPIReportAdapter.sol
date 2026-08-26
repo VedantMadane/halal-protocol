@@ -95,9 +95,11 @@ contract CPIReportAdapter is EIP712, Ownable2Step, ReentrancyGuard {
     }
 
     /// @notice Adds a report signer. Governance should call this through the owner timelock.
+    /// The pending owner is excluded as well as the active owner so a two-step handoff cannot be
+    /// made unfinishable by adding its recipient to the signer set before acceptance.
     function addSigner(address signer) external onlyOwner {
         if (signer == address(0)) revert ZeroAddress();
-        if (signer == owner()) revert SignerOwnerOverlap();
+        if (signer == owner() || signer == pendingOwner()) revert SignerOwnerOverlap();
         if (isSigner[signer]) revert SignerAlreadyConfigured();
         if (signerCount >= MAX_SIGNERS) revert SignerSetTooLarge();
         isSigner[signer] = true;
