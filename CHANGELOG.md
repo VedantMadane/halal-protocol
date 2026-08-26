@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.262 - 2026-08-27
+
+- Synchronized `CITATION.cff` with the current published release for reproducible scholarly and
+  software citations.
+
 ## 0.1.0-alpha.261 - 2026-08-27
 
 - Added direct monitoring regression coverage proving a configured CPI adapter becomes unhealthy
