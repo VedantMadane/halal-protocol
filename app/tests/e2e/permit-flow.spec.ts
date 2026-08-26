@@ -154,8 +154,13 @@ async function advanceLocalTime(seconds: number) {
   await testClient.mine({ blocks: 1 });
 }
 
-async function installAnvilProvider(page: Page, chainId: number = LOCAL_CHAIN.id, account: string = ANVIL_ACCOUNT) {
-  await page.addInitScript(({ rpcUrl, account, chainId: injectedChainId }) => {
+async function installAnvilProvider(
+  page: Page,
+  chainId: number = LOCAL_CHAIN.id,
+  account: string = ANVIL_ACCOUNT,
+  switchError?: string,
+) {
+  await page.addInitScript(({ rpcUrl, account, chainId: injectedChainId, switchError: injectedSwitchError }) => {
     const listeners = new Map<string, Set<(...args: unknown[]) => void>>();
     let currentAccount = account;
     let currentChainId = injectedChainId;
@@ -164,7 +169,13 @@ async function installAnvilProvider(page: Page, chainId: number = LOCAL_CHAIN.id
       request: async ({ method, params = [] }: { method: string; params?: unknown[] }) => {
         if (method === "eth_accounts" || method === "eth_requestAccounts") return [currentAccount];
         if (method === "eth_chainId") return `0x${currentChainId.toString(16)}`;
-        if (method === "wallet_switchEthereumChain" || method === "wallet_addEthereumChain") return null;
+        if (method === "wallet_switchEthereumChain" || method === "wallet_addEthereumChain") {
+          const requestedChainId = (params[0] as { chainId?: string } | undefined)?.chainId;
+          const requestedId = requestedChainId?.startsWith("0x") ? Number.parseInt(requestedChainId.slice(2), 16) : undefined;
+          const isDifferentChain = requestedId === undefined ? currentChainId !== injectedChainId : requestedId !== currentChainId;
+          if (injectedSwitchError && isDifferentChain) throw new Error(injectedSwitchError);
+          return null;
+        }
         const response = await fetch(rpcUrl, {
           method: "POST",
           headers: { "content-type": "application/json" },
@@ -209,7 +220,7 @@ async function installAnvilProvider(page: Page, chainId: number = LOCAL_CHAIN.id
       },
     });
     Object.defineProperty(window, "ethereum", { configurable: false, value: provider });
-  }, { rpcUrl: RPC_URL, account, chainId });
+  }, { rpcUrl: RPC_URL, account, chainId, switchError });
 }
 
 test("renders deployment health without a wallet provider", async ({ page }) => {
@@ -287,6 +298,26 @@ test("recovers safely across wallet network changes", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Unsupported network" })).toHaveCount(0);
 
   await page.evaluate(() => (window as unknown as { __setAnvilChain: (chainId: number) => void }).__setAnvilChain(1));
+  await expect(page.getByRole("heading", { name: "Unsupported network" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Deposit" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Withdraw" })).toHaveCount(0);
+  expect(await page.evaluate(() => (window as Window & { __lastTransaction?: unknown }).__lastTransaction)).toBeUndefined();
+});
+
+test("keeps unsupported state when the wallet rejects a network switch", async ({ page }) => {
+  await installAnvilProvider(page, LOCAL_CHAIN.id, ANVIL_ACCOUNT, "User rejected the network switch request");
+  await page.goto("/psm");
+  const connectButton = page.getByTestId("rk-connect-button");
+  if (await connectButton.count()) await connectButton.click();
+  const browserWallet = page.getByRole("button", { name: "Browser Wallet" });
+  if (await browserWallet.count()) await browserWallet.click();
+  await expect(page.getByRole("heading", { name: "Swap", exact: true })).toBeVisible();
+
+  await page.evaluate(() => (window as unknown as { __setAnvilChain: (chainId: number) => void }).__setAnvilChain(1));
+  await expect(page.getByRole("heading", { name: "Unsupported network" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Switch to Arbitrum Sepolia" }).click();
+  await expect(page.getByText("Your wallet did not switch networks. Approve the request or switch networks manually.")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Unsupported network" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Deposit" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Withdraw" })).toHaveCount(0);

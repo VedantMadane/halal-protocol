@@ -55,6 +55,9 @@ export function getFriendlyErrorMessage(error: unknown): string {
       if (revertError.reason) return `Transaction reverted: ${revertError.reason}.`;
     }
 
+    if (error.shortMessage?.toLowerCase().includes("switch chain")) {
+      return "Your wallet did not switch networks. Approve the request or switch networks manually.";
+    }
     if (error.shortMessage?.toLowerCase().includes("user rejected")) {
       return "You rejected the transaction in your wallet.";
     }
@@ -64,6 +67,11 @@ export function getFriendlyErrorMessage(error: unknown): string {
     return error.shortMessage || error.message;
   }
 
-  if (error instanceof Error) return error.message;
+  if (error instanceof Error) {
+    if (error.message.toLowerCase().includes("switch chain")) {
+      return "Your wallet did not switch networks. Approve the request or switch networks manually.";
+    }
+    return error.message;
+  }
   return "Something went wrong. Please try again.";
 }

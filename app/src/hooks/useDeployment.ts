@@ -32,7 +32,7 @@ export function useDeployment(): DeploymentInfo {
   const [injectedChainId, setInjectedChainId] = useState<number | undefined>();
 
   useEffect(() => {
-    if (isConnected || typeof window === "undefined") return;
+    if (typeof window === "undefined") return;
     const provider = (window as Window & { ethereum?: Eip1193Provider }).ethereum;
     if (!provider) return;
 
@@ -58,7 +58,12 @@ export function useDeployment(): DeploymentInfo {
     };
   }, [isConnected]);
 
-  const chainId = isConnected ? connectedChainId : injectedChainId ?? getReadOnlyChainId();
+  const chainId =
+    injectedChainId !== undefined && !isSupportedChainId(injectedChainId)
+      ? injectedChainId
+      : isConnected
+        ? connectedChainId
+        : injectedChainId ?? getReadOnlyChainId();
   const deployment = getDeployment(chainId);
 
   return {
