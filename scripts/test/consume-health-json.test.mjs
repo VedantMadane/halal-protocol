@@ -6,11 +6,21 @@ import test from "node:test";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const CONSUMER = path.join(ROOT, "scripts/consume-health-json.mjs");
+const OUTPUT_JSON = path.join(ROOT, "scripts/health-output-json.mjs");
 
 function run(report) {
   return spawnSync(process.execPath, [CONSUMER], {
     cwd: ROOT,
     input: JSON.stringify(report),
+    encoding: "utf8",
+  });
+}
+
+function runUnclassifiedHealthFailure() {
+  return spawnSync(process.execPath, [OUTPUT_JSON], {
+    cwd: ROOT,
+    env: { ...process.env, HEALTH_CHECK_EXIT_STATUS: "1" },
+    input: "RPC connection failed\n",
     encoding: "utf8",
   });
 }
@@ -34,6 +44,14 @@ test("preserves unhealthy health JSON as a nonzero exit", () => {
   const result = run(unhealthy);
   assert.equal(result.status, 1, result.stderr);
   assert.match(result.stderr, /status=unhealthy reasons=reserve_deficit warnings=normal_cpi_update_overdue/);
+});
+
+test("classifies an unstructured failed health check as unhealthy JSON", () => {
+  const result = runUnclassifiedHealthFailure();
+  assert.equal(result.status, 0, result.stderr);
+  const report = JSON.parse(result.stdout);
+  assert.equal(report.status, "unhealthy");
+  assert.deepEqual(report.reasons, ["health_check_failed"]);
 });
 
 test("rejects an unsupported health schema", () => {

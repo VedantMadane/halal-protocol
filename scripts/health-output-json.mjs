@@ -17,6 +17,8 @@ for (const line of readFileSync(0, "utf8").split(/\r?\n/)) {
 }
 
 const unique = (values) => [...new Set(values.filter(Boolean))];
+const healthCheckExitStatus = Number.parseInt(process.env.HEALTH_CHECK_EXIT_STATUS ?? "0", 10);
+if (healthCheckExitStatus !== 0 && !records.status) reasons.push("health_check_failed");
 const status = records.status ?? (reasons.length > 0 ? "unhealthy" : "unknown");
 delete records.status;
 
