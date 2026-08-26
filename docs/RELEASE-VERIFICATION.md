@@ -17,11 +17,13 @@ git fetch --tags --force origin
 git status --short
 ```
 
-The final command must print nothing. Choose the exact signed release tag to review; this example
-uses the latest published alpha at the time of writing:
+The final command must print nothing. Choose the exact signed release tag to review. The following
+selects the newest alpha tag after fetching tags; set `TAG` explicitly when reviewing a historical
+release:
 
 ```sh
-TAG=v0.1.0-alpha.205
+TAG="${TAG:-$(git tag --list 'v0.1.0-alpha.*' --sort=-version:refname | head -1)}"
+test -n "$TAG"
 TAG_COMMIT="$(git rev-parse "$TAG^{commit}")"
 git show --no-patch --decorate "$TAG_COMMIT"
 test "$(git rev-parse "$TAG^{commit}")" = "$TAG_COMMIT"

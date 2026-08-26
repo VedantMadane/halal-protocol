@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.236 - 2026-08-26
+
+- Made the release-verification walkthrough select the newest published alpha tag automatically,
+  while retaining an override for historical release reviews.
+
 ## 0.1.0-alpha.235 - 2026-08-26
 
 - Added a dated engineering security review log for PSM accounting and CPI adapter boundaries,
