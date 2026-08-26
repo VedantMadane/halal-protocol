@@ -160,3 +160,15 @@ test("configured CPI adapter requires an expected source identity", () => {
   assert.match(result.output, /^status=unhealthy$/m);
   assert.match(result.output, /^reason=cpi_adapter_source_id_expectation_missing$/m);
 });
+
+test("configured CPI adapter rejects malformed metadata before adapter RPC calls", () => {
+  const result = runPsmHealthWithFakeCast({
+    CPI_ADAPTER: "not-an-address",
+    EXPECTED_CPI_ADAPTER_OWNER: "0x0000000000000000000000000000000000000002",
+    EXPECTED_CPI_SOURCE_ID: `0x${"a".repeat(64)}`,
+  });
+  assert.notEqual(result.status, 0, result.output);
+  assert.match(result.output, /^status=unhealthy$/m);
+  assert.match(result.output, /^reason=invalid_cpi_adapter$/m);
+  assert.doesNotMatch(result.output, /unexpected fake cast call/);
+});

@@ -21,6 +21,13 @@ unhealthy_input() {
   exit 1
 }
 
+unhealthy_reason() {
+  echo "status=unhealthy"
+  echo "reason=${1}"
+  echo "value=${2}"
+  exit 1
+}
+
 require_uint() {
   local label="$1"
   local value="$2"
@@ -35,6 +42,24 @@ require_int() {
 
 if [[ "${FAIL_ON_UPDATE_OVERDUE:-true}" != "true" && "${FAIL_ON_UPDATE_OVERDUE:-true}" != "false" ]]; then
   unhealthy_input "fail_on_update_overdue" "${FAIL_ON_UPDATE_OVERDUE}"
+fi
+
+if [[ -n "${CPI_ADAPTER:-}" ]]; then
+  if [[ ! "${CPI_ADAPTER}" =~ ^0x[0-9a-fA-F]{40}$ || "${CPI_ADAPTER}" =~ ^0x0{40}$ ]]; then
+    unhealthy_input "cpi_adapter" "${CPI_ADAPTER}"
+  fi
+  if [[ -z "${EXPECTED_CPI_ADAPTER_OWNER:-}" ]]; then
+    unhealthy_reason "cpi_adapter_owner_expectation_missing" ""
+  fi
+  if [[ ! "${EXPECTED_CPI_ADAPTER_OWNER}" =~ ^0x[0-9a-fA-F]{40}$ || "${EXPECTED_CPI_ADAPTER_OWNER}" =~ ^0x0{40}$ ]]; then
+    unhealthy_input "expected_cpi_adapter_owner" "${EXPECTED_CPI_ADAPTER_OWNER}"
+  fi
+  if [[ -z "${EXPECTED_CPI_SOURCE_ID:-}" ]]; then
+    unhealthy_reason "cpi_adapter_source_id_expectation_missing" ""
+  fi
+  if [[ ! "${EXPECTED_CPI_SOURCE_ID}" =~ ^0x[0-9a-fA-F]{64}$ || "${EXPECTED_CPI_SOURCE_ID}" =~ ^0x0{64}$ ]]; then
+    unhealthy_input "expected_cpi_source_id" "${EXPECTED_CPI_SOURCE_ID}"
+  fi
 fi
 
 call_at() {
@@ -95,20 +120,6 @@ fi
 
 if [[ -n "${CPI_ADAPTER:-}" ]]; then
   CPI_ADAPTER="${CPI_ADAPTER,,}"
-  if [[ -z "${EXPECTED_CPI_ADAPTER_OWNER:-}" ]]; then
-    echo "status=unhealthy"
-    echo "reason=cpi_adapter_owner_expectation_missing"
-    failure=1
-  fi
-  if [[ -z "${EXPECTED_CPI_SOURCE_ID:-}" ]]; then
-    echo "status=unhealthy"
-    echo "reason=cpi_adapter_source_id_expectation_missing"
-    failure=1
-  elif [[ ! "${EXPECTED_CPI_SOURCE_ID}" =~ ^0x[0-9a-fA-F]{64}$ || "${EXPECTED_CPI_SOURCE_ID}" =~ ^0x0{64}$ ]]; then
-    echo "status=unhealthy"
-    echo "reason=invalid_expected_cpi_source_id"
-    failure=1
-  fi
   adapter_psm="$(call_at "$CPI_ADAPTER" 'psm()(address)' | tr '[:upper:]' '[:lower:]')"
   adapter_owner="$(call_at "$CPI_ADAPTER" 'owner()(address)' | tr '[:upper:]' '[:lower:]')"
   adapter_source_id="$(call_at "$CPI_ADAPTER" 'sourceId()(bytes32)' | tr '[:upper:]' '[:lower:]')"
