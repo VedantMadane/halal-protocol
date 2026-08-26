@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.258 - 2026-08-27
+
+- Made the production deployment script reject reserve-token addresses without contract bytecode before deploying the rest of the system.
+- Added configuration regression coverage, documented the preflight behavior for operators, and synchronized current documentation with the verified 193-test Solidity and 77-test Node suites.
+
 ## 0.1.0-alpha.257 - 2026-08-26
 
 - Kept the contributor map synchronized after completing the Markdown link validation issue.

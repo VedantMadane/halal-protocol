@@ -104,7 +104,9 @@ upgradeable, or issuer-controlled reserve token safe. Use the compatibility matr
 for the exact token address. Complete the standalone [reserve-asset due-diligence checklist]
 (RESERVE-ASSET-DUE-DILIGENCE.md) and link the completed record from the journal.
 
-- [ ] Record reserve token address, symbol, decimals, implementation/proxy details, and issuer.
+- [ ] Record reserve token address, symbol, decimals, implementation/proxy details, and issuer. The
+      deployment script also fails before broadcasting if the configured reserve address has no
+      contract bytecode.
 - [ ] Confirm decimals are within the PSM-supported range and match the live contract.
 - [ ] Review incoming and outgoing fee behavior, including the actual recipient receipt.
 - [ ] Review pause, blacklist, freeze, upgrade, mint, and admin powers of the issuer.

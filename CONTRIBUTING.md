@@ -68,7 +68,7 @@ The contracts are a [Foundry](https://book.getfoundry.sh/) project.
 cd contracts
 forge install      # pulls in the git-submodule dependencies (forge-std, OpenZeppelin)
 forge build
-forge test         # full 192-test suite, including 11 stateful invariants
+forge test         # full 193-test suite, including 11 stateful invariants
 forge test -vvv    # verbose, useful when a test fails
 forge fmt --check src test script  # verify first-party formatting without rewriting dependencies
 forge fmt           # actually reformat
@@ -126,7 +126,7 @@ combination means bugs here are unusually expensive to get wrong. So, for any PR
 - **Discuss significant changes in an issue first.** "Significant" means anything beyond a
   comment/NatSpec fix or an obviously-safe typo — if in doubt, open the issue.
 - **Tests are not optional.** New behavior needs new tests; changed behavior needs updated
-tests demonstrating the change is correct. `contracts/test/` currently passes 192/192 (181
+tests demonstrating the change is correct. `contracts/test/` currently passes 193/193 (182
   unit/configuration tests plus 11 stateful invariants) — a PR that
   drops that number, or that changes contract behavior without a corresponding test change, will
   need justification before it can be merged.

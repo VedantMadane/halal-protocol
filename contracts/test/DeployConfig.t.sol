@@ -29,6 +29,10 @@ contract DeployHalalSystemHarness is DeployHalalSystem {
         return _beneficiariesAreContracts(teamBeneficiary, treasuryBeneficiary);
     }
 
+    function reserveTokenIsContract(address reserveToken) external view returns (bool) {
+        return _reserveTokenIsContract(reserveToken);
+    }
+
     function beneficiaryIsNotDeployer(address deployer, address beneficiary) external pure returns (bool) {
         return beneficiary != address(0) && beneficiary != deployer;
     }
@@ -91,6 +95,12 @@ contract DeployConfigTest {
         require(deployer.beneficiariesAreContracts(address(deployer), address(adapterDeployer)));
         require(!deployer.beneficiariesAreContracts(address(deployer), address(0x1)));
         require(!deployer.beneficiariesAreContracts(address(0x1), address(adapterDeployer)));
+    }
+
+    function test_ProductionReserveTokenMustBeADeployedContract() public view {
+        require(deployer.reserveTokenIsContract(address(adapterDeployer)));
+        require(!deployer.reserveTokenIsContract(address(0x1)));
+        require(!deployer.reserveTokenIsContract(address(0)));
     }
 
     function test_AdapterSignersMustBeDistinctAndIndependentFromDeployer() public view {

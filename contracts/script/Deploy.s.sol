@@ -121,6 +121,7 @@ contract DeployHalalSystem is Script {
             votingDelay > type(uint48).max || votingPeriod == 0 || votingPeriod > type(uint32).max
                 || thresholdWholeHlc == 0 || thresholdWholeHlc > type(uint256).max / 1e18 || cfg.quorumPercent == 0
                 || cfg.quorumPercent > 100 || cfg.timelockDelay == 0 || cfg.reserveToken == address(0)
+                || !_reserveTokenIsContract(cfg.reserveToken)
                 || !_beneficiariesAreDistinct(cfg.teamBeneficiary, cfg.treasuryBeneficiary)
                 || !_beneficiariesAreContracts(cfg.teamBeneficiary, cfg.treasuryBeneficiary)
                 || cfg.teamBeneficiary == cfg.deployer || cfg.treasuryBeneficiary == cfg.deployer
@@ -156,6 +157,10 @@ contract DeployHalalSystem is Script {
         returns (bool)
     {
         return teamBeneficiary.code.length > 0 && treasuryBeneficiary.code.length > 0;
+    }
+
+    function _reserveTokenIsContract(address reserveToken) internal view returns (bool) {
+        return reserveToken.code.length > 0;
     }
 
     function _defaultVotingPeriod(uint256 chainId) internal pure returns (uint256) {
