@@ -1,9 +1,9 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help verify contracts-build contracts-test contracts-lint contracts-coverage app-lint app-build app-smoke app-e2e abis psm-health deployment-health economic-model oracle-test adapter-demo registry-check shell-check
+.PHONY: help verify contracts-build contracts-test contracts-lint contracts-coverage app-lint app-build app-smoke app-e2e abis psm-health deployment-health deployment-preflight economic-model oracle-test adapter-demo registry-check shell-check
 
 help:
-	@printf '%s\n' 'Halal development commands:' '' '  make verify             Run the complete local verification suite' '  make contracts-test     Run the Foundry contract tests' '  make app-build          Build the Next.js dApp' '  make app-smoke           Deploy disposable Anvil state and smoke-test the dApp' '  make app-e2e             Exercise the browser permit flow on disposable Anvil state' '  make adapter-demo        Rehearse signed CPI reporting on disposable Anvil state' '  make economic-model      Run the deterministic reserve-adequacy model' '' 'Read CONTRIBUTING.md before changing contracts/src/.'
+	@printf '%s\n' 'Halal development commands:' '' '  make verify             Run the complete local verification suite' '  make contracts-test     Run the Foundry contract tests' '  make app-build          Build the Next.js dApp' '  make app-smoke           Deploy disposable Anvil state and smoke-test the dApp' '  make app-e2e             Exercise the browser permit flow on disposable Anvil state' '  make adapter-demo        Rehearse signed CPI reporting on disposable Anvil state' '  make deployment-preflight  Check registry readiness without RPC or credentials' '  make economic-model      Run the deterministic reserve-adequacy model' '' 'Read CONTRIBUTING.md before changing contracts/src/.'
 
 verify: registry-check shell-check oracle-test adapter-demo contracts-build contracts-test contracts-lint app-lint app-smoke app-e2e
 
@@ -51,6 +51,9 @@ psm-health:
 
 deployment-health:
 	./scripts/check-deployment-health.sh
+
+deployment-preflight:
+	node scripts/preflight-deployment.mjs
 
 economic-model:
 	node scripts/model-psm.mjs

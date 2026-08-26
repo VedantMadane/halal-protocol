@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.230 - 2026-08-26
+
+- Added an offline, read-only deployment preflight that reports missing registry evidence, supports
+  a requested chain, emits versioned JSON, and fails closed on an empty or malformed registry.
+- Documented the preflight in the README, Makefile, and operator runbook, with CLI and fixture
+  coverage in the 60-test Node suite.
+
 ## 0.1.0-alpha.229 - 2026-08-26
 
 - Extended protected `main` checks to require Slither static analysis, extended fuzzing/invariants,

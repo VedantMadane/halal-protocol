@@ -15,6 +15,21 @@ governance procedures below.
 
 Complete these checks before accepting a public deposit.
 
+### 1.0 Run the offline preflight
+
+Before using an RPC or credentials, run the report-only registry preflight from the repository
+root:
+
+```shell
+node scripts/preflight-deployment.mjs --chain-id 421614
+```
+
+It checks that the requested chain has a complete, supported registry entry and prints the missing
+field plus a next action. An empty registry is intentionally `not_ready`. JSON output is available
+for automation with `--json`; preserve its `schemaVersion` and fail the automation when the command
+exits nonzero. This command does not contact a network, sign, broadcast, or modify the registry,
+and it cannot verify live bytecode, balances, roles, signer custody, or independent review.
+
 ### 1.1 Confirm the deployment inputs
 
 Record the following in a deployment journal:

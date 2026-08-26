@@ -66,6 +66,7 @@ conservative accounting model:
 | Does the accounting have stateful coverage? | 191 Foundry tests, including 11 PSM invariants, differential arithmetic checks, and fuzzing |
 | Do invariants cover CPI changes? | [`docs/INVARIANTS.md`](docs/INVARIANTS.md) models governance rate changes and reserve top-ups |
 | Can a deployment be checked without a private key? | [`scripts/verify-deployment.sh`](scripts/verify-deployment.sh) |
+| Can registry readiness be checked offline? | [`scripts/preflight-deployment.mjs`](scripts/preflight-deployment.mjs) or `make deployment-preflight` (no RPC, signing, or writes) |
 | Can I inspect the full system locally? | [`./scripts/local-demo.sh`](scripts/local-demo.sh) on a disposable Anvil chain |
 | Can I exercise the signed CPI adapter locally? | [`make adapter-demo`](Makefile), a disposable 31337-only two-of-two report rehearsal; included in `make verify` and hosted CI |
 | Does the PSM fail closed on missing or stale CPI data? | `HalalPSM` rejects deposits until `isCPIReportFresh()` is true; the dApp mirrors the gate |
