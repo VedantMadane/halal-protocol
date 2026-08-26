@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.248 - 2026-08-26
+
+- Hardened the CPI policy validator to reject all-zero parser commits and SHA-256 values as
+  evidence placeholders, exposed the policy check in `make help`, and added regression coverage.
+- Full local verification passed with 70 Node, 191 Solidity, and 26 browser tests.
+
 ## 0.1.0-alpha.247 - 2026-08-26
 
 - Implemented issue #94 with an offline CPI policy-record validator, draft/reviewable status

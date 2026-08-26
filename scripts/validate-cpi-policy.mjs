@@ -56,8 +56,8 @@ export function validateCpiPolicy(policy) {
   if (section("retrieval")) {
     const retrieval = policy.retrieval;
     for (const field of ["transport", "parserRepository", "parserVersion", "retrievalTimestamp", "parserTestCommand", "reviewer"]) required(`retrieval.${field}`, retrieval[field]);
-    if (required("retrieval.parserCommit", retrieval.parserCommit) && !COMMIT.test(retrieval.parserCommit)) error("retrieval.parserCommit", "must be exactly 40 hexadecimal characters");
-    if (required("retrieval.rawResponseSha256", retrieval.rawResponseSha256) && !HASH.test(retrieval.rawResponseSha256)) error("retrieval.rawResponseSha256", "must be exactly 64 hexadecimal characters without 0x");
+    if (required("retrieval.parserCommit", retrieval.parserCommit) && (!COMMIT.test(retrieval.parserCommit) || /^0+$/.test(retrieval.parserCommit))) error("retrieval.parserCommit", "must be a non-zero 40-character hexadecimal commit");
+    if (required("retrieval.rawResponseSha256", retrieval.rawResponseSha256) && (!HASH.test(retrieval.rawResponseSha256) || /^0+$/.test(retrieval.rawResponseSha256))) error("retrieval.rawResponseSha256", "must be a non-zero 64-character hexadecimal SHA-256 without 0x");
     if (required("retrieval.rawResponseArchive", retrieval.rawResponseArchive) && !https(retrieval.rawResponseArchive)) error("retrieval.rawResponseArchive", "must be an HTTPS evidence URL");
   }
 

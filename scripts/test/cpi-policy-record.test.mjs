@@ -38,6 +38,16 @@ test("rejects reviewed placeholders, invalid hashes, and unsafe links", async ()
   assert.match(report.errors.join("\n"), /evidenceLinks/);
 });
 
+test("rejects zero-value evidence placeholders", async () => {
+  const invalid = await fixture("cpi-policy-reviewed.json");
+  invalid.retrieval.parserCommit = "0".repeat(40);
+  invalid.retrieval.rawResponseSha256 = "0".repeat(64);
+  const report = validateCpiPolicy(invalid);
+  assert.equal(report.status, "invalid");
+  assert.match(report.errors.join("\n"), /parserCommit/);
+  assert.match(report.errors.join("\n"), /rawResponseSha256/);
+});
+
 test("rejects contradictory signer quorum and rejected status", async () => {
   const invalid = await fixture("cpi-policy-reviewed.json");
   invalid.status = "rejected";
