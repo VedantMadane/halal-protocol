@@ -7,9 +7,75 @@ const ADDRESS = /^0x[0-9a-fA-F]{40}$/;
 const HEX = /^0x(?:[0-9a-fA-F]{2})*$/;
 const BYTES32 = /^0x[0-9a-fA-F]{64}$/;
 const DECIMAL = /^(0|[1-9][0-9]*)$/;
+const MASK_64 = (1n << 64n) - 1n;
+const KECCAK_RATE = 136;
+const ROTATION = [
+  0, 36, 3, 41, 18,
+  1, 44, 10, 45, 2,
+  62, 6, 43, 15, 61,
+  28, 55, 25, 21, 56,
+  27, 20, 39, 8, 14,
+];
+const ROUND_CONSTANTS = [
+  0x0000000000000001n, 0x0000000000008082n, 0x800000000000808an, 0x8000000080008000n,
+  0x000000000000808bn, 0x0000000080000001n, 0x8000000080008081n, 0x8000000000008009n,
+  0x000000000000008an, 0x0000000000000088n, 0x0000000080008009n, 0x000000008000000an,
+  0x000000008000808bn, 0x800000000000008bn, 0x8000000000008089n, 0x8000000000008003n,
+  0x8000000000008002n, 0x8000000000000080n, 0x000000000000800an, 0x800000008000000an,
+  0x8000000080008081n, 0x8000000000008080n, 0x0000000080000001n, 0x8000000080008008n,
+];
 
 function fail(message) {
   throw new Error(message);
+}
+
+function rotateLeft64(value, amount) {
+  if (amount === 0) return value;
+  return ((value << BigInt(amount)) | (value >> BigInt(64 - amount))) & MASK_64;
+}
+
+// Ethereum uses Keccak-256 (padding suffix 0x01), which is not NIST SHA3-256 (suffix 0x06).
+// Keeping this small implementation local makes the verifier independent of RPC, Foundry, and
+// frontend dependencies while allowing it to check selector/signature consistency.
+export function keccak256(bytes) {
+  const padded = [...bytes, 0x01];
+  while (padded.length % KECCAK_RATE !== KECCAK_RATE - 1) padded.push(0);
+  padded.push(0x80);
+  const state = Array(25).fill(0n);
+  for (let offset = 0; offset < padded.length; offset += KECCAK_RATE) {
+    for (let lane = 0; lane < KECCAK_RATE / 8; lane += 1) {
+      let value = 0n;
+      for (let byte = 0; byte < 8; byte += 1) value |= BigInt(padded[offset + lane * 8 + byte]) << BigInt(byte * 8);
+      state[lane] ^= value;
+    }
+    for (const roundConstant of ROUND_CONSTANTS) {
+      const columns = Array(5).fill(0n);
+      for (let x = 0; x < 5; x += 1) for (let y = 0; y < 5; y += 1) columns[x] ^= state[x + 5 * y];
+      for (let x = 0; x < 5; x += 1) {
+        const correction = columns[(x + 4) % 5] ^ rotateLeft64(columns[(x + 1) % 5], 1);
+        for (let y = 0; y < 5; y += 1) state[x + 5 * y] = (state[x + 5 * y] ^ correction) & MASK_64;
+      }
+      const rotated = Array(25).fill(0n);
+      for (let x = 0; x < 5; x += 1) {
+        for (let y = 0; y < 5; y += 1) {
+          const destination = y + 5 * ((2 * x + 3 * y) % 5);
+          rotated[destination] = rotateLeft64(state[x + 5 * y], ROTATION[x * 5 + y]);
+        }
+      }
+      for (let x = 0; x < 5; x += 1) {
+        for (let y = 0; y < 5; y += 1) {
+          const current = x + 5 * y;
+          state[current] = (rotated[current] ^ ((MASK_64 ^ rotated[(x + 1) % 5 + 5 * y]) & rotated[(x + 2) % 5 + 5 * y])) & MASK_64;
+        }
+      }
+      state[0] ^= roundConstant;
+    }
+  }
+  const output = [];
+  for (let lane = 0; lane < KECCAK_RATE / 8; lane += 1) {
+    for (let byte = 0; byte < 8; byte += 1) output.push(Number((state[lane] >> BigInt(byte * 8)) & 0xffn));
+  }
+  return output.slice(0, 32).map((value) => value.toString(16).padStart(2, "0")).join("");
 }
 
 function readObject(value, label) {
@@ -137,6 +203,8 @@ function normalizePolicy(policy) {
       if (allowedSelectors.has(normalizedSelector)) fail(`Duplicate policy selector after normalization: ${rawSelector}`);
       const types = parseSignature(signature);
       if (types.some((type) => !isSupportedAbiType(type))) fail(`Policy signature ${signature} contains an unsupported ABI type.`);
+      const expectedSelector = `0x${keccak256(new TextEncoder().encode(signature)).slice(0, 8)}`;
+      if (normalizedSelector !== expectedSelector) fail(`Policy selector ${rawSelector} does not match signature ${signature}; expected ${expectedSelector}.`);
       allowedSelectors.set(normalizedSelector, signature);
     }
     const maxValue = config.maxValue === undefined ? 0n : decimal(config.maxValue, `policy.targets.${address}.maxValue`);

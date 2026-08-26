@@ -5,7 +5,7 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { verifyGovernancePayload } from "../verify-governance-payload.mjs";
+import { keccak256, verifyGovernancePayload } from "../verify-governance-payload.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const SCRIPT = path.join(ROOT, "scripts/verify-governance-payload.mjs");
@@ -28,6 +28,14 @@ const GRANT = "0x2f2ff15d73e573f9566d61418a34d5de3ff49360f9c51fec37f748655167029
 const SOURCE = "0x99d254550000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000f424c533a43555552303030305341300000000000000000000000000000000000";
 
 const safeBundle = () => ({ targets: [PSM, PSM], values: ["0", "0"], calldatas: [GRANT, SOURCE], description: "fictional safe handoff" });
+
+test("computes Ethereum Keccak-256 rather than NIST SHA-3", () => {
+  assert.equal(
+    keccak256(new TextEncoder().encode("")),
+    "c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470",
+  );
+  assert.equal(keccak256(new TextEncoder().encode("grantRole(bytes32,address)")).slice(0, 8), "2f2ff15d");
+});
 
 test("accepts an exact, zero-value known-target bundle", () => {
   const result = verifyGovernancePayload(safeBundle(), POLICY);
@@ -108,6 +116,12 @@ test("rejects ambiguous or unsupported policy definitions", () => {
       targets: { [PSM]: { selectors: { "0x2f2ff15d": "grantRole(tuple,address)" } } },
     }),
     /unsupported ABI type/,
+  );
+  assert.throws(
+    () => verifyGovernancePayload(safeBundle(), {
+      targets: { [PSM]: { selectors: { "0x2f2ff15d": "setSource(string)" } } },
+    }),
+    /does not match signature.*expected 0x99d25455/,
   );
 });
 

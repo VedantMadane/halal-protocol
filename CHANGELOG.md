@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.240 - 2026-08-26
+
+- Made the offline governance verifier independently derive Ethereum function selectors with a
+  dependency-free Keccak-256 implementation and reject selector/signature mismatches.
+- Added fixed Keccak test vectors and preserved the dependency-light, no-RPC verification path.
+
 ## 0.1.0-alpha.239 - 2026-08-26
 
 - Hardened the offline governance payload verifier against ambiguous policy definitions and invalid
