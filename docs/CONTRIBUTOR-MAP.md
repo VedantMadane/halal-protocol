@@ -38,6 +38,12 @@ criteria, and a safe local verification path:
   record safe Anvil-only wiring and health rehearsals.
 - [CPI source policy documentation (#80)](https://github.com/fredrikblau/halal-protocol/issues/80) —
   document how operators record source identity, cadence, custody, and fallback decisions.
+- [Ten-minute contributor quickstart (#95)](https://github.com/fredrikblau/halal-protocol/issues/95) —
+  make the clean-checkout local-demo path, expected output, and safe documentation contribution
+  flow easy to follow.
+- [Deployment health accessibility (#96)](https://github.com/fredrikblau/halal-protocol/issues/96) —
+  improve keyboard and screen-reader semantics for loading, warning, and failure states in the
+  read-only health page.
 - [First Arbitrum Sepolia reference deployment (#40)](https://github.com/fredrikblau/halal-protocol/issues/40) —
   coordinate a reviewed testnet deployment and publish reproducible address, source, health, and
   journal evidence; this requires maintainer coordination and is not a casual copy-paste task.
