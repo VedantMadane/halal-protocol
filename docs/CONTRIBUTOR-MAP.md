@@ -15,6 +15,10 @@ criteria, and a safe local verification path:
 
 - [Unsupported wallet network coverage (#66)](https://github.com/fredrikblau/halal-protocol/issues/66) —
   prove the dApp blocks signing on an unsupported chain and shows clear switch-network guidance.
+- [Valid governance template flow (#67)](https://github.com/fredrikblau/halal-protocol/issues/67) —
+  add a disposable-browser test for building and submitting the bounded CPI proposal template.
+- [Release verification walkthrough (#68)](https://github.com/fredrikblau/halal-protocol/issues/68) —
+  document clean-checkout verification of release tags, artifacts, ABIs, and hosted checks.
 
 The completed [CPI source-policy template (#54)](https://github.com/fredrikblau/halal-protocol/issues/54)
 is available as a reference for the documentation standard, but is no longer an active starter task.
