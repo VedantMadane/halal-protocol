@@ -213,7 +213,9 @@ jobs:
     runs-on: ubuntu-latest
     # The local smoke script owns disposable Anvil/Next processes. Bound the job so a runner or
     # child-process hang becomes an actionable failure instead of an indefinitely pending check.
-    timeout-minutes: 15
+    # Browser dependency installation and the disposable Anvil/Next processes can consume several
+    # minutes on a cold hosted runner; allow cleanup after the test process reports its result.
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: app

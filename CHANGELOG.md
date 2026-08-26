@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.225 - 2026-08-26
+
+- Increased the frontend CI job timeout from 15 to 30 minutes after a hosted run completed all 26
+  browser tests successfully but was canceled during post-test cleanup.
+
 ## 0.1.0-alpha.224 - 2026-08-26
 
 - Fixed the hosted `Scripts (Node)` CI job to install Foundry, matching the local script suite's
