@@ -101,7 +101,7 @@ discipline, not a safety guarantee.
 ## Status & risk
 
 **This protocol has not undergone a professional security audit, and there is no bug bounty
-program yet.** The contracts pass their own test suite (178/178 at the time of writing — 175 unit
+program yet.** The contracts pass their own test suite (179/179 at the time of writing — 176 unit
 and configuration tests plus 3 stateful invariants; see
 `contracts/test/`), but a passing test suite is not a substitute for an audit, and this repo
 should not be treated as safe to use with real, meaningful funds. If you deploy or interact with

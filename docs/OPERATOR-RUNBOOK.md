@@ -21,7 +21,7 @@ Record the following in a deployment journal:
 
 - chain name and chain ID;
 - reserve token address, symbol, decimals, and transfer behavior;
-- distinct team and treasury beneficiary addresses, neither equal to the deployer, with multisig ownership confirmed;
+- distinct team and treasury beneficiary contract addresses, neither equal to the deployer, with multisig ownership confirmed;
 - DAO, timelock, token, vesting, and PSM addresses;
 - CPI source, report publisher, updater account, key custody, and rotation contact;
 - deployer address and the commit or release used for deployment.
@@ -30,6 +30,11 @@ The reserve token is an external dependency. Check fee-on-transfer behavior, bla
 controls, upgradeability, decimals, and the issuer's admin powers before deployment. The PSM
 accounts for balance deltas and rejects unsupported decimals, but it cannot make a hostile or frozen
 reserve token safe.
+
+The production deployment script rejects EOA vesting beneficiaries by checking that both addresses
+already contain contract bytecode. Use deployed multisig or custody contracts and record their
+ownership/threshold evidence; the disposable local demo is the only path that intentionally permits
+Anvil EOAs.
 
 Use this compatibility matrix as a review starting point. “Covered” means the repository has a
 focused test; it is not a certification of an arbitrary issuer token. Review the referenced tests

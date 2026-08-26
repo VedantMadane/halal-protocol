@@ -122,6 +122,7 @@ contract DeployHalalSystem is Script {
                 || thresholdWholeHlc == 0 || thresholdWholeHlc > type(uint256).max / 1e18 || cfg.quorumPercent == 0
                 || cfg.quorumPercent > 100 || cfg.timelockDelay == 0 || cfg.reserveToken == address(0)
                 || !_beneficiariesAreDistinct(cfg.teamBeneficiary, cfg.treasuryBeneficiary)
+                || !_beneficiariesAreContracts(cfg.teamBeneficiary, cfg.treasuryBeneficiary)
                 || cfg.teamBeneficiary == cfg.deployer || cfg.treasuryBeneficiary == cfg.deployer
                 || cfg.cpiUpdater == cfg.deployer
         ) revert InvalidConfig();
@@ -145,6 +146,16 @@ contract DeployHalalSystem is Script {
     {
         return teamBeneficiary != address(0) && treasuryBeneficiary != address(0)
             && teamBeneficiary != treasuryBeneficiary;
+    }
+
+    /// @dev Production beneficiaries are expected to be deployed multisig/custody contracts. The
+    /// local demo bypasses _loadConfig and intentionally permits disposable Anvil EOAs.
+    function _beneficiariesAreContracts(address teamBeneficiary, address treasuryBeneficiary)
+        internal
+        view
+        returns (bool)
+    {
+        return teamBeneficiary.code.length > 0 && treasuryBeneficiary.code.length > 0;
     }
 
     function _defaultVotingPeriod(uint256 chainId) internal pure returns (uint256) {

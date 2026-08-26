@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.165 - 2026-08-26
+
+- Hardened the production deployment preflight so team and treasury vesting beneficiaries must be
+  deployed contracts, matching the multisig/custody launch policy; the local demo remains EOA-compatible.
+- Added deployment-config regression coverage and synchronized the public suite count to 179 tests.
+
 ## 0.1.0-alpha.164 - 2026-08-26
 
 - Added a worked redeemable-credit example documenting ordinary HLC transfers, accounting-aware

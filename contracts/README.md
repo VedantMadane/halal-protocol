@@ -8,7 +8,7 @@ the [root README](../README.md) and [`../docs/`](../docs).
 ## Layout
 
 - `src/` — the five core contracts plus the optional CPI report adapter.
-- `test/` — Foundry test suite (178 tests at the time of writing: 175 unit/configuration tests plus 3 stateful
+- `test/` — Foundry test suite (179 tests at the time of writing: 176 unit/configuration tests plus 3 stateful
   PSM invariants; run `forge test` to confirm).
 - `script/Deploy.s.sol` — full deployment script (token, vesting, DAO, timelock, role wiring).
 - `script/DeployCPIReportAdapter.s.sol` — chain-guarded optional adapter deployment; it does not
@@ -67,7 +67,10 @@ forge script script/Deploy.s.sol:DeployHalalSystem --rpc-url $RPC_URL --private-
 ```
 
 `EXPECTED_CHAIN_ID` is mandatory for the production deploy script. It must equal the chain ID
-returned by `RPC_URL`; the script refuses to broadcast when it is missing or mismatched.
+returned by `RPC_URL`; the script refuses to broadcast when it is missing or mismatched. The
+production path also requires both vesting beneficiaries to already be deployed contracts, so
+EOA beneficiaries cannot be accidentally used where the deployment policy requires multisig or
+custody control. The local demo intentionally uses disposable Anvil EOAs instead.
 
 After deployment, independently verify the on-chain wiring before accepting funds:
 
