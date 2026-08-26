@@ -184,6 +184,9 @@ jobs:
     needs: changes
     if: needs.changes.outputs.app == 'true'
     runs-on: ubuntu-latest
+    # The local smoke script owns disposable Anvil/Next processes. Bound the job so a runner or
+    # child-process hang becomes an actionable failure instead of an indefinitely pending check.
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: app

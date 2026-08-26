@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.204 - 2026-08-26
+
+- Added a 15-minute timeout to the configured frontend smoke-test job so local process hangs fail
+  visibly instead of leaving required CI indefinitely in progress.
+
 ## 0.1.0-alpha.203 - 2026-08-26
 
 - Hardened governance action decoding to use the configured target contract ABI, preventing misleading
