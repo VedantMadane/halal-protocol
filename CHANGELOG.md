@@ -9,6 +9,11 @@ All notable changes to this project are documented here.
 - Expanded the operator compatibility matrix with the tested pause/freeze behavior and refreshed
   current documentation to the verified 190-test suite.
 
+## Unreleased
+
+- Refreshed the README and contributor map so the active changing-fee reserve-token starter task
+  (#82) is visible alongside the CPI source-policy task.
+
 ## 0.1.0-alpha.207 - 2026-08-26
 
 - Hardened the read-only PSM health check against timestamp-addition overflow and future RPC
