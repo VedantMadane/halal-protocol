@@ -32,6 +32,7 @@ contract HalalVesting {
     event BeneficiaryUpdated(address indexed oldBeneficiary, address indexed newBeneficiary);
 
     error ZeroAddress();
+    error NotContract();
     error ZeroAllocation();
     error ZeroDuration();
     error CliffExceedsDuration();
@@ -70,6 +71,7 @@ contract HalalVesting {
         if (token_ == address(0) || beneficiary_ == address(0) || dao_ == address(0)) {
             revert ZeroAddress();
         }
+        if (token_.code.length == 0 || dao_.code.length == 0) revert NotContract();
         if (totalAllocation_ == 0) revert ZeroAllocation();
         if (duration_ == 0) revert ZeroDuration();
         if (cliff_ > duration_) revert CliffExceedsDuration();

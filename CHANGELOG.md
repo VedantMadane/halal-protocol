@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.156 - 2026-08-26
+
+- Hardened vesting deployment checks so a non-contract token or DAO dependency cannot produce
+  an apparently deployed but unusable custody contract; added constructor regression coverage.
+
 ## 0.1.0-alpha.155 - 2026-08-26
 
 - Hardened governance deployment checks so a non-contract timelock cannot produce an apparently

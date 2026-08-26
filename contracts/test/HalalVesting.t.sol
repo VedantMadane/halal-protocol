@@ -169,6 +169,14 @@ contract HalalVestingTest is Deployers {
         new HalalVesting(address(0), teamBeneficiary, address(timelock), uint64(block.timestamp), 0, 1, 1e18, true);
     }
 
+    function test_RevertWhen_NonContractDependencyInConstructor() public {
+        vm.expectRevert(HalalVesting.NotContract.selector);
+        new HalalVesting(address(1), teamBeneficiary, address(timelock), uint64(block.timestamp), 0, 1, 1e18, true);
+
+        vm.expectRevert(HalalVesting.NotContract.selector);
+        new HalalVesting(address(token), teamBeneficiary, address(1), uint64(block.timestamp), 0, 1, 1e18, true);
+    }
+
     function test_RevertWhen_ZeroAllocationInConstructor() public {
         vm.expectRevert(HalalVesting.ZeroAllocation.selector);
         new HalalVesting(address(token), teamBeneficiary, address(timelock), uint64(block.timestamp), 0, 1, 0, true);
