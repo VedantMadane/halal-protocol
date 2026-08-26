@@ -2,12 +2,26 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.244 - 2026-08-26
+
+- Synchronized the engineering security review log with the current 64-test Node suite.
+
 ## 0.1.0-alpha.243 - 2026-08-26
 
-- Corrected the deployment-health JSON wrapper so the underlying check's nonzero exit status is
-  passed to the formatter, making unexpected RPC or command failures fail closed as structured
-  `unhealthy` output with `health_check_failed`.
+- Corrected the deployment-health JSON wrapper so failed health commands pass their nonzero status
+  to the formatter and produce structured fail-closed output.
 - Added end-to-end regression coverage and reran the complete local verification gate.
+
+## 0.1.0-alpha.242 - 2026-08-26
+
+- Added fail-closed classification for unstructured deployment-health command failures and a
+  regression test. The pipeline propagation correction was published in alpha.243.
+
+## 0.1.0-alpha.241 - 2026-08-26
+
+- Strengthened public issue and pull-request guidance with safe security-reporting prompts, full-gate
+  expectations, generated-ABI checks, deployment-impact declarations, and the complete active
+  contributor issue map.
 
 ## 0.1.0-alpha.240 - 2026-08-26
 
