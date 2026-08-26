@@ -2,12 +2,18 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.221 - 2026-08-26
+
+- Refreshed the contributor map and README with the offline governance verifier and replaced the
+  duplicate decoder-fixture issue #88 with deterministic property-coverage issue #91.
+
 ## 0.1.0-alpha.220 - 2026-08-26
 
 - Added an offline, dependency-light governance payload verifier that fails closed on unknown targets,
   malformed calldata, disallowed selectors, array mismatches, and unexpected ETH values while
   preserving raw action diagnostics.
-- Added five focused tests, documented the explicit target-policy format, and closed #90.
+- Added five focused tests, documented the explicit target-policy format, closed #90 and the duplicate
+  coverage issue #88, and opened deterministic property-coverage issue #91.
 
 ## 0.1.0-alpha.219 - 2026-08-26
 

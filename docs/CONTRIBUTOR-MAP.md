@@ -19,9 +19,9 @@ criteria, and a safe local verification path:
   rehearse detection, evidence preservation, governance response, and recovery verification for a
   fictional protocol incident; use the completed [`stale-CPI example`](INCIDENT-RESPONSE-TABLETOP-EXAMPLE.md)
   as a reference.
-- [Governance calldata decoder fixtures (#88)](https://github.com/fredrikblau/halal-protocol/issues/88) —
-  add focused known-target, unknown-target, and malformed-calldata fixtures; explain why UI decoding
-  is not a safety or authorization check.
+- [Deterministic governance payload property coverage (#91)](https://github.com/fredrikblau/halal-protocol/issues/91) —
+  extend the verifier with seeded valid and invalid action-array/property fixtures; explain why UI
+  decoding is not a safety or authorization check.
 - The completed [read-only governance payload verifier (#90)](https://github.com/fredrikblau/halal-protocol/issues/90)
   is available at [`scripts/verify-governance-payload.mjs`](../scripts/verify-governance-payload.mjs).
 - The completed [governance review evidence template (#89)](https://github.com/fredrikblau/halal-protocol/issues/89)

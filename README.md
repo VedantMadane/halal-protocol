@@ -149,6 +149,8 @@ walkthrough, and the exact API surface — see:
   mitigations, and unresolved risks for reviewers and deployment operators.
 - [`docs/OPERATOR-RUNBOOK.md`](docs/OPERATOR-RUNBOOK.md) — launch acceptance, monitoring, CPI
   updater operations, governance review, and incident response.
+- [`scripts/verify-governance-payload.mjs`](scripts/verify-governance-payload.mjs) — offline,
+  fail-closed preflight for exact governance targets, values, selectors, and calldata.
 - [`docs/INVARIANTS.md`](docs/INVARIANTS.md) — the stateful PSM properties exercised by Foundry
   and the exact scope of those guarantees.
 - [`docs/ECONOMIC-MODEL.md`](docs/ECONOMIC-MODEL.md) — a dependency-free CPI and reserve-adequacy
@@ -210,7 +212,8 @@ beneficiary, see `contracts/script/DeployLocal.s.sol`.
 See [`contracts/script/Deploy.s.sol`](contracts/script/Deploy.s.sol) for the deployment script,
 [`contracts/script/Examples.s.sol`](contracts/script/Examples.s.sol) for example governance
 proposals, and [`contracts/script/PrepareCPIAdapterHandoff.s.sol`](contracts/script/PrepareCPIAdapterHandoff.s.sol)
-for reviewed CPI adapter handoff calldata. Read `docs/DAO-Guide.md` and `docs/TECHNICAL-DOCS.md`
+for reviewed CPI adapter handoff calldata. For a read-only proposal preflight, run
+`node scripts/verify-governance-payload.mjs --bundle <bundle.json> --policy <policy.json>`. Read `docs/DAO-Guide.md` and `docs/TECHNICAL-DOCS.md`
 for the full deployment walkthrough and required environment variables.
 
 ### Frontend
