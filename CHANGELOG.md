@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.167 - 2026-08-26
+
+- Hardened the production CPI adapter deployment preflight so its owner must already be a deployed
+  contract, normally the protocol timelock, rather than an EOA.
+- Added deployment-config coverage and synchronized public test-count claims to 185 tests.
+
 ## 0.1.0-alpha.166 - 2026-08-26
 
 - Added stateful PSM coverage for a supported fee-on-transfer reserve and a rejected false-returning

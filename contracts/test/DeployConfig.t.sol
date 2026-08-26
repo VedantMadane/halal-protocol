@@ -39,6 +39,10 @@ contract DeployCPIReportAdapterHarness is DeployCPIReportAdapter {
         return _psmIsContract(psm);
     }
 
+    function ownerIsContract(address owner) external view returns (bool) {
+        return owner.code.length > 0;
+    }
+
     function adapterSignersAreSafe(
         address deployer,
         address owner,
@@ -126,5 +130,11 @@ contract DeployConfigTest {
         require(adapterDeployer.psmIsContract(address(adapterDeployer)));
         require(!adapterDeployer.psmIsContract(address(0x1)));
         require(!adapterDeployer.psmIsContract(address(0)));
+    }
+
+    function test_AdapterDeploymentRequiresAContractOwner() public view {
+        require(adapterDeployer.ownerIsContract(address(deployer)));
+        require(!adapterDeployer.ownerIsContract(address(0x1)));
+        require(!adapterDeployer.ownerIsContract(address(0)));
     }
 }

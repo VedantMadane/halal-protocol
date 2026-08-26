@@ -8,7 +8,7 @@ the [root README](../README.md) and [`../docs/`](../docs).
 ## Layout
 
 - `src/` — the five core contracts plus the optional CPI report adapter.
-- `test/` — Foundry test suite (184 tests at the time of writing: 176 unit/configuration tests plus 8 stateful
+- `test/` — Foundry test suite (185 tests at the time of writing: 177 unit/configuration tests plus 8 stateful
   PSM invariants; run `forge test` to confirm).
 - `script/Deploy.s.sol` — full deployment script (token, vesting, DAO, timelock, role wiring).
 - `script/DeployCPIReportAdapter.s.sol` — chain-guarded optional adapter deployment; it does not
@@ -71,6 +71,10 @@ returned by `RPC_URL`; the script refuses to broadcast when it is missing or mis
 production path also requires both vesting beneficiaries to already be deployed contracts, so
 EOA beneficiaries cannot be accidentally used where the deployment policy requires multisig or
 custody control. The local demo intentionally uses disposable Anvil EOAs instead.
+
+The production CPI adapter script applies the same boundary to `ADAPTER_OWNER`: it must be a
+deployed contract (normally the protocol timelock), and cannot be the deployer. The local adapter
+rehearsal uses a disposable EOA owner by design and is not a production deployment path.
 
 After deployment, independently verify the on-chain wiring before accepting funds:
 

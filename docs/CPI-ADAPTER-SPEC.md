@@ -161,8 +161,9 @@ forge script script/DeployCPIReportAdapter.s.sol:DeployCPIReportAdapter \
 ```
 
 `CPI_SIGNER_3` is optional. The script rejects a zero private key, a zero or mismatched chain ID, a
-PSM address without contract bytecode, a deployer-owned adapter, zero or duplicate signer addresses,
-signer addresses equal to the deployer or adapter owner, a zero source ID, and an impossible
+PSM address without contract bytecode, an adapter owner without contract bytecode, a deployer-owned
+adapter, zero or duplicate signer addresses, signer addresses equal to the deployer or adapter owner,
+a zero source ID, and an impossible
 threshold before broadcasting. The adapter constructor and ownership rotation retain the same
 custody-separation defense. Record the output,
 source-ID derivation, commit, and deployment transaction in the deployment journal.

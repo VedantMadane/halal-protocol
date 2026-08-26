@@ -29,7 +29,7 @@ contract DeployCPIReportAdapter is Script {
 
         if (
             privateKey == 0 || expectedChainId == 0 || block.chainid != expectedChainId || !_psmIsContract(psm)
-                || owner == address(0) || owner == deployer
+                || owner == address(0) || owner == deployer || owner.code.length == 0
                 || !_adapterSignersAreSafe(deployer, owner, signerOne, signerTwo, signerThree) || threshold == 0
                 || sourceId == bytes32(0) || (signerThree == address(0) && threshold > 2)
                 || (signerThree != address(0) && threshold > 3)
