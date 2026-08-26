@@ -97,9 +97,15 @@ export function useDeploymentIntegrity() {
   const adapterSigners = get<Address[]>(23);
   const expected = deployment;
   const adapterConfigurationComplete =
-    expected?.cpiAdapter === undefined && expected?.cpiSource === undefined && expected?.cpiSourceId === undefined
+    expected?.cpiAdapter === undefined &&
+    expected?.cpiSource === undefined &&
+    expected?.cpiSourceId === undefined &&
+    expected?.cpiPolicyUrl === undefined
       ? true
-      : expected?.cpiAdapter !== undefined && expected?.cpiSource !== undefined && expected?.cpiSourceId !== undefined;
+      : expected?.cpiAdapter !== undefined &&
+        expected?.cpiSource !== undefined &&
+        expected?.cpiSourceId !== undefined &&
+        expected?.cpiPolicyUrl !== undefined;
 
   const readFailed = hasReadFailure(data);
   const isVerified =

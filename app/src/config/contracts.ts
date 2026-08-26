@@ -124,15 +124,25 @@ function deploymentFromSource(source: DeploymentSource): HalalDeployment | undef
     env.timelock,
     env.reserveToken,
   ];
-  if (addresses.some((address) => !address || !isAddress(address) || address === zeroAddress)) return undefined;
+  if (addresses.some((address) => !address || !isAddress(address) || address.toLowerCase() === zeroAddress)) return undefined;
   if (!env.reserveTokenSymbol || !env.deploymentBlock || !/^\d+$/.test(env.deploymentBlock)) return undefined;
   const deploymentBlock = BigInt(env.deploymentBlock);
   if (deploymentBlock === 0n) return undefined;
-  const hasAdapter = env.cpiAdapter !== undefined || env.cpiSource !== undefined || env.cpiSourceId !== undefined;
+  const hasAdapter =
+    env.cpiAdapter !== undefined ||
+    env.cpiSource !== undefined ||
+    env.cpiSourceId !== undefined ||
+    source.cpiPolicyUrl !== undefined;
   if (hasAdapter) {
-    if (!env.cpiAdapter || !isAddress(env.cpiAdapter) || env.cpiAdapter === zeroAddress) return undefined;
+    if (!env.cpiAdapter || !isAddress(env.cpiAdapter) || env.cpiAdapter.toLowerCase() === zeroAddress) return undefined;
     if (!env.cpiSource || env.cpiSource.trim() === "") return undefined;
     if (!env.cpiSourceId || !/^0x[0-9a-fA-F]{64}$/.test(env.cpiSourceId) || /^0x0{64}$/i.test(env.cpiSourceId)) {
+      return undefined;
+    }
+    if (!source.cpiPolicyUrl) return undefined;
+    try {
+      if (new URL(source.cpiPolicyUrl).protocol !== "https:") return undefined;
+    } catch {
       return undefined;
     }
   }
