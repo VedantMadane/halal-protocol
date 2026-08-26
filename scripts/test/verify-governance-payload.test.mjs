@@ -24,7 +24,7 @@ const POLICY = {
   },
 };
 const GRANT = "0x2f2ff15d73e573f9566d61418a34d5de3ff49360f9c51fec37f7486551670290f6285dab0000000000000000000000002222222222222222222222222222222222222222";
-const SOURCE = "0x99d254550000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000f424c533a43555552303030305341300000000000000000000000000000000000";
+const SOURCE = "0x99d254550000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000f424c533a43555552303030305341300000000000000000000000000000000000";
 
 const safeBundle = () => ({ targets: [PSM, PSM], values: ["0", "0"], calldatas: [GRANT, SOURCE], description: "fictional safe handoff" });
 
@@ -55,6 +55,21 @@ test("rejects malformed, disallowed, and non-zero-value actions", () => {
   const value = verifyGovernancePayload({ targets: [PSM], values: ["1"], calldatas: [SOURCE] }, POLICY);
   assert.equal(value.authorized, false);
   assert.match(value.errors.join(" "), /exceeds the policy maximum/);
+
+  const truncatedKnownSelector = verifyGovernancePayload({ targets: [PSM], values: ["0"], calldatas: [GRANT.slice(0, -2)] }, POLICY);
+  assert.equal(truncatedKnownSelector.authorized, false);
+  assert.match(truncatedKnownSelector.errors.join(" "), /truncated/);
+
+  const addressWordStart = 10 + 64;
+  const nonCanonicalAddress = `${GRANT.slice(0, addressWordStart)}01${GRANT.slice(addressWordStart + 2)}`;
+  const nonCanonical = verifyGovernancePayload({ targets: [PSM], values: ["0"], calldatas: [nonCanonicalAddress] }, POLICY);
+  assert.equal(nonCanonical.authorized, false);
+  assert.match(nonCanonical.errors.join(" "), /non-canonical address/);
+
+  const invalidStringOffset = `${SOURCE.slice(0, 10)}${"00".repeat(32)}${SOURCE.slice(74)}`;
+  const invalidString = verifyGovernancePayload({ targets: [PSM], values: ["0"], calldatas: [invalidStringOffset] }, POLICY);
+  assert.equal(invalidString.authorized, false);
+  assert.match(invalidString.errors.join(" "), /invalid string offset/);
 });
 
 test("rejects action-array mismatches and unsafe JSON numbers", () => {

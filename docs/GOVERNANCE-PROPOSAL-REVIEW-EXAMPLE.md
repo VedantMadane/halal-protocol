@@ -73,10 +73,11 @@ node scripts/verify-governance-payload.mjs \
   --bundle proposal-bundle.json --policy governance-policy.json
 ```
 
-Exit status zero means only that the bundle matches the supplied policy. A non-zero result preserves
-raw action data and reports the reason for rejecting unknown targets, malformed calldata, disallowed
-selectors, array mismatches, or unexpected ETH values. It does not replace source review, wallet
-simulation, reserve analysis, or governance authority.
+Exit status zero means only that the bundle matches the supplied policy and uses canonical ABI
+encoding for the supported argument types. A non-zero result preserves raw action data and reports
+the reason for rejecting unknown targets, malformed calldata, disallowed selectors, array
+mismatches, or unexpected ETH values. It does not replace source review, wallet simulation, reserve
+analysis, or governance authority.
 
 The verifier's policy is an allowlist maintained by the reviewer; it is not inferred from the dApp,
 an explorer label, or the proposal description.

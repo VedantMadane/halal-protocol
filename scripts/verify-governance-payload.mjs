@@ -35,6 +35,87 @@ function selector(data, index) {
   return data.slice(0, 10).toLowerCase();
 }
 
+function parseSignature(signature) {
+  const match = /^[_a-zA-Z][_a-zA-Z0-9]*\((.*)\)$/.exec(signature);
+  if (!match) fail(`Invalid function signature in policy: ${signature}`);
+  return match[1] === "" ? [] : match[1].split(",").map((type) => type.trim());
+}
+
+function word(args, index, signature) {
+  const start = index * 64;
+  if (start + 64 > args.length) fail(`calldata for ${signature} is truncated at argument ${index}`);
+  return args.slice(start, start + 64);
+}
+
+function isDynamicType(type) {
+  return type === "string" || type === "bytes";
+}
+
+function validateAbiEncoding(data, signature, index) {
+  const types = parseSignature(signature);
+  const args = data.slice(10);
+  const headLength = types.length * 64;
+  const headLengthBytes = types.length * 32;
+  if (args.length < headLength) fail(`calldatas[${index}] is truncated for ${signature}`);
+  if (args.length % 64 !== 0) fail(`calldatas[${index}] has a non-word-aligned ABI payload for ${signature}`);
+
+  const dynamicRanges = [];
+  for (let argumentIndex = 0; argumentIndex < types.length; argumentIndex += 1) {
+    const type = types[argumentIndex];
+    const currentWord = word(args, argumentIndex, signature);
+    if (isDynamicType(type)) {
+      const offset = BigInt(`0x${currentWord}`);
+      if (offset % 32n !== 0n || offset < BigInt(headLengthBytes) || offset > BigInt(args.length / 2 - 32)) {
+        fail(`calldatas[${index}] has an invalid ${type} offset for ${signature}`);
+      }
+      const tailStart = Number(offset) * 2;
+      const lengthWord = args.slice(tailStart, tailStart + 64);
+      if (lengthWord.length !== 64) fail(`calldatas[${index}] has a truncated ${type} length for ${signature}`);
+      const byteLength = BigInt(`0x${lengthWord}`);
+      const paddedLength = ((byteLength + 31n) / 32n) * 32n;
+      const tailEnd = offset + 32n + paddedLength;
+      if (tailEnd > BigInt(args.length / 2)) fail(`calldatas[${index}] has a truncated ${type} value for ${signature}`);
+      dynamicRanges.push([Number(offset), Number(tailEnd)]);
+      continue;
+    }
+    if (type === "address" && !/^0{24}[0-9a-f]{40}$/i.test(currentWord)) {
+      fail(`calldatas[${index}] has a non-canonical address for ${signature}`);
+    }
+    if (type === "bool" && !/^0{63}[01]$/i.test(currentWord)) {
+      fail(`calldatas[${index}] has a non-canonical bool for ${signature}`);
+    }
+    const uintType = /^uint(8|16|32|64|128|256)?$/.exec(type);
+    if (uintType) {
+      const bits = Number(uintType[1] ?? 256);
+      if (bits < 256 && BigInt(`0x${currentWord}`) >= 2n ** BigInt(bits)) {
+        fail(`calldatas[${index}] has an out-of-range ${type} value for ${signature}`);
+      }
+    }
+    const fixedBytes = /^bytes([1-9]|[12][0-9]|3[0-2])$/.exec(type);
+    if (fixedBytes) {
+      const usedBytes = Number(fixedBytes[1]);
+      if (!new RegExp(`^[0-9a-f]{${usedBytes * 2}}0{${64 - usedBytes * 2}}$`, "i").test(currentWord)) {
+        fail(`calldatas[${index}] has non-canonical ${type} data for ${signature}`);
+      }
+    }
+    if (!/^(address|bool|bytes(?:[1-9]|[12][0-9]|3[0-2])|uint(?:8|16|32|64|128|256)?)$/.test(type)) {
+      fail(`calldatas[${index}] uses an unsupported ABI type ${type}`);
+    }
+  }
+
+  if (dynamicRanges.length > 0) {
+    dynamicRanges.sort(([left]) => left);
+    let end = headLengthBytes;
+    for (const [start, rangeEnd] of dynamicRanges) {
+      if (start !== end) fail(`calldatas[${index}] has overlapping or non-canonical dynamic data for ${signature}`);
+      end = rangeEnd;
+    }
+    if (end !== args.length / 2) fail(`calldatas[${index}] has trailing or overlapping ABI data for ${signature}`);
+  } else if (args.length !== headLength) {
+    fail(`calldatas[${index}] has trailing ABI data for ${signature}`);
+  }
+}
+
 function normalizePolicy(policy) {
   const root = readObject(policy, "policy");
   const targets = readObject(root.targets, "policy.targets");
@@ -130,6 +211,13 @@ export function verifyGovernancePayload(bundle, policy) {
     if (!signature) {
       action.authorized = false;
       errors.push(`selector ${action.selector} is not allowed for target ${target}.`);
+      return action;
+    }
+    try {
+      validateAbiEncoding(calldata, signature, index);
+    } catch (error) {
+      action.authorized = false;
+      errors.push(error.message);
       return action;
     }
     action.decoded = signature;

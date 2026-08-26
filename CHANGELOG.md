@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.238 - 2026-08-26
+
+- Hardened the offline governance payload verifier to validate canonical ABI argument encoding and
+  reject malformed known selectors, non-canonical addresses, invalid dynamic offsets, and
+  out-of-range integer values.
+
 ## 0.1.0-alpha.237 - 2026-08-26
 
 - Recorded higher-depth PSM invariant evidence: 128 runs at depth 64 and 10,000 round-trip fuzz
