@@ -265,8 +265,9 @@ test("moves the vesting beneficiary only after the proposed address accepts", as
   const secondTeamCard = secondPage.getByText("Team Vesting", { exact: true }).locator("..").locator("..");
   await expect(secondTeamCard.getByRole("button", { name: "Accept beneficiary transfer" })).toBeVisible();
   await secondTeamCard.getByRole("button", { name: "Accept beneficiary transfer" }).click();
-  await expect(secondTeamCard.getByText("Beneficiary transfer accepted.")).toBeVisible();
   await expect(secondTeamCard).toContainText("0x7099…79C8");
+  await expect(secondTeamCard.getByText(/Pending beneficiary:/)).not.toBeVisible();
+  await expect(secondTeamCard.getByRole("button", { name: "Accept beneficiary transfer" })).not.toBeVisible();
   await secondContext.close();
 });
 

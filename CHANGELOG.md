@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.163 - 2026-08-26
+
+- Stabilized the vesting handoff browser regression by asserting the durable beneficiary and
+  pending-state transitions instead of timing-sensitive notification text after confirmation.
+
 ## 0.1.0-alpha.162 - 2026-08-26
 
 - Made pending vesting beneficiaries visible in the dApp so they can complete the two-step
