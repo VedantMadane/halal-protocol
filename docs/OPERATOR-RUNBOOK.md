@@ -31,6 +31,10 @@ controls, upgradeability, decimals, and the issuer's admin powers before deploym
 accounts for balance deltas and rejects unsupported decimals, but it cannot make a hostile or frozen
 reserve token safe.
 
+Complete the provider-neutral [`CPI source-policy record`](CPI-SOURCE-POLICY-TEMPLATE.md) for the
+exact source and parser before granting `UPDATER_ROLE`. Link its raw response hashes, parser
+version, revision policy, signer custody, and monitoring evidence from the deployment journal.
+
 The production deployment script rejects EOA vesting beneficiaries by checking that both addresses
 already contain contract bytecode. Use deployed multisig or custody contracts and record their
 ownership/threshold evidence; the disposable local demo is the only path that intentionally permits

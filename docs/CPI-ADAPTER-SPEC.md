@@ -86,6 +86,10 @@ units, or value. It must not substitute the current block timestamp for a missin
 
 The deployment journal must name an owner for each assumption:
 
+Use the provider-neutral [`CPI source-policy record`](CPI-SOURCE-POLICY-TEMPLATE.md) as a
+copy-paste starting point for this evidence. It must be completed before granting the adapter's
+`UPDATER_ROLE` and linked from the deployment journal.
+
 | Boundary | Required control | Evidence to retain |
 | --- | --- | --- |
 | Source authenticity | Fetch only the documented official series over an authenticated transport or a reviewed oracle service. | Raw response, source URL, retrieval time, parser version, and hash. |

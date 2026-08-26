@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.169 - 2026-08-26
+
+- Added a provider-neutral CPI source-policy template covering source identity, value transformation,
+  parser evidence, revisions, signer custody, and operational review.
+- Linked the template from the adapter specification, operator runbook, deployment checklist, and README.
+
 ## 0.1.0-alpha.168 - 2026-08-26
 
 - Replenished the contributor funnel with two active, labeled starter issues and removed completed

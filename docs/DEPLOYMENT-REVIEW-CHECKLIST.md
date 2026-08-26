@@ -128,6 +128,10 @@ Evidence links:
 For a governed signed adapter, follow [`docs/CPI-ADAPTER-SPEC.md`](CPI-ADAPTER-SPEC.md) and retain
 the source-response hash and exact source evidence for each accepted report.
 
+Use the provider-neutral [`CPI source-policy record`](CPI-SOURCE-POLICY-TEMPLATE.md) to capture the
+source identity, value transformation, parser evidence, revision policy, signer custody, and
+operational contacts before the adapter receives `UPDATER_ROLE`.
+
 - [ ] Record the CPI source label, source series identity, publisher, update cadence, and fallback
       policy.
 - [ ] If an adapter is used, record its address, immutable PSM, source ID, owner/timelock, signer
