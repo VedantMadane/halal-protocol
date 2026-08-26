@@ -386,6 +386,10 @@ follow-up source correction in the governance proposal.
 
 Before voting or queueing a proposal, reviewers should:
 
+Use the [governance proposal review example](GOVERNANCE-PROPOSAL-REVIEW-EXAMPLE.md) as a fictional
+walkthrough of raw calldata, independent simulation, role impact, reserve impact, and timelock
+evidence. It includes an intentionally unsafe proposal that must be rejected.
+
 - decode every target, value, and calldata field;
 - compare the target and selector with the published contract source;
 - calculate reserve impact at the current and plausible future CPI rates;

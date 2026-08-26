@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.218 - 2026-08-26
+
+- Added a fictional governance proposal review case study with reproducible raw calldata, an unsafe
+  reserve-withdrawal comparison, and independent role, reserve, simulation, and timelock checks.
+- Closed #87 and replenished the contributor funnel with labeled decoder-fixture (#88) and governance
+  evidence-template (#89) starter tasks.
+
 ## 0.1.0-alpha.217 - 2026-08-26
 
 - Added a fictional stale-CPI incident-response tabletop showing detection, safe containment,

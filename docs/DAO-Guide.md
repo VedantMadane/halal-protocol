@@ -239,6 +239,9 @@ forge script script/Examples.s.sol:ExampleProposal_UpdateCPI \
 
 ## Voting Workflow
 
+For a concrete fictional review packet with raw calldata, reserve and role analysis, and evidence
+requirements, see the [governance proposal review example](GOVERNANCE-PROPOSAL-REVIEW-EXAMPLE.md).
+
 ### Phase 1: Voting Delay (1 block)
 - Proposal created at block N
 - Voting starts at block N+1

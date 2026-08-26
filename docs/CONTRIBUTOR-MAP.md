@@ -19,8 +19,13 @@ criteria, and a safe local verification path:
   rehearse detection, evidence preservation, governance response, and recovery verification for a
   fictional protocol incident; use the completed [`stale-CPI example`](INCIDENT-RESPONSE-TABLETOP-EXAMPLE.md)
   as a reference.
-- [Governance proposal review case study (#87)](https://github.com/fredrikblau/halal-protocol/issues/87) —
-  review fictional targets, selectors, role impact, reserve impact, and timelock evidence before execution.
+- [Governance calldata decoder fixtures (#88)](https://github.com/fredrikblau/halal-protocol/issues/88) —
+  add focused known-target, unknown-target, and malformed-calldata fixtures; explain why UI decoding
+  is not a safety or authorization check.
+- [Governance review evidence template (#89)](https://github.com/fredrikblau/halal-protocol/issues/89) —
+  add a copyable record for raw action arrays, role/reserve impact, vote, queue, and execution evidence.
+- The completed [governance proposal review case study (#87)](https://github.com/fredrikblau/halal-protocol/issues/87)
+  is available as the reference for both starter tasks.
 - The completed [machine-readable monitoring example](MONITORING-JSON-EXAMPLE.md) shows how to
   consume health JSON while preserving fail-closed exit behavior.
 - The completed [reserve-asset due-diligence example](RESERVE-ASSET-DUE-DILIGENCE-EXAMPLE.md)
