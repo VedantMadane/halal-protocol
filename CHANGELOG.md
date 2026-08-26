@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.150 - 2026-08-26
+
+- Added deterministic economic-model regression tests for exact CPI progression, reserve shortfall,
+  top-up behavior, and rejected unsafe inputs.
+
 ## 0.1.0-alpha.149 - 2026-08-26
 
 - Added pre-signing simulation for approval-based redeemable-credit transfers and claim retirement
