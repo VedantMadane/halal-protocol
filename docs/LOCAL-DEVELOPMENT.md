@@ -4,6 +4,9 @@ This walkthrough takes a clean checkout to a running Halal dApp on a disposable 
 It uses only local contracts, a faucet-backed `mDAI` reserve, and the published Anvil development
 mnemonic. Never point these commands at a public RPC or use the demo token as real collateral.
 
+If a prerequisite, port, or stale local configuration prevents the demo from starting, see the
+[local-demo troubleshooting guide](LOCAL-DEMO-TROUBLESHOOTING.md).
+
 ## Prerequisites
 
 Install:

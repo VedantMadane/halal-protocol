@@ -17,8 +17,9 @@ criteria, and a safe local verification path:
   browser tests proving unsafe swap parameters fail closed.
 - [Redeemable-credit browser coverage (#47)](https://github.com/fredrikblau/halal-protocol/issues/47) —
   end-to-end tests for transfer and claim retirement.
-- [Local-demo troubleshooting guide (#48)](https://github.com/fredrikblau/halal-protocol/issues/48) —
-  copy-paste recovery steps for first-time contributors.
+
+The completed [local-demo troubleshooting guide](LOCAL-DEMO-TROUBLESHOOTING.md) covers prerequisites,
+ports, stale configuration, cleanup, and expected success signals.
 
 The [deployment review worksheet (#42)](https://github.com/fredrikblau/halal-protocol/issues/42)
 is a completed example of the contribution standard above.
