@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.239 - 2026-08-26
+
+- Hardened the offline governance payload verifier against ambiguous policy definitions and invalid
+  ABI signatures, including duplicate case-variant targets/selectors and unsupported argument types.
+
 ## 0.1.0-alpha.238 - 2026-08-26
 
 - Hardened the offline governance payload verifier to validate canonical ABI argument encoding and

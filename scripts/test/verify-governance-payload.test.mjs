@@ -11,6 +11,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..")
 const SCRIPT = path.join(ROOT, "scripts/verify-governance-payload.mjs");
 const PSM = "0x3333333333333333333333333333333333333333";
 const ADAPTER = "0x2222222222222222222222222222222222222222";
+const CASE_TARGET = "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd";
 const POLICY = {
   targets: {
     [PSM]: {
@@ -77,6 +78,37 @@ test("rejects action-array mismatches and unsafe JSON numbers", () => {
   const result = verifyGovernancePayload({ targets: [PSM], values: [1], calldatas: [SOURCE] }, POLICY);
   assert.equal(result.authorized, false);
   assert.match(result.errors[0], /decimal string/);
+});
+
+test("rejects ambiguous or unsupported policy definitions", () => {
+  assert.throws(
+    () => verifyGovernancePayload(safeBundle(), {
+      targets: {
+        [CASE_TARGET]: POLICY.targets[PSM],
+        [`0x${CASE_TARGET.slice(2).toUpperCase()}`]: POLICY.targets[PSM],
+      },
+    }),
+    /Duplicate policy target/,
+  );
+  assert.throws(
+    () => verifyGovernancePayload(safeBundle(), {
+      targets: {
+        [PSM]: {
+          selectors: {
+            "0x2f2ff15d": "grantRole(bytes32,address)",
+            "0x2F2FF15D": "grantRole(bytes32,address)",
+          },
+        },
+      },
+    }),
+    /Duplicate policy selector/,
+  );
+  assert.throws(
+    () => verifyGovernancePayload(safeBundle(), {
+      targets: { [PSM]: { selectors: { "0x2f2ff15d": "grantRole(tuple,address)" } } },
+    }),
+    /unsupported ABI type/,
+  );
 });
 
 test("CLI returns non-zero for an unknown target and JSON diagnostics", () => {

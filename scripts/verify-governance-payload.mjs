@@ -51,6 +51,10 @@ function isDynamicType(type) {
   return type === "string" || type === "bytes";
 }
 
+function isSupportedAbiType(type) {
+  return /^(address|bool|bytes(?:[1-9]|[12][0-9]|3[0-2])|uint(?:8|16|32|64|128|256)?)$/.test(type) || isDynamicType(type);
+}
+
 function validateAbiEncoding(data, signature, index) {
   const types = parseSignature(signature);
   const args = data.slice(10);
@@ -122,13 +126,18 @@ function normalizePolicy(policy) {
   const normalized = new Map();
   for (const [address, rawTarget] of Object.entries(targets)) {
     const target = normalizeAddress(address, "policy target address");
+    if (normalized.has(target)) fail(`Duplicate policy target after address normalization: ${target}`);
     const config = readObject(rawTarget, `policy.targets.${address}`);
     const selectors = readObject(config.selectors, `policy.targets.${address}.selectors`);
     const allowedSelectors = new Map();
     for (const [rawSelector, signature] of Object.entries(selectors)) {
       if (!/^0x[0-9a-fA-F]{8}$/.test(rawSelector)) fail(`Invalid selector in policy for ${address}: ${rawSelector}`);
       if (typeof signature !== "string" || signature.trim() === "") fail(`Selector ${rawSelector} needs a function signature.`);
-      allowedSelectors.set(rawSelector.toLowerCase(), signature);
+      const normalizedSelector = rawSelector.toLowerCase();
+      if (allowedSelectors.has(normalizedSelector)) fail(`Duplicate policy selector after normalization: ${rawSelector}`);
+      const types = parseSignature(signature);
+      if (types.some((type) => !isSupportedAbiType(type))) fail(`Policy signature ${signature} contains an unsupported ABI type.`);
+      allowedSelectors.set(normalizedSelector, signature);
     }
     const maxValue = config.maxValue === undefined ? 0n : decimal(config.maxValue, `policy.targets.${address}.maxValue`);
     normalized.set(target, {
