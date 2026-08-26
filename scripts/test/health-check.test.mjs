@@ -145,6 +145,18 @@ test("standalone PSM health check reports a healthy fake-RPC state", () => {
   assert.match(result.output, /^status=healthy$/m);
 });
 
+test("configured CPI adapter rejects a changed PSM source label", () => {
+  const result = runPsmHealthWithFakeCast({
+    source: '"DIFFERENT-SOURCE"',
+    CPI_ADAPTER: "0x0000000000000000000000000000000000000004",
+    EXPECTED_CPI_ADAPTER_OWNER: "0x0000000000000000000000000000000000000002",
+    EXPECTED_CPI_SOURCE: "BLS-CPI",
+    EXPECTED_CPI_SOURCE_ID: `0x${"a".repeat(64)}`,
+  });
+  assert.notEqual(result.status, 0, result.output);
+  assert.match(result.output, /^reason=cpi_source_mismatch$/m);
+});
+
 test("standalone PSM health check reports stale CPI data", () => {
   const result = runPsmHealthWithFakeCast({ lastReportTimestamp: "700" });
   assert.notEqual(result.status, 0, result.output);

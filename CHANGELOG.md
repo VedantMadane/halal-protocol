@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.261 - 2026-08-27
+
+- Added direct monitoring regression coverage proving a configured CPI adapter becomes unhealthy
+  when the PSM's human-readable source label changes.
+
 ## 0.1.0-alpha.260 - 2026-08-27
 
 - Made the governed CPI source label a required, end-to-end deployment identity alongside the
