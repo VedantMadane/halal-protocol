@@ -690,6 +690,31 @@ contract HalalPSMTest is Deployers {
         assertEq(token.balanceOf(alice), 990e18);
     }
 
+    function test_RevertWhen_ReserveFeeChangesBeforeBoundedWithdrawal() public {
+        MockFeeOnTransferERC20 feeReserve = new MockFeeOnTransferERC20(0);
+        HalalPSM feePsm = new HalalPSM(address(feeReserve), address(token), address(timelock), address(0));
+        _grantPsmTokenRoles(feePsm);
+        _bootstrapPsm(feePsm);
+
+        feeReserve.mint(alice, 1_000e18);
+        vm.startPrank(alice);
+        feeReserve.approve(address(feePsm), 1_000e18);
+        feePsm.deposit(1_000e18);
+        token.approve(address(feePsm), 1_000e18);
+        vm.stopPrank();
+
+        // A fee policy change after quoting must not silently underpay the bounded withdrawal.
+        feeReserve.setFeeBps(100); // 1% recipient fee, now applied to outgoing transfers too.
+        feeReserve.mint(address(feePsm), 10e18); // cover the token's extra sender debit if execution succeeded.
+        vm.prank(alice);
+        vm.expectRevert(HalalPSM.SlippageExceeded.selector);
+        feePsm.withdrawWithMinReserveOut(1_000e18, 1_000e18);
+
+        assertEq(feePsm.totalHlcIssued(), 1_000e18);
+        assertEq(feePsm.redeemableBalance(alice), 1_000e18);
+        assertEq(feeReserve.balanceOf(address(feePsm)), 1_010e18);
+    }
+
     function test_RevertWhen_OutgoingReserveTransferWouldBreachFloor() public {
         MockOutgoingFeeERC20 outgoingFeeReserve = new MockOutgoingFeeERC20(100); // 1% extra debit
         HalalPSM outgoingFeePsm =

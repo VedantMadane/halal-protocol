@@ -37,7 +37,7 @@ Start with the [good first issues](https://github.com/fredrikblau/halal-protocol
   port, or stale local configuration blocks the demo.
 - Run `make verify` before opening a pull request.
 - Pick a bounded task from the [open good-first-issue list](https://github.com/fredrikblau/halal-protocol/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22),
-  such as [changing-fee reserve-token coverage](https://github.com/fredrikblau/halal-protocol/issues/82) or
+  such as [local deployment evidence documentation](https://github.com/fredrikblau/halal-protocol/issues/83) or
   [CPI source policy documentation](https://github.com/fredrikblau/halal-protocol/issues/80).
 - Help coordinate the first carefully gated [Arbitrum Sepolia deployment](https://github.com/fredrikblau/halal-protocol/issues/40).
 - Review the bounded [security challenge](https://github.com/fredrikblau/halal-protocol/issues/16) or
@@ -63,7 +63,7 @@ conservative accounting model:
 
 | Reviewer question | Evidence in this repository |
 | --- | --- |
-| Does the accounting have stateful coverage? | 190 Foundry tests, including 11 PSM invariants, differential arithmetic checks, and fuzzing |
+| Does the accounting have stateful coverage? | 191 Foundry tests, including 11 PSM invariants, differential arithmetic checks, and fuzzing |
 | Do invariants cover CPI changes? | [`docs/INVARIANTS.md`](docs/INVARIANTS.md) models governance rate changes and reserve top-ups |
 | Can a deployment be checked without a private key? | [`scripts/verify-deployment.sh`](scripts/verify-deployment.sh) |
 | Can I inspect the full system locally? | [`./scripts/local-demo.sh`](scripts/local-demo.sh) on a disposable Anvil chain |
@@ -100,7 +100,7 @@ discipline, not a safety guarantee.
 ## Status & risk
 
 **This protocol has not undergone a professional security audit, and there is no bug bounty
-program yet.** The contracts pass their own test suite (190/190 at the time of writing — 179 unit
+program yet.** The contracts pass their own test suite (191/191 at the time of writing — 180 unit
 and configuration tests plus 11 stateful invariants; see
 `contracts/test/`), but a passing test suite is not a substitute for an audit, and this repo
 should not be treated as safe to use with real, meaningful funds. If you deploy or interact with

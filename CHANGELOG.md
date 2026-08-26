@@ -2,17 +2,25 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.210 - 2026-08-26
+
+- Extended the reserve-token matrix with a configurable fee mock and a regression proving that a
+  fee change after deposit cannot silently underpay a bounded withdrawal.
+- Updated current documentation to the verified 191-test suite and recorded the operator-matrix
+  evidence for changing fee policies.
+- Replenished the contributor funnel with the labeled local deployment-evidence task in issue #83.
+
+## 0.1.0-alpha.209 - 2026-08-26
+
+- Refreshed the README and contributor map so the active changing-fee reserve-token starter task
+  (#82) is visible alongside the CPI source-policy task.
+
 ## 0.1.0-alpha.208 - 2026-08-26
 
 - Added a paused-reserve-token regression proving a failed withdrawal preserves HLC supply,
   redemption credit, and reserve accounting.
 - Expanded the operator compatibility matrix with the tested pause/freeze behavior and refreshed
   current documentation to the verified 190-test suite.
-
-## Unreleased
-
-- Refreshed the README and contributor map so the active changing-fee reserve-token starter task
-  (#82) is visible alongside the CPI source-policy task.
 
 ## 0.1.0-alpha.207 - 2026-08-26
 

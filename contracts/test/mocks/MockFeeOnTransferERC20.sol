@@ -6,7 +6,7 @@ import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 /// @notice Test-only reserve token that charges a fixed fee on transfers between users.
 /// It verifies that PSM quotes and bounded withdrawals account for the amount the recipient gets.
 contract MockFeeOnTransferERC20 is ERC20 {
-    uint256 public immutable feeBps;
+    uint256 public feeBps;
     address public immutable feeCollector;
 
     constructor(uint256 feeBps_) ERC20("Fee DAI", "fDAI") {
@@ -20,6 +20,10 @@ contract MockFeeOnTransferERC20 is ERC20 {
 
     function mint(address to, uint256 amount) external {
         _mint(to, amount);
+    }
+
+    function setFeeBps(uint256 newFeeBps) external {
+        feeBps = newFeeBps;
     }
 
     function _update(address from, address to, uint256 value) internal override {
