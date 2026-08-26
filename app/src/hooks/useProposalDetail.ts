@@ -49,7 +49,12 @@ export function useProposalDetail(proposalId: bigint | undefined) {
 
   // Quorum and the connected wallet's voting power are only well-defined once we have a
   // snapshot block/timepoint to evaluate them at (matches what castVote actually checks).
-  const { data: snapshotData } = useReadContracts({
+  const {
+    data: snapshotData,
+    isLoading: snapshotLoading,
+    isError: snapshotReadError,
+    error: snapshotError,
+  } = useReadContracts({
     contracts:
       deployment && snapshot !== undefined
         ? ([
@@ -78,9 +83,9 @@ export function useProposalDetail(proposalId: bigint | undefined) {
     proposalEta,
     quorumNeeded,
     votingPowerAtSnapshot,
-    isLoading,
-    isError: isError || readFailed,
-    error: error ?? (readFailed ? partialReadError() : undefined),
+    isLoading: isLoading || snapshotLoading,
+    isError: isError || snapshotReadError || readFailed,
+    error: error ?? snapshotError ?? (readFailed ? partialReadError() : undefined),
     refetch,
   };
 }

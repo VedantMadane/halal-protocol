@@ -37,7 +37,7 @@ Start with the [good first issues](https://github.com/fredrikblau/halal-protocol
   port, or stale local configuration blocks the demo.
 - Run `make verify` before opening a pull request.
 - Pick a bounded task from the [open good-first-issue list](https://github.com/fredrikblau/halal-protocol/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22),
-  such as [governance detail loading states](https://github.com/fredrikblau/halal-protocol/issues/73) or
+  such as [governance lifecycle documentation](https://github.com/fredrikblau/halal-protocol/issues/74) or
   [release verification documentation](https://github.com/fredrikblau/halal-protocol/issues/68).
 - Help coordinate the first carefully gated [Arbitrum Sepolia deployment](https://github.com/fredrikblau/halal-protocol/issues/40).
 - Review the bounded [security challenge](https://github.com/fredrikblau/halal-protocol/issues/16) or

@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.197 - 2026-08-26
+
+- Corrected proposal-detail status aggregation so secondary snapshot/quorum reads participate in
+  loading and failure state, with browser coverage proving incomplete live data cannot expose action controls.
+- Replenished the contributor funnel with the labeled governance lifecycle walkthrough in issue #74.
+
 ## 0.1.0-alpha.196 - 2026-08-26
 
 - Added required-description governance regression coverage, including disabled-submit and

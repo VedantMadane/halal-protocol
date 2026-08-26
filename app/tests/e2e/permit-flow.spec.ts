@@ -495,6 +495,48 @@ test("requires a description before enabling a CPI proposal", async ({ page }) =
   expect(await page.evaluate(() => (window as Window & { __lastTransaction?: unknown }).__lastTransaction)).toBeUndefined();
 });
 
+test("does not expose proposal actions when live detail reads fail", async ({ page }) => {
+  const env = readLocalEnv();
+  const daoAddress = env.NEXT_PUBLIC_HLC_DAO_31337.toLowerCase();
+  let blockLiveReads = false;
+  await page.route(/127\.0\.0\.1:18545/, async (route) => {
+    const request = route.request();
+    const body = request.postDataJSON() as { method?: string; params?: Array<{ to?: string }> };
+    const call = body.params?.[0];
+    if (blockLiveReads && body.method === "eth_call" && call?.to?.toLowerCase() === daoAddress) {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ jsonrpc: "2.0", id: 1, error: { code: -32000, message: "live state unavailable" } }),
+      });
+      return;
+    }
+    await route.continue();
+  });
+
+  await seedRedeemableHlc();
+  await delegateLocalVotingPower();
+  await installAnvilProvider(page);
+  await page.goto("/governance/new");
+  await connectBrowserWallet(page);
+  await expect(page.getByRole("heading", { name: "New Proposal" })).toBeVisible();
+  await page.locator("textarea").first().fill("E2E governance live-read failure proposal.");
+  await page.getByRole("button", { name: "Submit proposal" }).click();
+  await expect(page.getByText("Proposal created.")).toBeVisible();
+  await expect(page).toHaveURL(/\/governance$/, { timeout: 10_000 });
+  const proposalLink = page.getByText("E2E governance live-read failure proposal.", { exact: true });
+  await expect(proposalLink).toBeVisible();
+  blockLiveReads = true;
+  await proposalLink.click();
+
+  await expect(page.getByText("Couldn't load live proposal state")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Actions (1)" })).toBeVisible();
+  await expect(page.getByText("mockCPI", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "For" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Queue in timelock" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Execute" })).toHaveCount(0);
+});
+
 test("fails closed when reserve-token metadata cannot be read", async ({ page }) => {
   const env = readLocalEnv();
   const reserveAddress = env.NEXT_PUBLIC_HLC_RESERVE_TOKEN_31337.toLowerCase();
