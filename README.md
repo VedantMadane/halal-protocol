@@ -40,6 +40,7 @@ Start with the [good first issues](https://github.com/fredrikblau/halal-protocol
   such as [vesting beneficiary browser coverage](https://github.com/fredrikblau/halal-protocol/issues/50),
   [copyable deployment-health evidence](https://github.com/fredrikblau/halal-protocol/issues/51),
   or a [worked redeemable-credit example](https://github.com/fredrikblau/halal-protocol/issues/52).
+- For a deeper security-testing contribution, see [the adversarial reserve-token invariant task](https://github.com/fredrikblau/halal-protocol/issues/53).
 - Help coordinate the first carefully gated [Arbitrum Sepolia deployment](https://github.com/fredrikblau/halal-protocol/issues/40).
 - Review the bounded [security challenge](https://github.com/fredrikblau/halal-protocol/issues/16) or
   [production CPI adapter design](https://github.com/fredrikblau/halal-protocol/issues/17).

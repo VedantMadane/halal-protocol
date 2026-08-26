@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.160 - 2026-08-26
+
+- Added a deeper test-first contributor task for stateful PSM coverage across adversarial reserve
+  token behavior, and linked it from the public contributor guides.
+
 ## 0.1.0-alpha.159 - 2026-08-26
 
 - Replaced stale completed good-first-issue links with three active, bounded contributor tasks for

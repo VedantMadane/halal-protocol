@@ -23,6 +23,10 @@ criteria, and a safe local verification path:
 The completed [local-demo troubleshooting guide](LOCAL-DEMO-TROUBLESHOOTING.md) covers prerequisites,
 ports, stale configuration, cleanup, and expected success signals.
 
+For a deeper, test-first security contribution, see [adversarial reserve-token invariant coverage
+(#53)](https://github.com/fredrikblau/halal-protocol/issues/53). It is intentionally not marked as
+a good-first issue because it requires understanding the PSM accounting model and token fixtures.
+
 The [deployment review worksheet (#42)](https://github.com/fredrikblau/halal-protocol/issues/42)
 is a completed example of the contribution standard above.
 
