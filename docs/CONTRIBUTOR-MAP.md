@@ -13,8 +13,8 @@ operations. Report fund-risking findings through [`SECURITY.md`](../SECURITY.md)
 Choose the task that matches your interests; each issue includes a bounded scope, acceptance
 criteria, and a safe local verification path:
 
-- [Machine-readable deployment health (#58)](https://github.com/fredrikblau/halal-protocol/issues/58) —
-  a stable JSON mode for read-only operator checks, with shell tests and runbook documentation.
+- [Adversarial reserve-token matrix (#59)](https://github.com/fredrikblau/halal-protocol/issues/59) —
+  extend stateful PSM coverage to one carefully scoped unusual ERC-20 behavior.
 
 The completed [CPI source-policy template (#54)](https://github.com/fredrikblau/halal-protocol/issues/54)
 is available as a reference for the documentation standard, but is no longer an active starter task.
