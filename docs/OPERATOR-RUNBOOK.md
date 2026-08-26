@@ -19,6 +19,9 @@ Complete these checks before accepting a public deposit.
 
 Record the following in a deployment journal:
 
+Start from the copyable [`deployment journal template`](DEPLOYMENT-JOURNAL-TEMPLATE.md) and retain
+the completed record with the artifacts collected below.
+
 - chain name and chain ID;
 - reserve token address, symbol, decimals, and transfer behavior;
 - distinct team and treasury beneficiary contract addresses, neither equal to the deployer, with multisig ownership confirmed;

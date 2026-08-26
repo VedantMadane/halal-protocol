@@ -64,4 +64,5 @@ those overrides do not change the checked-in public registry.
 
 Do not add a deployment until the operator has recorded the chain ID, reserve-token due diligence,
 beneficiary review, source-verification links, verifier output, and first healthy CPI report in the
-deployment journal. A registry entry is a pointer to that evidence, not a substitute for it.
+[`deployment journal`](DEPLOYMENT-JOURNAL-TEMPLATE.md). A registry entry is a pointer to that
+evidence, not a substitute for it.
