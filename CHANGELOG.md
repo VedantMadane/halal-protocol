@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.216 - 2026-08-26
+
+- Added a dependency-free machine-readable health consumer with explicit healthy, unhealthy, and
+  invalid-schema exit codes, tests, and an operator integration example.
+- Replenished the contributor funnel with the labeled incident-response tabletop task in issue #86.
+
 ## 0.1.0-alpha.215 - 2026-08-26
 
 - Added a fictional, non-binding reserve-asset due-diligence example that separates observed facts,

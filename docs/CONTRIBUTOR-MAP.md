@@ -15,8 +15,11 @@ criteria, and a safe local verification path:
 
 - The completed [release verification walkthrough](RELEASE-VERIFICATION.md) is a reference for
   clean-checkout tag, artifact, ABI, local-gate, and hosted-check review.
-- [Machine-readable monitoring example (#85)](https://github.com/fredrikblau/halal-protocol/issues/85) —
-  show how to consume health JSON while preserving fail-closed exit behavior.
+- [Incident-response tabletop example (#86)](https://github.com/fredrikblau/halal-protocol/issues/86) —
+  rehearse detection, evidence preservation, governance response, and recovery verification for a
+  fictional protocol incident.
+- The completed [machine-readable monitoring example](MONITORING-JSON-EXAMPLE.md) shows how to
+  consume health JSON while preserving fail-closed exit behavior.
 - The completed [reserve-asset due-diligence example](RESERVE-ASSET-DUE-DILIGENCE-EXAMPLE.md)
   demonstrates how to separate observations, assumptions, residual risks, and decisions.
 - The completed [local deployment evidence example](LOCAL-DEPLOYMENT-EVIDENCE.md) shows how to

@@ -231,6 +231,9 @@ Also monitor these on-chain events and state changes:
 The health script is the minimum check. Pair it with event indexing and an explorer or archive RPC
 when monitoring a public deployment.
 
+See the dependency-free [machine-readable monitoring example](MONITORING-JSON-EXAMPLE.md) for a
+consumer that preserves the health command's exit status.
+
 ### 2.1 Cron or systemd health wrapper
 
 The health command already emits `key=value` records and returns nonzero when a deployment is
