@@ -495,6 +495,21 @@ test("requires a description before enabling a CPI proposal", async ({ page }) =
   expect(await page.evaluate(() => (window as Window & { __lastTransaction?: unknown }).__lastTransaction)).toBeUndefined();
 });
 
+test("blocks proposal submission below the voting-power threshold", async ({ page }) => {
+  await installAnvilProvider(page, LOCAL_CHAIN.id, ANVIL_SECOND_ACCOUNT);
+  await page.goto("/governance/new");
+  await connectBrowserWallet(page);
+
+  await expect(page.getByRole("heading", { name: "New Proposal" })).toBeVisible();
+  await expect(page.getByRole("alert").filter({ hasText: "Voting power below proposal threshold" })).toBeVisible();
+  await expect(page.getByText(/You have 0 HLC.*100 HLC is required/)).toBeVisible();
+  const submitButton = page.getByRole("button", { name: "Submit proposal" });
+  await expect(submitButton).toBeDisabled();
+  await page.getByRole("button", { name: "Advanced (raw calls)" }).click();
+  await expect(submitButton).toBeDisabled();
+  expect(await page.evaluate(() => (window as Window & { __lastTransaction?: unknown }).__lastTransaction)).toBeUndefined();
+});
+
 test("does not expose proposal actions when live detail reads fail", async ({ page }) => {
   const env = readLocalEnv();
   const daoAddress = env.NEXT_PUBLIC_HLC_DAO_31337.toLowerCase();

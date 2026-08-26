@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.199 - 2026-08-26
+
+- Added below-threshold governance browser coverage using an isolated wallet, proving both proposal
+  templates keep submission disabled and emit no transaction without 100 HLC of voting power.
+- Replenished the contributor funnel with the labeled valid-CPI-boundary task in issue #76.
+
 ## 0.1.0-alpha.198 - 2026-08-26
 
 - Added a source-verified governance lifecycle walkthrough with local dApp steps, exact Foundry
