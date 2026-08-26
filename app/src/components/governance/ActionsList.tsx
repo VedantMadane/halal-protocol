@@ -1,4 +1,4 @@
-import type { Address, Hex } from "viem";
+import type { Abi, Address, Hex } from "viem";
 import { summarizeProposalActions } from "@/lib/decodeProposalAction";
 import { formatUnits } from "viem";
 import { shortAddress } from "@/lib/format";
@@ -13,12 +13,14 @@ export function ActionsList({
   targets,
   values,
   calldatas,
+  knownAbis,
 }: {
   targets: readonly Address[];
   values: readonly bigint[];
   calldatas: readonly Hex[];
+  knownAbis?: ReadonlyMap<string, Abi>;
 }) {
-  const actions = summarizeProposalActions(targets, values, calldatas);
+  const actions = summarizeProposalActions(targets, values, calldatas, knownAbis);
 
   return (
     <ol className="space-y-3">

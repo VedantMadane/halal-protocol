@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.203 - 2026-08-26
+
+- Hardened governance action decoding to use the configured target contract ABI, preventing misleading
+  function labels for selectors sent to unrelated contracts.
+- Added browser coverage for known, unknown-target, and malformed-selector calldata fallbacks.
+- Replenished the contributor funnel with the labeled CPI source-policy task in issue #80.
+
 ## 0.1.0-alpha.202 - 2026-08-26
 
 - Added browser coverage proving advanced proposals preserve multiple actions, ordering, ETH values, and raw calldata.

@@ -1,4 +1,4 @@
-import { decodeFunctionData, type Address, type Hex } from "viem";
+import { decodeFunctionData, type Abi, type Address, type Hex } from "viem";
 import {
   halalPsmAbi,
   halalVestingAbi,
@@ -9,7 +9,7 @@ import {
   erc20Abi,
 } from "@/abis";
 
-const ALL_ABIS = [
+const ALL_ABIS: Abi[] = [
   halalPsmAbi,
   halalVestingAbi,
   halalTokenAbi,
@@ -25,14 +25,14 @@ export interface DecodedAction {
 }
 
 /**
- * Best-effort decode of a proposal's calldata against every known Halal contract ABI (there's no
- * on-chain registry mapping target address -> ABI, so this just tries each until one matches the
- * selector). Falls back to `undefined` for calldata that doesn't match anything we know about —
- * callers should show the raw hex in that case.
+ * Best-effort decode of a proposal's calldata. Callers that know the deployment should pass the
+ * ABI for the action's target; otherwise this tries every known ABI as a backwards-compatible
+ * generic helper. Falls back to `undefined` for calldata that doesn't match anything we know
+ * about — callers should show the raw hex in that case.
  */
-export function decodeProposalAction(data: Hex): DecodedAction | undefined {
+export function decodeProposalAction(data: Hex, abis: readonly Abi[] = ALL_ABIS): DecodedAction | undefined {
   if (!data || data === "0x") return undefined;
-  for (const abi of ALL_ABIS) {
+  for (const abi of abis) {
     try {
       const decoded = decodeFunctionData({ abi, data });
       return { functionName: decoded.functionName, args: (decoded.args ?? []) as readonly unknown[] };
@@ -54,11 +54,15 @@ export function summarizeProposalActions(
   targets: readonly Address[],
   values: readonly bigint[],
   calldatas: readonly Hex[],
+  knownAbis?: ReadonlyMap<string, Abi>,
 ): ProposalTargetSummary[] {
   return targets.map((target, i) => ({
     target,
     value: values[i] ?? 0n,
     calldata: calldatas[i] ?? "0x",
-    decoded: decodeProposalAction(calldatas[i] ?? "0x"),
+    decoded: decodeProposalAction(
+      calldatas[i] ?? "0x",
+      knownAbis ? (knownAbis.get(target.toLowerCase()) ? [knownAbis.get(target.toLowerCase()) as Abi] : []) : ALL_ABIS,
+    ),
   }));
 }

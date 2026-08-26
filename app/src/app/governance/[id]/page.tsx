@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useAccount } from "wagmi";
+import type { Abi } from "viem";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -18,6 +19,15 @@ import { useProposalEvent } from "@/hooks/useProposals";
 import { useProposalDetail } from "@/hooks/useProposalDetail";
 import { proposalStateBadgeClasses, proposalStateLabel } from "@/lib/proposalState";
 import { formatTokenGrouped, shortAddress, shortProposalId } from "@/lib/format";
+import {
+  cpiReportAdapterAbi,
+  erc20Abi,
+  halalDaoAbi,
+  halalPsmAbi,
+  halalTimelockAbi,
+  halalTokenAbi,
+  halalVestingAbi,
+} from "@/abis";
 
 function parseProposalId(raw: string | string[] | undefined): bigint | undefined {
   if (typeof raw !== "string") return undefined;
@@ -58,6 +68,16 @@ export default function ProposalDetailPage() {
   }
 
   const isLoading = isEventLoading || detail.isLoading;
+  const knownAbis = new Map<string, Abi>([
+    [deployment.token.toLowerCase(), halalTokenAbi],
+    [deployment.teamVesting.toLowerCase(), halalVestingAbi],
+    [deployment.treasuryVesting.toLowerCase(), halalVestingAbi],
+    [deployment.psm.toLowerCase(), halalPsmAbi],
+    [deployment.dao.toLowerCase(), halalDaoAbi],
+    [deployment.timelock.toLowerCase(), halalTimelockAbi],
+    [deployment.reserveToken.toLowerCase(), erc20Abi],
+    ...(deployment.cpiAdapter ? [[deployment.cpiAdapter.toLowerCase(), cpiReportAdapterAbi] as [string, Abi]] : []),
+  ]);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
@@ -110,7 +130,12 @@ export default function ProposalDetailPage() {
                   <CardTitle>Actions ({event.targets.length})</CardTitle>
                 </CardHeader>
                 <CardBody>
-                  <ActionsList targets={event.targets} values={event.values} calldatas={event.calldatas} />
+                    <ActionsList
+                      targets={event.targets}
+                      values={event.values}
+                      calldatas={event.calldatas}
+                      knownAbis={knownAbis}
+                    />
                 </CardBody>
               </Card>
             </div>

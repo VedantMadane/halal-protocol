@@ -1,6 +1,15 @@
 import { test, expect, type Page } from "@playwright/test";
 import { readFileSync } from "node:fs";
-import { createPublicClient, createTestClient, createWalletClient, http, parseSignature, parseUnits, recoverTypedDataAddress } from "viem";
+import {
+  createPublicClient,
+  createTestClient,
+  createWalletClient,
+  encodeFunctionData,
+  http,
+  parseSignature,
+  parseUnits,
+  recoverTypedDataAddress,
+} from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 
 const RPC_URL = "http://127.0.0.1:18545";
@@ -545,7 +554,8 @@ test("preserves ordered advanced multi-action governance payloads", async ({ pag
   await page.getByRole("button", { name: "+ Add action" }).click();
   await targets.nth(1).fill(env.NEXT_PUBLIC_HLC_DAO_31337);
   await values.nth(1).fill("1.5");
-  await calldatas.nth(1).fill("0xabcd");
+  const psmSelectorCalldata = encodeFunctionData({ abi: PSM_ABI, functionName: "mockCPI", args: [1_100_000n] });
+  await calldatas.nth(1).fill(psmSelectorCalldata);
   await page.getByPlaceholder("What does this proposal do, and why?").fill("E2E ordered multi-action governance payload.");
 
   const submitButton = page.getByRole("button", { name: "Submit proposal" });
@@ -572,7 +582,37 @@ test("preserves ordered advanced multi-action governance payloads", async ({ pag
   await expect(actions.nth(0)).toContainText("0x1234");
   await expect(actions.nth(1).getByTitle(env.NEXT_PUBLIC_HLC_DAO_31337)).toBeVisible();
   await expect(actions.nth(1)).toContainText("1.5 ETH value");
-  await expect(actions.nth(1)).toContainText("0xabcd");
+  await expect(actions.nth(1)).toContainText(psmSelectorCalldata);
+  await expect(actions.nth(1)).not.toContainText("mockCPI(");
+});
+
+test("keeps malformed known-selector calldata as raw governance data", async ({ page }) => {
+  const env = readLocalEnv();
+  await seedRedeemableHlc();
+  await delegateLocalVotingPower();
+  await installAnvilProvider(page);
+  await page.goto("/governance/new");
+  await connectBrowserWallet(page);
+
+  await expect(page.getByRole("heading", { name: "New Proposal" })).toBeVisible();
+  await page.getByRole("button", { name: "Advanced (raw calls)" }).click();
+  await page.getByPlaceholder("Target address (0x…)").fill(env.NEXT_PUBLIC_HLC_PSM_31337);
+  const completeCalldata = encodeFunctionData({ abi: PSM_ABI, functionName: "mockCPI", args: [1_100_000n] });
+  const truncatedCalldata = completeCalldata.slice(0, 10);
+  await page.getByPlaceholder("Calldata (0x…)").fill(truncatedCalldata);
+  await page.getByPlaceholder("What does this proposal do, and why?").fill("E2E malformed selector fallback.");
+
+  const submitButton = page.getByRole("button", { name: "Submit proposal" });
+  await expect(submitButton).toBeEnabled();
+  await submitButton.click();
+  await expect(page.getByText("Proposal created.")).toBeVisible();
+  await expect(page).toHaveURL(/\/governance$/, { timeout: 10_000 });
+  await page.getByText("E2E malformed selector fallback.", { exact: true }).click();
+
+  await expect(page.getByRole("heading", { name: "Actions (1)" })).toBeVisible();
+  const action = page.locator("ol > li").first();
+  await expect(action).toContainText(truncatedCalldata);
+  await expect(action).not.toContainText("mockCPI(");
 });
 
 test("keeps invalid CPI template rates from reaching the wallet", async ({ page }) => {

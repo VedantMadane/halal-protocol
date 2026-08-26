@@ -15,8 +15,8 @@ criteria, and a safe local verification path:
 
 - [Release verification walkthrough (#68)](https://github.com/fredrikblau/halal-protocol/issues/68) —
   document clean-checkout verification of release tags, artifacts, ABIs, and hosted checks.
-- [Governance action-decoder coverage (#79)](https://github.com/fredrikblau/halal-protocol/issues/79) —
-  add deterministic tests for known selectors, unknown selectors, and malformed calldata display.
+- [CPI source policy documentation (#80)](https://github.com/fredrikblau/halal-protocol/issues/80) —
+  document how operators record source identity, cadence, custody, and fallback decisions.
 
 The completed [CPI source-policy template (#54)](https://github.com/fredrikblau/halal-protocol/issues/54)
 is available as a reference for the documentation standard, but is no longer an active starter task.
