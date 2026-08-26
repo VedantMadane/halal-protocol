@@ -3,8 +3,9 @@ set -euo pipefail
 
 # Read-only post-deployment verifier. Required: RPC_URL, EXPECTED_CHAIN_ID, TIMELOCK, TOKEN,
 # TEAM_VESTING, TREASURY_VESTING, DAO, PSM, RESERVE_TOKEN, TEAM_BENEFICIARY, TREASURY_BENEFICIARY,
-# and DEPLOYER_ADDRESS. Optional: CPI_UPDATER and ALLOW_DEPLOYER_BENEFICIARY=true for the
-# disposable local demo only.
+# and DEPLOYER_ADDRESS. Optional: CPI_UPDATER, CPI_ADAPTER, and EXPECTED_CPI_SOURCE_ID. The
+# adapter metadata is verified against the PSM and timelock when supplied. ALLOW_DEPLOYER_BENEFICIARY=true
+# is for the disposable local demo only.
 
 required_vars=(
   RPC_URL EXPECTED_CHAIN_ID TIMELOCK TOKEN TEAM_VESTING TREASURY_VESTING DAO PSM RESERVE_TOKEN
@@ -26,7 +27,7 @@ call() {
 }
 
 address_call() {
-  call "$1" "$2" | tr '[:upper:]' '[:lower:]'
+  call "$@" | tr '[:upper:]' '[:lower:]'
 }
 
 expect_equal() {
@@ -80,6 +81,29 @@ RESERVE_TOKEN="${RESERVE_TOKEN,,}"
 TEAM_BENEFICIARY="${TEAM_BENEFICIARY,,}"
 TREASURY_BENEFICIARY="${TREASURY_BENEFICIARY,,}"
 DEPLOYER_ADDRESS="${DEPLOYER_ADDRESS,,}"
+
+if [[ -n "${CPI_ADAPTER:-}" || -n "${EXPECTED_CPI_SOURCE_ID:-}" ]]; then
+  if [[ -z "${CPI_ADAPTER:-}" || -z "${EXPECTED_CPI_SOURCE_ID:-}" ]]; then
+    echo "CPI_ADAPTER and EXPECTED_CPI_SOURCE_ID must be provided together" >&2
+    exit 1
+  fi
+  if [[ ! "$CPI_ADAPTER" =~ ^0x[0-9a-fA-F]{40}$ || "$CPI_ADAPTER" =~ ^0x0{40}$ ]]; then
+    echo "CPI_ADAPTER must be a non-zero Ethereum address" >&2
+    exit 1
+  fi
+  if [[ ! "$EXPECTED_CPI_SOURCE_ID" =~ ^0x[0-9a-fA-F]{64}$ || "$EXPECTED_CPI_SOURCE_ID" =~ ^0x0{64}$ ]]; then
+    echo "EXPECTED_CPI_SOURCE_ID must be a non-zero bytes32 value" >&2
+    exit 1
+  fi
+  EXPECTED_CPI_ADAPTER_OWNER="${EXPECTED_CPI_ADAPTER_OWNER:-$TIMELOCK}"
+  if [[ ! "$EXPECTED_CPI_ADAPTER_OWNER" =~ ^0x[0-9a-fA-F]{40}$ || "$EXPECTED_CPI_ADAPTER_OWNER" =~ ^0x0{40}$ ]]; then
+    echo "EXPECTED_CPI_ADAPTER_OWNER must be a non-zero Ethereum address" >&2
+    exit 1
+  fi
+  CPI_ADAPTER="${CPI_ADAPTER,,}"
+  EXPECTED_CPI_SOURCE_ID="${EXPECTED_CPI_SOURCE_ID,,}"
+  EXPECTED_CPI_ADAPTER_OWNER="${EXPECTED_CPI_ADAPTER_OWNER,,}"
+fi
 
 if [[ "${ALLOW_DEPLOYER_BENEFICIARY:-false}" != "true" && "${ALLOW_DEPLOYER_BENEFICIARY:-false}" != "false" ]]; then
   echo "ALLOW_DEPLOYER_BENEFICIARY must be true or false" >&2
@@ -150,6 +174,38 @@ expect_true "timelock has open executor role" "$(call "$TIMELOCK" 'hasRole(bytes
 if [[ -n "${CPI_UPDATER:-}" ]]; then
   CPI_UPDATER="${CPI_UPDATER,,}"
   expect_true "configured CPI updater role" "$(call "$PSM" 'hasRole(bytes32,address)(bool)' "$psm_updater_role" "$CPI_UPDATER")"
+fi
+
+if [[ -n "${CPI_ADAPTER:-}" ]]; then
+  expect_contract "CPI adapter" "$CPI_ADAPTER"
+  expect_equal "CPI adapter PSM" "$(address_call "$CPI_ADAPTER" 'psm()(address)')" "$PSM"
+  expect_equal "CPI adapter owner" "$(address_call "$CPI_ADAPTER" 'owner()(address)')" "$EXPECTED_CPI_ADAPTER_OWNER"
+  expect_equal "CPI adapter source ID" "$(address_call "$CPI_ADAPTER" 'sourceId()(bytes32)')" "$EXPECTED_CPI_SOURCE_ID"
+  expect_true "PSM has CPI adapter updater role" "$(call "$PSM" 'hasRole(bytes32,address)(bool)' "$psm_updater_role" "$CPI_ADAPTER")"
+
+  adapter_threshold="$(call "$CPI_ADAPTER" 'threshold()(uint256)')"
+  adapter_signer_count="$(call "$CPI_ADAPTER" 'signerCount()(uint256)')"
+  expect_positive "CPI adapter threshold" "$adapter_threshold"
+  expect_positive "CPI adapter signer count" "$adapter_signer_count"
+  if (( adapter_threshold > adapter_signer_count )); then
+    echo "FAILED: CPI adapter threshold exceeds signer count" >&2
+    exit 1
+  fi
+  adapter_signers=()
+  for (( signer_index = 0; signer_index < adapter_signer_count; signer_index++ )); do
+    signer_address="$(address_call "$CPI_ADAPTER" 'signerAt(uint256)(address)' "$signer_index")"
+    adapter_signers+=("$signer_address")
+    if [[ "$signer_address" == "$EXPECTED_CPI_ADAPTER_OWNER" ]]; then
+      echo "FAILED: CPI adapter signer overlaps the owner" >&2
+      exit 1
+    fi
+    for (( previous_index = 0; previous_index < signer_index; previous_index++ )); do
+      if [[ "$signer_address" == "${adapter_signers[$previous_index]}" ]]; then
+        echo "FAILED: CPI adapter signer set contains a duplicate" >&2
+        exit 1
+      fi
+    done
+  done
 fi
 
 expect_equal "deployer HLC minter role" "$(call "$TOKEN" 'hasRole(bytes32,address)(bool)' "$minter_role" "$DEPLOYER_ADDRESS")" "false"

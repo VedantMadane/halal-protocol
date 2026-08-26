@@ -1,0 +1,107 @@
+import assert from "node:assert/strict";
+import { chmodSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import test from "node:test";
+
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+const VERIFIER = path.join(ROOT, "scripts/verify-deployment.sh");
+const ADDRESSES = {
+  timelock: "0x0000000000000000000000000000000000000001",
+  token: "0x0000000000000000000000000000000000000002",
+  teamVesting: "0x0000000000000000000000000000000000000003",
+  treasuryVesting: "0x0000000000000000000000000000000000000004",
+  dao: "0x0000000000000000000000000000000000000005",
+  psm: "0x0000000000000000000000000000000000000006",
+  reserve: "0x0000000000000000000000000000000000000007",
+  adapter: "0x0000000000000000000000000000000000000008",
+  teamBeneficiary: "0x0000000000000000000000000000000000000009",
+  treasuryBeneficiary: "0x000000000000000000000000000000000000000a",
+  deployer: "0x000000000000000000000000000000000000000b",
+  signerOne: "0x000000000000000000000000000000000000000c",
+  signerTwo: "0x000000000000000000000000000000000000000d",
+};
+const SOURCE_ID = `0x${"a".repeat(64)}`;
+
+function fakeCastScript() {
+  return `#!/usr/bin/env bash
+set -euo pipefail
+case "$1" in
+  chain-id) echo 421614 ;;
+  code) echo 0x1234 ;;
+  call)
+    target="$2"
+    signature="$3"
+    case "$signature" in
+      'reserve()('* ) echo ${ADDRESSES.reserve} ;;
+      'hlc()('* ) echo ${ADDRESSES.token} ;;
+      'token()('* ) echo ${ADDRESSES.token} ;;
+      'dao()('* ) echo ${ADDRESSES.timelock} ;;
+      'timelock()('* ) echo ${ADDRESSES.timelock} ;;
+      'getMinDelay()('* ) echo 172800 ;;
+      'genesisMinted()('* ) echo true ;;
+      'TEAM_ALLOCATION()('* ) echo 6000000000000000000000000 ;;
+      'TREASURY_ALLOCATION()('* ) echo 4000000000000000000000000 ;;
+      'totalAllocation()('* ) [[ "$target" == "${ADDRESSES.teamVesting}" ]] && echo 6000000000000000000000000 || echo 4000000000000000000000000 ;;
+      'cliff()('* ) [[ "$target" == "${ADDRESSES.teamVesting}" ]] && echo 31536000 || echo 0 ;;
+      'duration()('* ) [[ "$target" == "${ADDRESSES.teamVesting}" ]] && echo 126144000 || echo 94608000 ;;
+      'revocable()('* ) [[ "$target" == "${ADDRESSES.teamVesting}" ]] && echo true || echo false ;;
+      'beneficiary()('* ) [[ "$target" == "${ADDRESSES.teamVesting}" ]] && echo ${ADDRESSES.teamBeneficiary} || echo ${ADDRESSES.treasuryBeneficiary} ;;
+      'MINTER_ROLE()('*|'BURNER_ROLE()('*|'DEFAULT_ADMIN_ROLE()('*|'PROPOSER_ROLE()('*|'EXECUTOR_ROLE()('*|'PARAM_ROLE()('*|'UPDATER_ROLE()('* ) echo 0x$(printf '0%.0s' {1..64}) ;;
+      hasRole*)
+        [[ " $* " == *" ${ADDRESSES.deployer} "* ]] && echo false || echo true ;;
+      'psm()('* ) echo ${ADDRESSES.psm} ;;
+      'owner()('* ) echo ${ADDRESSES.timelock} ;;
+      'sourceId()('* ) echo ${SOURCE_ID} ;;
+      'threshold()('* ) echo 2 ;;
+      'signerCount()('* ) echo 2 ;;
+      signerAt*) [[ "$4" == 0 ]] && echo ${ADDRESSES.signerOne} || echo ${ADDRESSES.signerTwo} ;;
+      *) echo "unexpected fake cast call: $*" >&2; exit 1 ;;
+    esac
+    ;;
+  *) echo "unexpected fake cast command: $*" >&2; exit 1 ;;
+esac
+`;
+}
+
+function runVerifier(withAdapter) {
+  const directory = mkdtempSync(path.join(tmpdir(), "halal-deployment-verifier-"));
+  const fakeCast = path.join(directory, "cast");
+  writeFileSync(fakeCast, fakeCastScript());
+  chmodSync(fakeCast, 0o755);
+  const env = {
+    ...process.env,
+    PATH: `${directory}:${process.env.PATH}`,
+    RPC_URL: "http://fake-rpc.invalid",
+    EXPECTED_CHAIN_ID: "421614",
+    TIMELOCK: ADDRESSES.timelock,
+    TOKEN: ADDRESSES.token,
+    TEAM_VESTING: ADDRESSES.teamVesting,
+    TREASURY_VESTING: ADDRESSES.treasuryVesting,
+    DAO: ADDRESSES.dao,
+    PSM: ADDRESSES.psm,
+    RESERVE_TOKEN: ADDRESSES.reserve,
+    TEAM_BENEFICIARY: ADDRESSES.teamBeneficiary,
+    TREASURY_BENEFICIARY: ADDRESSES.treasuryBeneficiary,
+    DEPLOYER_ADDRESS: ADDRESSES.deployer,
+    ...(withAdapter ? { CPI_ADAPTER: ADDRESSES.adapter, EXPECTED_CPI_SOURCE_ID: SOURCE_ID } : {}),
+  };
+  try {
+    return spawnSync("bash", [VERIFIER], { cwd: ROOT, env, encoding: "utf8" });
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+}
+
+test("deployment verifier checks governed CPI adapter metadata", () => {
+  const result = runVerifier(true);
+  assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
+  assert.match(result.stdout, /Halal deployment wiring verified/);
+});
+
+test("deployment verifier keeps the core path valid without an adapter", () => {
+  const result = runVerifier(false);
+  assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
+});
