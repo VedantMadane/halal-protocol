@@ -390,6 +390,9 @@ that submits or executes the proposal.
 
 ## 5. Incident response
 
+For a structured rehearsal, copy the [protocol incident tabletop worksheet](INCIDENT-TABLETOP-WORKSHEET.md)
+and run it against a disposable or testnet deployment before accepting meaningful funds.
+
 ### Missing or stale CPI report
 
 1. Confirm the alert against a second RPC or explorer.

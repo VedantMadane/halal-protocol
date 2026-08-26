@@ -102,6 +102,7 @@ Complete and link [`CPI-SOURCE-POLICY-TEMPLATE.md`](CPI-SOURCE-POLICY-TEMPLATE.m
 - [ ] Alerts cover reserve deficit, stale/missing CPI, overdue cadence, role changes, adapter
       mismatch, governance actions, and reserve-token pause/blacklist/upgrade events.
 - [ ] An on-call owner, escalation path, and incident-response location are recorded.
+- [ ] A tabletop rehearsal is scheduled or linked using [`INCIDENT-TABLETOP-WORKSHEET.md`](INCIDENT-TABLETOP-WORKSHEET.md).
 
 ```text
 Health command and commit:

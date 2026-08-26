@@ -156,6 +156,8 @@ walkthrough, and the exact API surface — see:
   deployment addresses without copying unverified values into a frontend environment.
 - [`docs/DEPLOYMENT-JOURNAL-TEMPLATE.md`](docs/DEPLOYMENT-JOURNAL-TEMPLATE.md) — a copyable evidence
   record joining deployment, reserve, CPI, health, monitoring, and final decision review.
+- [`docs/INCIDENT-TABLETOP-WORKSHEET.md`](docs/INCIDENT-TABLETOP-WORKSHEET.md) — a safe rehearsal
+  worksheet for operational failures and recovery evidence.
 - [`docs/CONTRIBUTOR-MAP.md`](docs/CONTRIBUTOR-MAP.md) — concrete contribution paths for security,
   oracle integrations, monitoring, economics, governance, dApp UX, and documentation.
 - [`docs/LOCAL-CPI-REPORT-WALKTHROUGH.md`](docs/LOCAL-CPI-REPORT-WALKTHROUGH.md) — copy-paste local
