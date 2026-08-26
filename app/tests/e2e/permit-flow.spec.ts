@@ -246,6 +246,16 @@ async function installAnvilProvider(
   }, { rpcUrl: RPC_URL, account, chainId, switchError });
 }
 
+async function connectBrowserWallet(page: Page) {
+  const connectButton = page.getByTestId("rk-connect-button");
+  if (await connectButton.count()) await connectButton.click();
+  const browserWallet = page.getByTestId("rk-wallet-option-injected");
+  if (await browserWallet.count()) {
+    await expect(browserWallet).toBeVisible();
+    await browserWallet.dispatchEvent("click");
+  }
+}
+
 test("renders deployment health without a wallet provider", async ({ page }) => {
   await page.goto("/health");
 
@@ -297,11 +307,7 @@ test("explains a supported network with no configured deployment", async ({ page
 test("blocks an unsupported wallet network before signing", async ({ page }) => {
   await installAnvilProvider(page, 1);
   await page.goto("/psm");
-
-  const connectButton = page.getByTestId("rk-connect-button");
-  if (await connectButton.count()) await connectButton.click();
-  const browserWallet = page.getByRole("button", { name: "Browser Wallet" });
-  if (await browserWallet.count()) await browserWallet.click();
+  await connectBrowserWallet(page);
 
   await expect(page.getByRole("heading", { name: "Unsupported network" })).toBeVisible();
   await expect(page.getByText(/Your wallet is connected to a network Halal doesn.t support/)).toBeVisible();
@@ -330,10 +336,7 @@ test("recovers safely across wallet network changes", async ({ page }) => {
 test("keeps unsupported state when the wallet rejects a network switch", async ({ page }) => {
   await installAnvilProvider(page, LOCAL_CHAIN.id, ANVIL_ACCOUNT, "User rejected the network switch request");
   await page.goto("/psm");
-  const connectButton = page.getByTestId("rk-connect-button");
-  if (await connectButton.count()) await connectButton.click();
-  const browserWallet = page.getByRole("button", { name: "Browser Wallet" });
-  if (await browserWallet.count()) await browserWallet.click();
+  await connectBrowserWallet(page);
   await expect(page.getByRole("heading", { name: "Swap", exact: true })).toBeVisible();
 
   await page.evaluate(() => (window as unknown as { __setAnvilChain: (chainId: number) => void }).__setAnvilChain(1));
@@ -366,10 +369,7 @@ test("moves the vesting beneficiary only after the proposed address accepts", as
   const secondPage = await secondContext.newPage();
   await installAnvilProvider(secondPage, LOCAL_CHAIN.id, ANVIL_SECOND_ACCOUNT);
   await secondPage.goto("/vesting");
-  const secondConnectButton = secondPage.getByTestId("rk-connect-button");
-  if (await secondConnectButton.count()) await secondConnectButton.click();
-  const secondBrowserWallet = secondPage.getByRole("button", { name: "Browser Wallet" });
-  if (await secondBrowserWallet.count()) await secondBrowserWallet.click();
+  await connectBrowserWallet(secondPage);
   await expect(secondPage.getByRole("heading", { name: "Vesting", exact: true })).toBeVisible();
   const secondTeamCard = secondPage.getByText("Team Vesting", { exact: true }).locator("..").locator("..");
   await expect(secondTeamCard.getByRole("button", { name: "Accept beneficiary transfer" })).toBeVisible();
@@ -445,6 +445,33 @@ test("creates a valid CPI governance proposal from the template", async ({ page 
   await expect(page.getByText("mockCPI", { exact: true })).toBeVisible();
   await expect(page.getByTitle(env.NEXT_PUBLIC_HLC_PSM_31337)).toBeVisible();
   expect(await page.evaluate(() => (window as Window & { __lastTransaction?: unknown }).__lastTransaction)).toBeTruthy();
+});
+
+test("keeps invalid CPI template rates from reaching the wallet", async ({ page }) => {
+  await installAnvilProvider(page);
+  await page.goto("/governance/new");
+
+  const connectButton = page.getByTestId("rk-connect-button");
+  if (await connectButton.count()) await connectButton.click();
+  await expect(page.getByRole("button", { name: /0xf3.*2266/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "New Proposal" })).toBeVisible();
+
+  const rateInput = page.locator("input").first();
+  const submitButton = page.getByRole("button", { name: "Submit proposal" });
+  const invalidCases = [
+    { value: "", message: "Enter a valid rate." },
+    { value: "not-a-rate", message: "Enter a valid rate with at most 6 decimal places." },
+    { value: "0.09", message: "Rate must be between 0.1 and 2.0." },
+    { value: "2.01", message: "Rate must be between 0.1 and 2.0." },
+    { value: "1.1234567", message: "Enter a valid rate with at most 6 decimal places." },
+  ];
+
+  for (const invalidCase of invalidCases) {
+    await rateInput.fill(invalidCase.value);
+    await expect(page.getByText(invalidCase.message, { exact: true })).toBeVisible();
+    await expect(submitButton).toBeDisabled();
+    expect(await page.evaluate(() => (window as Window & { __lastTransaction?: unknown }).__lastTransaction)).toBeUndefined();
+  }
 });
 
 test("fails closed when reserve-token metadata cannot be read", async ({ page }) => {

@@ -54,14 +54,18 @@ function buildProposalPayload(
   if (!deployment) return EMPTY_PAYLOAD("");
 
   if (template === "cpi") {
-    if (!cpiRateInput.trim()) {
+    const trimmedRate = cpiRateInput.trim();
+    if (!trimmedRate) {
       return EMPTY_PAYLOAD(cpiDescription, "Enter a valid rate.");
+    }
+    if (!/^\d+(?:\.\d{1,6})?$/.test(trimmedRate)) {
+      return EMPTY_PAYLOAD(cpiDescription, "Enter a valid rate with at most 6 decimal places.");
     }
 
     let scaled: bigint;
     try {
       // CPI_PRECISION is 1e6, so parse the user input directly as a six-decimal fixed-point value.
-      scaled = parseUnits(cpiRateInput, 6);
+      scaled = parseUnits(trimmedRate, 6);
     } catch {
       return EMPTY_PAYLOAD(cpiDescription, "Enter a valid rate with at most 6 decimal places.");
     }

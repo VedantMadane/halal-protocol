@@ -37,7 +37,9 @@ export function NotDeployedState() {
               Switch to Arbitrum Sepolia
             </Button>
             {switchChain.isError && (
-              <p className="max-w-md text-xs text-danger">{getFriendlyErrorMessage(switchChain.error)}</p>
+              <p className="max-w-md text-xs text-danger">
+                {getFriendlyErrorMessage(switchChain.error, "networkSwitch")}
+              </p>
             )}
           </div>
         }

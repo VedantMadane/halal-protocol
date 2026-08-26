@@ -45,7 +45,20 @@ const KNOWN_ERRORS: Record<string, string> = {
  * Converts a wagmi/viem write or simulate error into a short, plain-language message safe to
  * show directly to end users. Falls back to viem's own short message, then a generic string.
  */
-export function getFriendlyErrorMessage(error: unknown): string {
+export function getFriendlyErrorMessage(error: unknown, context?: "networkSwitch"): string {
+  const isNetworkSwitchError = (message: string) => {
+    const normalized = message.toLowerCase();
+    return (
+      normalized.includes("switch chain") ||
+      normalized.includes("network switch") ||
+      normalized.includes("switchethereumchain")
+    );
+  };
+
+  if (context === "networkSwitch") {
+    return "Your wallet did not switch networks. Approve the request or switch networks manually.";
+  }
+
   if (error instanceof BaseError) {
     const revertError = error.walk((e) => e instanceof ContractFunctionRevertedError);
     if (revertError instanceof ContractFunctionRevertedError) {
@@ -55,7 +68,7 @@ export function getFriendlyErrorMessage(error: unknown): string {
       if (revertError.reason) return `Transaction reverted: ${revertError.reason}.`;
     }
 
-    if (error.shortMessage?.toLowerCase().includes("switch chain")) {
+    if (isNetworkSwitchError(error.shortMessage ?? "")) {
       return "Your wallet did not switch networks. Approve the request or switch networks manually.";
     }
     if (error.shortMessage?.toLowerCase().includes("user rejected")) {
@@ -68,7 +81,7 @@ export function getFriendlyErrorMessage(error: unknown): string {
   }
 
   if (error instanceof Error) {
-    if (error.message.toLowerCase().includes("switch chain")) {
+    if (isNetworkSwitchError(error.message)) {
       return "Your wallet did not switch networks. Approve the request or switch networks manually.";
     }
     return error.message;

@@ -15,6 +15,8 @@ criteria, and a safe local verification path:
 
 - [Release verification walkthrough (#68)](https://github.com/fredrikblau/halal-protocol/issues/68) —
   document clean-checkout verification of release tags, artifacts, ABIs, and hosted checks.
+- [Governance description validation (#72)](https://github.com/fredrikblau/halal-protocol/issues/72) —
+  add a deterministic browser test for required proposal descriptions and submit-button gating.
 
 The completed [CPI source-policy template (#54)](https://github.com/fredrikblau/halal-protocol/issues/54)
 is available as a reference for the documentation standard, but is no longer an active starter task.

@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.195 - 2026-08-26
+
+- Hardened the CPI governance form against over-precision input that `parseUnits` would otherwise
+  round, and added browser coverage for every invalid rate boundary with no-wallet-submit checks.
+- Stabilized the injected-wallet browser fixture and made network-switch errors contextual so wallet
+  rejection guidance remains actionable across provider implementations.
+- Replenished the contributor funnel with issue #72 after completing the previous validation task.
+
 ## 0.1.0-alpha.194 - 2026-08-26
 
 - Added a disposable-Anvil browser regression for creating a valid CPI governance proposal,
