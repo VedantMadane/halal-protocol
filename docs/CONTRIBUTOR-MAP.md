@@ -39,6 +39,10 @@ criteria, and a safe local verification path:
   demonstrates how to separate observations, assumptions, residual risks, and decisions.
 - The completed [local deployment evidence example](LOCAL-DEPLOYMENT-EVIDENCE.md) shows how to
   record safe Anvil-only wiring and health rehearsals.
+- [Deployment manifest source-label round trip (#100)](https://github.com/fredrikblau/halal-protocol/issues/100) —
+  add an offline recorder-to-registry regression test; no RPC, wallet, signing, or deployment is needed.
+- [CPI source-label reviewer checklist (#101)](https://github.com/fredrikblau/halal-protocol/issues/101) —
+  add a concise checklist connecting the PSM label, adapter source ID, policy record, and deployment evidence.
 - [CPI source policy documentation (#80)](https://github.com/fredrikblau/halal-protocol/issues/80) —
   document how operators record source identity, cadence, custody, and fallback decisions.
 - [First Arbitrum Sepolia reference deployment (#40)](https://github.com/fredrikblau/halal-protocol/issues/40) —
