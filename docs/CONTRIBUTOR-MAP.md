@@ -13,8 +13,8 @@ operations. Report fund-risking findings through [`SECURITY.md`](../SECURITY.md)
 Choose the task that matches your interests; each issue includes a bounded scope, acceptance
 criteria, and a safe local verification path:
 
-- [Adversarial reserve-token matrix (#59)](https://github.com/fredrikblau/halal-protocol/issues/59) —
-  extend stateful PSM coverage to one carefully scoped unusual ERC-20 behavior.
+- [Reserve-asset due-diligence checklist (#60)](https://github.com/fredrikblau/halal-protocol/issues/60) —
+  document a repeatable, evidence-based review for candidate reserve ERC-20 assets.
 
 The completed [CPI source-policy template (#54)](https://github.com/fredrikblau/halal-protocol/issues/54)
 is available as a reference for the documentation standard, but is no longer an active starter task.
