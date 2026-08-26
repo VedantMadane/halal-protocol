@@ -13,8 +13,8 @@ operations. Report fund-risking findings through [`SECURITY.md`](../SECURITY.md)
 Choose the task that matches your interests; each issue includes a bounded scope, acceptance
 criteria, and a safe local verification path:
 
-- [Release verification walkthrough (#68)](https://github.com/fredrikblau/halal-protocol/issues/68) —
-  document clean-checkout verification of release tags, artifacts, ABIs, and hosted checks.
+- The completed [release verification walkthrough](RELEASE-VERIFICATION.md) is a reference for
+  clean-checkout tag, artifact, ABI, local-gate, and hosted-check review.
 - [CPI source policy documentation (#80)](https://github.com/fredrikblau/halal-protocol/issues/80) —
   document how operators record source identity, cadence, custody, and fallback decisions.
 

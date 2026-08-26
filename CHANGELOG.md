@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.206 - 2026-08-26
+
+- Added a clean-clone release verification walkthrough covering tag identity, source-bundle checksums,
+  attestations, local gates, deterministic ABIs, hosted checks, and safe review records.
+- Linked the walkthrough from contributor guidance and the deployment/release review path.
+
 ## 0.1.0-alpha.205 - 2026-08-26
 
 - Added a source-linked BLS CPI-U policy draft with reproducible scaling, timestamp, archive, and
