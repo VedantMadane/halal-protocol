@@ -13,10 +13,12 @@ operations. Report fund-risking findings through [`SECURITY.md`](../SECURITY.md)
 Choose the task that matches your interests; each issue includes a bounded scope, acceptance
 criteria, and a safe local verification path:
 
-- [Swap slippage and deadline safety coverage (#45)](https://github.com/fredrikblau/halal-protocol/issues/45) —
-  browser tests proving unsafe swap parameters fail closed.
-- [Redeemable-credit browser coverage (#47)](https://github.com/fredrikblau/halal-protocol/issues/47) —
-  end-to-end tests for transfer and claim retirement.
+- [Vesting beneficiary browser coverage (#50)](https://github.com/fredrikblau/halal-protocol/issues/50) —
+  end-to-end coverage for the two-step beneficiary handoff.
+- [Copyable deployment-health evidence (#51)](https://github.com/fredrikblau/halal-protocol/issues/51) —
+  a keyboard-accessible frontend action for sharing safe, read-only health output.
+- [Worked redeemable-credit example (#52)](https://github.com/fredrikblau/halal-protocol/issues/52) —
+  documentation showing HLC balances and redemption credits through a complete flow.
 
 The completed [local-demo troubleshooting guide](LOCAL-DEMO-TROUBLESHOOTING.md) covers prerequisites,
 ports, stale configuration, cleanup, and expected success signals.

@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.159 - 2026-08-26
+
+- Replaced stale completed good-first-issue links with three active, bounded contributor tasks for
+  vesting browser coverage, deployment-health UX, and redeemable-credit documentation.
+
 ## 0.1.0-alpha.158 - 2026-08-26
 
 - Synchronized current README, contributor, architecture, DAO, technical, and contracts
