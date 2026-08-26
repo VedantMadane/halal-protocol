@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.252 - 2026-08-26
+
+- Added a copy-pasteable clean-checkout contributor quickstart covering local verification,
+  safe contribution boundaries, and pull-request evidence.
+- Linked the quickstart from the main contributing guide and contributor map.
+- `git diff --check` and the configured local dApp smoke test passed.
+
 ## 0.1.0-alpha.251 - 2026-08-26
 
 - Improved deployment-health accessibility with semantic check lists and explicit relationships

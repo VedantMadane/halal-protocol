@@ -17,6 +17,9 @@ bar than a typical app repo — see the [roadmap](docs/ROADMAP.md) and [Changes 
 
 ## Fork / branch / PR flow
 
+New to the repository? Follow the [ten-minute contributor quickstart](docs/CONTRIBUTOR-QUICKSTART.md)
+for the clean-clone tool check, disposable local smoke test, and first contribution path.
+
 1. Fork the repository and clone your fork.
 2. Create a topic branch off `main`: `git checkout -b feat/short-description`.
 3. Make your changes, following the code style and testing expectations below.
