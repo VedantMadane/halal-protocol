@@ -2,6 +2,10 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.157 - 2026-08-26
+
+- Refreshed the checked-in dApp ABIs after the vesting dependency validation added in alpha156.
+
 ## 0.1.0-alpha.156 - 2026-08-26
 
 - Hardened vesting deployment checks so a non-contract token or DAO dependency cannot produce

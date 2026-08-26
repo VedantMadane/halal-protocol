@@ -364,6 +364,11 @@ export const halalVestingAbi = [
   },
   {
     "type": "error",
+    "name": "NotContract",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "NotDAO",
     "inputs": []
   },
