@@ -32,6 +32,10 @@ Frontend CI check, use linear history, and resolve review conversations. Path-fi
 skipped safely for unrelated documentation changes. Administrators may bypass the rule for repository
 recovery, but normal development should use the review path.
 
+The protected checks also include Slither static analysis, extended fuzzing/invariants, and both
+CodeQL language analyses. Dependency review and OpenSSF Scorecard remain visible advisory workflows;
+dependency review runs only on pull requests and Scorecard reports supply-chain posture.
+
 CI (`.github/workflows/ci.yml`) runs the contracts, dependency-light script, ABI, and frontend test
 suites on every relevant push and PR. A PR won't be merged with a red CI run.
 

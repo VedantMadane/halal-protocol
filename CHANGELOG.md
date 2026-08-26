@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.229 - 2026-08-26
+
+- Extended protected `main` checks to require Slither static analysis, extended fuzzing/invariants,
+  and both CodeQL language analyses in addition to the core CI jobs.
+
 ## 0.1.0-alpha.228 - 2026-08-26
 
 - Strengthened `main` branch protection so pull requests require path detection plus every applicable
