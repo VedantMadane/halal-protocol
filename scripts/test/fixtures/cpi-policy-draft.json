@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "status": "draft",
+  "source": { "publishingAgency": "PENDING", "indexName": "PENDING", "seriesId": "PENDING", "geography": "PENDING", "sourceUrl": "PENDING", "publicationCadence": "PENDING", "releaseTimezone": "PENDING", "policyOwner": "PENDING", "reviewDate": "PENDING" },
+  "valuePolicy": { "units": "PENDING", "referencePeriod": "PENDING", "baseIndex": "PENDING", "conversion": "PENDING", "rounding": "PENDING", "missingValue": "PENDING", "duplicateValue": "PENDING", "reportedAt": "source_publication_timestamp", "futureStaleOrdering": "PENDING", "revisionPolicy": "PENDING" },
+  "retrieval": { "transport": "PENDING", "parserRepository": "PENDING", "parserCommit": "PENDING", "parserVersion": "PENDING", "retrievalTimestamp": "PENDING", "rawResponseArchive": "PENDING", "rawResponseSha256": "PENDING", "parserTestCommand": "PENDING", "reviewer": "PENDING" },
+  "authorization": { "signerAddresses": "PENDING", "threshold": "PENDING", "signerCustody": "PENDING", "relayer": "PENDING", "psmRoleGrant": "PENDING", "sourceMetadata": "PENDING", "monitoring": "PENDING", "rotation": "PENDING", "emergencyCorrection": "PENDING" },
+  "review": { "decisionDate": "PENDING", "evidenceLinks": "PENDING", "independentReviewers": "PENDING" }
+}

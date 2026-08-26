@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.247 - 2026-08-26
+
+- Implemented issue #94 with an offline CPI policy-record validator, draft/reviewable status
+  semantics, HTTPS/hash/address/quorum checks, fictional fixtures, and operator documentation.
+- Full local verification passed with 69 Node, 191 Solidity, and 26 browser tests.
+
 ## 0.1.0-alpha.244 - 2026-08-26
 
 - Synchronized the engineering security review log with the current 64-test Node suite.
