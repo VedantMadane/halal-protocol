@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.149 - 2026-08-26
+
+- Added pre-signing simulation for approval-based redeemable-credit transfers and claim retirement
+  in the dApp; permit flows remain available for one-transaction actions.
+- Hardened deployment integrity checks so incomplete CPI adapter metadata fails closed across the
+  dApp, dashboard, and deployment-health page.
+- Hardened `check-psm-health.sh` with strict RPC numeric validation, adapter metadata preflight,
+  mandatory expected CPI source identity, and PSM/adapter bytecode checks with machine-readable
+  failure reasons.
+- Refreshed the contributor funnel with open, labelled issues #45, #47, and #48, and synchronized
+  current documentation with the verified 174-test Solidity suite.
+
 ## 0.1.0-alpha.148 - 2026-08-26
 
 - Regenerated the checked-in dApp ABIs for the constructor-level dependency validation errors added
