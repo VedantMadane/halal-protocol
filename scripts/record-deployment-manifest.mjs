@@ -25,8 +25,8 @@ Required environment:
   RPC_URL EXPECTED_CHAIN_ID TOKEN TEAM_VESTING TREASURY_VESTING DAO PSM TIMELOCK
   RESERVE_TOKEN RESERVE_SYMBOL DEPLOYMENT_BLOCK TEAM_BENEFICIARY
   TREASURY_BENEFICIARY DEPLOYER_ADDRESS
-Optional adapter environment (provide both when using the governed CPI adapter):
-  CPI_ADAPTER EXPECTED_CPI_SOURCE_ID
+Optional adapter environment (provide all three when using the governed CPI adapter):
+  CPI_ADAPTER EXPECTED_CPI_SOURCE_ID CPI_POLICY_URL
 
 Options:
   --network <name>     Human-readable network name
@@ -95,12 +95,19 @@ if (!/^\d+$/.test(deploymentBlock) || BigInt(deploymentBlock) === 0n) {
 
 const cpiAdapter = process.env.CPI_ADAPTER?.trim();
 const cpiSourceId = process.env.EXPECTED_CPI_SOURCE_ID?.trim();
-if (cpiAdapter !== undefined || cpiSourceId !== undefined) {
+const cpiPolicyUrl = process.env.CPI_POLICY_URL?.trim();
+if (cpiAdapter !== undefined || cpiSourceId !== undefined || cpiPolicyUrl !== undefined) {
   if (!cpiAdapter || !addressPattern.test(cpiAdapter) || /^0x0{40}$/i.test(cpiAdapter)) {
     throw new Error("CPI_ADAPTER must be a non-zero Ethereum address when adapter metadata is provided.");
   }
   if (!cpiSourceId || !/^0x[0-9a-fA-F]{64}$/.test(cpiSourceId) || /^0x0{64}$/i.test(cpiSourceId)) {
     throw new Error("EXPECTED_CPI_SOURCE_ID must be a non-zero bytes32 value when adapter metadata is provided.");
+  }
+  if (!cpiPolicyUrl) throw new Error("CPI_POLICY_URL must be provided when adapter metadata is provided.");
+  try {
+    if (new URL(cpiPolicyUrl).protocol !== "https:") throw new Error();
+  } catch {
+    throw new Error("CPI_POLICY_URL must be an HTTPS URL when adapter metadata is provided.");
   }
 }
 
@@ -161,7 +168,7 @@ registry[chainId] = {
   ...addresses,
   reserveTokenSymbol,
   deploymentBlock,
-  ...(cpiAdapter ? { cpiAdapter: cpiAdapter.toLowerCase(), cpiSourceId: cpiSourceId.toLowerCase() } : {}),
+  ...(cpiAdapter ? { cpiAdapter: cpiAdapter.toLowerCase(), cpiSourceId: cpiSourceId.toLowerCase(), cpiPolicyUrl } : {}),
 };
 
 await writeFile(registryFile, `${JSON.stringify(registry, null, 2)}\n`);

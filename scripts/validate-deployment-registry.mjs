@@ -32,7 +32,7 @@ for (const [chainId, deployment] of Object.entries(registry)) {
     }
   }
 
-  const hasAdapter = deployment.cpiAdapter !== undefined || deployment.cpiSourceId !== undefined;
+  const hasAdapter = deployment.cpiAdapter !== undefined || deployment.cpiSourceId !== undefined || deployment.cpiPolicyUrl !== undefined;
   if (hasAdapter) {
     if (typeof deployment.cpiAdapter !== "string" || !addressPattern.test(deployment.cpiAdapter) || /^0x0{40}$/i.test(deployment.cpiAdapter)) {
       throw new Error(`Deployment ${chainId} has an invalid cpiAdapter address.`);
@@ -43,6 +43,11 @@ for (const [chainId, deployment] of Object.entries(registry)) {
       /^0x0{64}$/i.test(deployment.cpiSourceId)
     ) {
       throw new Error(`Deployment ${chainId} has an invalid cpiSourceId.`);
+    }
+    try {
+      if (typeof deployment.cpiPolicyUrl !== "string" || new URL(deployment.cpiPolicyUrl).protocol !== "https:") throw new Error();
+    } catch {
+      throw new Error(`Deployment ${chainId} has an invalid cpiPolicyUrl.`);
     }
   }
 

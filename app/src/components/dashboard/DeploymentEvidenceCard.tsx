@@ -15,7 +15,7 @@ function EvidenceLink({ href, children }: { href: string | undefined; children: 
 }
 
 export function DeploymentEvidenceCard({ deployment, chainId }: { deployment: HalalDeployment; chainId: number }) {
-  const hasEvidence = Boolean(deployment.explorerUrl || deployment.sourceVerificationUrl || deployment.journalUrl);
+  const hasEvidence = Boolean(deployment.explorerUrl || deployment.sourceVerificationUrl || deployment.journalUrl || deployment.cpiPolicyUrl);
 
   return (
     <Card>
@@ -36,11 +36,12 @@ export function DeploymentEvidenceCard({ deployment, chainId }: { deployment: Ha
           <EvidenceLink href={deployment.explorerUrl}>View deployment transaction</EvidenceLink>
           <EvidenceLink href={deployment.sourceVerificationUrl}>View verified source</EvidenceLink>
           <EvidenceLink href={deployment.journalUrl}>Read deployment journal</EvidenceLink>
+          <EvidenceLink href={deployment.cpiPolicyUrl}>Read CPI source policy</EvidenceLink>
         </div>
         {!hasEvidence && (
           <p className="text-xs text-muted">
             This deployment came from local environment configuration. Public deployments should include
-            explorer, source-verification, and journal links in the checked-in registry.
+            explorer, source-verification, journal, and (when applicable) CPI policy links in the checked-in registry.
           </p>
         )}
       </CardBody>

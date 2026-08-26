@@ -32,6 +32,7 @@ function deployment(overrides = {}) {
     deploymentBlock: "1",
     cpiAdapter: `0x${"8".repeat(40)}`,
     cpiSourceId: `0x${"9".repeat(64)}`,
+    cpiPolicyUrl: "https://example.com/cpi-policy",
     ...overrides,
   };
 }
@@ -71,6 +72,12 @@ test("rejects a zero CPI source ID", async () => {
   const result = await runValidator(deployment({ cpiSourceId: `0x${"0".repeat(64)}` }));
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, /invalid cpiSourceId/);
+});
+
+test("requires CPI policy evidence when adapter metadata is present", async () => {
+  const result = await runValidator(deployment({ cpiPolicyUrl: undefined }));
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /invalid cpiPolicyUrl/);
 });
 
 test("rejects a chain the frontend does not support", async () => {
@@ -140,6 +147,12 @@ test("preflight identifies malformed registry entries", () => {
   const report = preflightDeploymentRegistry({ "31337": deployment({ journalUrl: "http://unsafe.example" }) });
   assert.equal(report.status, "not_ready");
   assert.match(report.checks.find(({ label }) => label === "chain 31337: journalUrl").detail, /non-HTTPS/);
+});
+
+test("preflight requires HTTPS CPI policy evidence for adapter entries", () => {
+  const report = preflightDeploymentRegistry({ "31337": deployment({ cpiPolicyUrl: "http://unsafe.example" }) });
+  assert.equal(report.status, "not_ready");
+  assert.match(report.checks.find(({ label }) => label === "chain 31337: CPI adapter policy evidence").detail, /HTTPS policy/);
 });
 
 test("preflight CLI emits JSON and a zero exit for a ready fixture", async () => {

@@ -36,6 +36,8 @@ export interface HalalDeployment {
   explorerUrl?: string;
   sourceVerificationUrl?: string;
   journalUrl?: string;
+  /** Policy record supporting a governed CPI adapter deployment. */
+  cpiPolicyUrl?: string;
   /** HalalToken (HLC) — ERC20Votes + ERC20Permit + AccessControl. */
   token: Address;
   /** HalalVesting instance for the team allocation (6M HLC, 4yr, 1yr cliff, revocable). */
@@ -54,7 +56,7 @@ export interface HalalDeployment {
   reserveTokenSymbol: string;
   /** Block number of the deployment (HalalDAO creation). Bounds the ProposalCreated log scan. */
   deploymentBlock: bigint;
-  /** Optional signed CPI adapter. When present, `cpiSourceId` must also be configured. */
+  /** Optional signed CPI adapter. Public registry entries also carry its policy evidence URL. */
   cpiAdapter?: Address;
   /** Immutable source identity expected from the optional CPI adapter. */
   cpiSourceId?: `0x${string}`;
@@ -65,6 +67,7 @@ interface DeploymentSource {
   explorerUrl?: string;
   sourceVerificationUrl?: string;
   journalUrl?: string;
+  cpiPolicyUrl?: string;
   token?: string;
   teamVesting?: string;
   treasuryVesting?: string;
@@ -133,6 +136,7 @@ function deploymentFromSource(source: DeploymentSource): HalalDeployment | undef
     ...(source.explorerUrl ? { explorerUrl: source.explorerUrl } : {}),
     ...(source.sourceVerificationUrl ? { sourceVerificationUrl: source.sourceVerificationUrl } : {}),
     ...(source.journalUrl ? { journalUrl: source.journalUrl } : {}),
+    ...(source.cpiPolicyUrl ? { cpiPolicyUrl: source.cpiPolicyUrl } : {}),
     token: env.token as Address,
     teamVesting: env.teamVesting as Address,
     treasuryVesting: env.treasuryVesting as Address,

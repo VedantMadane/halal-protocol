@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.249 - 2026-08-26
+
+- Required adapter-backed deployment registry entries to include an HTTPS CPI policy evidence URL
+  alongside the adapter address and source ID.
+- Added registry/preflight regression coverage and displayed the policy link in the dApp evidence card.
+- Full local verification passed with 72 Node, 191 Solidity, and 26 browser tests.
+
 ## 0.1.0-alpha.248 - 2026-08-26
 
 - Hardened the CPI policy validator to reject all-zero parser commits and SHA-256 values as

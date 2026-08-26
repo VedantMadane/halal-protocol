@@ -15,6 +15,7 @@ TOKEN=... TEAM_VESTING=... TREASURY_VESTING=... DAO=... PSM=... TIMELOCK=... \
 RESERVE_TOKEN=... RESERVE_SYMBOL=USDC DEPLOYMENT_BLOCK=... \
 TEAM_BENEFICIARY=... TREASURY_BENEFICIARY=... DEPLOYER_ADDRESS=... \
 CPI_ADAPTER=... EXPECTED_CPI_SOURCE_ID=0x... \
+CPI_POLICY_URL=https://.../cpi-policy \
 node scripts/record-deployment-manifest.mjs --chain-id 421614 \
   --network arbitrum-sepolia --release v0.1.0-alpha.XX --commit "$(git rev-parse HEAD)" \
   --deployment-tx 0x... --explorer-url https://.../tx/0x... \
@@ -49,7 +50,8 @@ writes one object keyed by the numeric chain ID:
     "reserveTokenSymbol": "USDC",
     "deploymentBlock": "123456789",
     "cpiAdapter": "0x...",
-    "cpiSourceId": "0x..."
+    "cpiSourceId": "0x...",
+    "cpiPolicyUrl": "https://example.org/cpi-policy"
   }
 }
 ```
@@ -58,9 +60,12 @@ The deployment transaction, HTTPS explorer URL, HTTPS source-verification URL, H
 journal URL, seven contract addresses, reserve symbol, and positive deployment block are required.
 The `network`, `release`, and `commit` fields provide review context and do not affect runtime reads.
 The
-`cpiAdapter` and `cpiSourceId` fields are optional, but operators must provide them together when
-the deployment uses the governed signed CPI adapter. The dApp then checks the adapter's immutable
-PSM and source ID, timelock ownership, and signer quorum before it enables signing actions. The
+`cpiAdapter`, `cpiSourceId`, and `cpiPolicyUrl` fields are optional for a core deployment, but
+operators must provide all three together when the deployment uses the governed signed CPI adapter.
+The policy URL must point to the reviewed source-policy record used by the deployment; its presence
+does not itself approve the oracle or replace independent review. The dApp displays the policy record
+alongside the other deployment evidence, then checks the adapter's
+immutable PSM and source ID, timelock ownership, and signer quorum before it enables signing actions. The
 registry validator currently accepts only chain IDs supported by the dApp: `31337` (local Anvil),
 `421614` (Arbitrum Sepolia), and `42161` (Arbitrum One). Add a chain to the frontend configuration
 and its validation tests before registering another network.

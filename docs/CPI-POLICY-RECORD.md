@@ -28,3 +28,8 @@ Reference fixtures are [`cpi-policy-draft.json`](../scripts/test/fixtures/cpi-po
 [`cpi-policy-reviewed.json`](../scripts/test/fixtures/cpi-policy-reviewed.json). They use fictional
 evidence and must not be copied as production approval. Issue [#94](https://github.com/fredrikblau/halal-protocol/issues/94)
 tracks improvements to this format and validator.
+
+When a governed adapter is registered in the public deployment registry, include the URL of the
+corresponding policy record as `cpiPolicyUrl`. Registry validation requires that field alongside
+`cpiAdapter` and `cpiSourceId`; this links deployment evidence to the policy without treating a URL
+as proof that the policy is correct.
