@@ -166,6 +166,13 @@ test("standalone PSM health check classifies malformed numeric RPC output", () =
   assert.match(result.output, /^reason=invalid_last_report_timestamp$/m);
 });
 
+test("standalone PSM health check rejects an oversized arithmetic value", () => {
+  const result = runPsmHealthWithFakeCast({ lastReportTimestamp: "9223372036854775808" });
+  assert.notEqual(result.status, 0, result.output);
+  assert.match(result.output, /^status=unhealthy$/m);
+  assert.match(result.output, /^reason=invalid_last_report_timestamp_range$/m);
+});
+
 test("standalone PSM health check rejects an invalid overdue mode", () => {
   const result = run(PSM_HEALTH_CHECK, {
     ...process.env,

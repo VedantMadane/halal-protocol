@@ -40,6 +40,21 @@ require_int() {
   [[ "$value" =~ ^-?[0-9]+$ ]] || unhealthy_input "$label" "$value"
 }
 
+# Bash arithmetic is signed and platform-sized. Keep values used in arithmetic comparisons inside
+# that range so an oversized RPC response becomes a structured unhealthy result instead of an
+# unhandled arithmetic error.
+require_bash_uint() {
+  local label="$1"
+  local value="$2"
+  local normalized="${value#${value%%[!0]*}}"
+  [[ -n "$normalized" ]] || normalized=0
+  if (( ${#normalized} > 19 )) || {
+    (( ${#normalized} == 19 )) && [[ "$normalized" > "9223372036854775807" ]]
+  }; then
+    unhealthy_input "${label}_range" "$value"
+  fi
+}
+
 if [[ "${FAIL_ON_UPDATE_OVERDUE:-true}" != "true" && "${FAIL_ON_UPDATE_OVERDUE:-true}" != "false" ]]; then
   unhealthy_input "fail_on_update_overdue" "${FAIL_ON_UPDATE_OVERDUE}"
 fi
@@ -105,6 +120,11 @@ require_uint "last_report_timestamp" "$last_report"
 require_uint "max_report_age" "$max_report_age"
 require_uint "last_updated" "$last_updated"
 require_uint "min_update_interval" "$min_update_interval"
+require_bash_uint "checked_at" "$now"
+require_bash_uint "last_report_timestamp" "$last_report"
+require_bash_uint "max_report_age" "$max_report_age"
+require_bash_uint "last_updated" "$last_updated"
+require_bash_uint "min_update_interval" "$min_update_interval"
 
 echo "psm=$PSM"
 echo "checked_at=$now"
@@ -146,6 +166,9 @@ if [[ -n "${CPI_ADAPTER:-}" ]]; then
   require_uint "adapter_threshold" "$adapter_threshold"
   require_uint "adapter_signer_count" "$adapter_signer_count"
   require_uint "adapter_last_submitted_timestamp" "$adapter_last_submitted"
+  require_bash_uint "adapter_threshold" "$adapter_threshold"
+  require_bash_uint "adapter_signer_count" "$adapter_signer_count"
+  require_bash_uint "adapter_last_submitted_timestamp" "$adapter_last_submitted"
   echo "cpi_adapter=$CPI_ADAPTER"
   echo "cpi_adapter_owner=$adapter_owner"
   echo "cpi_adapter_source_id=$adapter_source_id"
