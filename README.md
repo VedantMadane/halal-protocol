@@ -65,7 +65,7 @@ conservative accounting model:
 
 | Reviewer question | Evidence in this repository |
 | --- | --- |
-| Does the accounting have stateful coverage? | 178 Foundry tests, including 3 PSM invariants, differential arithmetic checks, and fuzzing |
+| Does the accounting have stateful coverage? | 184 Foundry tests, including 8 PSM invariants, differential arithmetic checks, and fuzzing |
 | Do invariants cover CPI changes? | [`docs/INVARIANTS.md`](docs/INVARIANTS.md) models governance rate changes and reserve top-ups |
 | Can a deployment be checked without a private key? | [`scripts/verify-deployment.sh`](scripts/verify-deployment.sh) |
 | Can I inspect the full system locally? | [`./scripts/local-demo.sh`](scripts/local-demo.sh) on a disposable Anvil chain |

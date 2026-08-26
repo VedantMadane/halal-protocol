@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## 0.1.0-alpha.166 - 2026-08-26
+
+- Added stateful PSM coverage for a supported fee-on-transfer reserve and a rejected false-returning
+  reserve, preserving credit, supply, and reserve-floor invariants across randomized action sequences.
+- Documented the reserve-token behavior boundary and synchronized the public suite count to 184 tests.
+
 ## 0.1.0-alpha.165 - 2026-08-26
 
 - Hardened the production deployment preflight so team and treasury vesting beneficiaries must be

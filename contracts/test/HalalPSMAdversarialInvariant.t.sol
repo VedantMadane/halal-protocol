@@ -1,0 +1,214 @@
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.24;
+
+import { Test } from "forge-std/Test.sol";
+import { HalalPSM } from "../src/HalalPSM.sol";
+import { HalalToken } from "../src/HalalToken.sol";
+import { MockFeeOnTransferERC20 } from "./mocks/MockFeeOnTransferERC20.sol";
+import { MockFalseReturnERC20 } from "./mocks/MockFalseReturnERC20.sol";
+import { Deployers } from "./utils/Deployers.sol";
+
+/// @notice Stateful actions for a reserve token that charges 1% on every user-to-user transfer.
+/// Deposits are supported because HalalPSM values the balance delta; withdrawals may revert when
+/// the token's extra sender debit would make the PSM undercollateralized.
+contract FeeReserveHandler is Test {
+    HalalPSM internal immutable psm;
+    HalalToken internal immutable token;
+    MockFeeOnTransferERC20 internal immutable reserve;
+    address internal immutable governance;
+    address internal immutable alice;
+    address internal immutable bob;
+
+    constructor(
+        HalalPSM psm_,
+        HalalToken token_,
+        MockFeeOnTransferERC20 reserve_,
+        address governance_,
+        address alice_,
+        address bob_
+    ) {
+        psm = psm_;
+        token = token_;
+        reserve = reserve_;
+        governance = governance_;
+        alice = alice_;
+        bob = bob_;
+    }
+
+    function deposit(uint256 actorSeed, uint256 amountSeed) external {
+        address actor = _actor(actorSeed);
+        uint256 amount = bound(amountSeed, 1, 1e24);
+        reserve.mint(actor, amount);
+
+        vm.startPrank(actor);
+        reserve.approve(address(psm), amount);
+        psm.deposit(amount);
+        vm.stopPrank();
+    }
+
+    function withdraw(uint256 actorSeed, uint256 amountSeed) external {
+        address actor = _actor(actorSeed);
+        uint256 credit = psm.redeemableBalance(actor);
+        uint256 balance = token.balanceOf(actor);
+        uint256 maximum = credit < balance ? credit : balance;
+        if (maximum == 0) return;
+
+        uint256 amount = bound(amountSeed, 1, maximum);
+        vm.startPrank(actor);
+        token.approve(address(psm), amount);
+        psm.withdraw(amount);
+        vm.stopPrank();
+    }
+
+    function transferRedeemable(uint256 actorSeed, uint256 amountSeed) external {
+        address from = _actor(actorSeed);
+        address to = from == alice ? bob : alice;
+        uint256 credit = psm.redeemableBalance(from);
+        uint256 balance = token.balanceOf(from);
+        uint256 maximum = credit < balance ? credit : balance;
+        if (maximum == 0) return;
+
+        uint256 amount = bound(amountSeed, 1, maximum);
+        vm.startPrank(from);
+        token.approve(address(psm), amount);
+        psm.transferRedeemable(to, amount);
+        vm.stopPrank();
+    }
+
+    function cancelRedeemable(uint256 actorSeed, uint256 amountSeed) external {
+        address actor = _actor(actorSeed);
+        uint256 credit = psm.redeemableBalance(actor);
+        uint256 balance = token.balanceOf(actor);
+        uint256 maximum = credit < balance ? credit : balance;
+        if (maximum == 0) return;
+
+        uint256 amount = bound(amountSeed, 1, maximum);
+        vm.startPrank(actor);
+        token.approve(address(psm), amount);
+        psm.cancelRedeemable(amount);
+        vm.stopPrank();
+    }
+
+    function governCPI(uint256 cpiSeed) external {
+        uint256 newCPI = bound(cpiSeed, psm.MIN_CPI(), psm.MAX_CPI());
+        uint256 requiredAtNewRate = (psm.totalHlcIssued() * newCPI) / psm.CPI_PRECISION();
+        uint256 reserveBalance = reserve.balanceOf(address(psm));
+
+        if (requiredAtNewRate > reserveBalance) {
+            uint256 gap = requiredAtNewRate - reserveBalance;
+            // The token charges 100 bps on this transfer. Add one unit after rounding up so the
+            // PSM receives at least the exact gap despite integer fee rounding.
+            uint256 grossTopUp = (gap * 10_000) / 9_900 + 1;
+            reserve.mint(governance, grossTopUp);
+            vm.startPrank(governance);
+            reserve.approve(address(psm), grossTopUp);
+            psm.depositReserve(grossTopUp);
+            vm.stopPrank();
+        }
+
+        vm.prank(governance);
+        psm.mockCPI(newCPI);
+    }
+
+    function knownRedeemableCredit() external view returns (uint256) {
+        return psm.redeemableBalance(alice) + psm.redeemableBalance(bob);
+    }
+
+    function _actor(uint256 seed) private view returns (address) {
+        return seed % 2 == 0 ? alice : bob;
+    }
+}
+
+/// @notice A false-returning reserve must never create issuance, even across repeated attempted
+/// deposits. SafeERC20 is expected to revert before any PSM accounting mutation.
+contract FalseReserveHandler is Test {
+    HalalPSM internal immutable psm;
+    MockFalseReturnERC20 internal immutable reserve;
+    address internal immutable alice;
+
+    constructor(HalalPSM psm_, MockFalseReturnERC20 reserve_, address alice_) {
+        psm = psm_;
+        reserve = reserve_;
+        alice = alice_;
+    }
+
+    function attemptDeposit(uint256 amountSeed) external {
+        uint256 amount = bound(amountSeed, 1, 1e24);
+        reserve.mint(alice, amount);
+        vm.startPrank(alice);
+        reserve.approve(address(psm), amount);
+        try psm.deposit(amount) {
+            fail("false-returning reserve unexpectedly succeeded");
+        } catch { }
+        vm.stopPrank();
+    }
+}
+
+contract HalalPSMAdversarialInvariantTest is Deployers {
+    address internal feeAlice = makeAddr("feeInvariantAlice");
+    address internal feeBob = makeAddr("feeInvariantBob");
+    MockFeeOnTransferERC20 internal feeReserve;
+    HalalPSM internal feePsm;
+    FeeReserveHandler internal feeHandler;
+
+    function setUp() public {
+        deployAll();
+        feeReserve = new MockFeeOnTransferERC20(100);
+        feePsm = new HalalPSM(address(feeReserve), address(token), address(timelock), address(0xBEEF));
+        _grantPsmTokenRoles(feePsm);
+        feeHandler = new FeeReserveHandler(feePsm, token, feeReserve, address(timelock), feeAlice, feeBob);
+        targetContract(address(feeHandler));
+    }
+
+    function invariant_FeeReserveCreditConservation() public view {
+        assertEq(feeHandler.knownRedeemableCredit(), feePsm.totalHlcIssued());
+    }
+
+    function invariant_FeeReserveSupplyRemainsCollateralized() public view {
+        assertGe(feeReserve.balanceOf(address(feePsm)), feePsm.reserveRequired());
+    }
+
+    function invariant_FeeReserveTokenSupplyDecomposition() public view {
+        assertEq(token.totalSupply(), 10_000_000e18 + feePsm.totalHlcIssued());
+    }
+
+    function _grantPsmTokenRoles(HalalPSM target) internal {
+        vm.startPrank(address(timelock));
+        token.grantRole(token.MINTER_ROLE(), address(target));
+        token.grantRole(token.BURNER_ROLE(), address(target));
+        vm.stopPrank();
+        vm.prank(address(0xBEEF));
+        target.updateCPI(1_000_000);
+    }
+}
+
+contract HalalPSMFalseReserveInvariantTest is Deployers {
+    MockFalseReturnERC20 internal falseReserve;
+    HalalPSM internal falsePsm;
+    FalseReserveHandler internal falseHandler;
+
+    function setUp() public {
+        deployAll();
+        falseReserve = new MockFalseReturnERC20();
+        falsePsm = new HalalPSM(address(falseReserve), address(token), address(timelock), address(0xBEEF));
+        vm.startPrank(address(timelock));
+        token.grantRole(token.MINTER_ROLE(), address(falsePsm));
+        token.grantRole(token.BURNER_ROLE(), address(falsePsm));
+        vm.stopPrank();
+        vm.prank(address(0xBEEF));
+        falsePsm.updateCPI(1_000_000);
+
+        falseHandler = new FalseReserveHandler(falsePsm, falseReserve, makeAddr("falseInvariantAlice"));
+        targetContract(address(falseHandler));
+    }
+
+    function invariant_FalseReserveCannotIssueHLC() public view {
+        assertEq(falsePsm.totalHlcIssued(), 0);
+        assertEq(falsePsm.redeemableBalance(address(falseHandler)), 0);
+        assertEq(falseReserve.balanceOf(address(falsePsm)), 0);
+    }
+
+    function invariant_FalseReserveCannotChangeTokenSupply() public view {
+        assertEq(token.totalSupply(), 10_000_000e18);
+    }
+}
