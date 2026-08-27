@@ -31,10 +31,12 @@ reserve. This reserve is for local testing only and is not a real stablecoin or 
 
 Public deployments belong in the checked-in [`../app/src/config/deployment-registry.json`](src/config/deployment-registry.json).
 For local experiments, set the nine core `NEXT_PUBLIC_HLC_*_<chainId>` variables in `.env.local`:
-the seven contract addresses, `RESERVE_SYMBOL`, and `DEPLOYMENT_BLOCK`. Add both optional
-`NEXT_PUBLIC_HLC_CPI_ADAPTER_<chainId>`, `NEXT_PUBLIC_HLC_CPI_SOURCE_<chainId>`, and
-`NEXT_PUBLIC_HLC_CPI_SOURCE_ID_<chainId>` when using the governed signed adapter. The source
-label must match the PSM's on-chain `source()` value. The accepted suffixes are
+the seven contract addresses, `RESERVE_SYMBOL`, and `DEPLOYMENT_BLOCK`. Add all four optional
+`NEXT_PUBLIC_HLC_CPI_ADAPTER_<chainId>`, `NEXT_PUBLIC_HLC_CPI_SOURCE_<chainId>`,
+`NEXT_PUBLIC_HLC_CPI_SOURCE_ID_<chainId>`, and `NEXT_PUBLIC_HLC_CPI_POLICY_<chainId>` when using
+the governed signed adapter. The source
+label must match the PSM's on-chain `source()` value, and the policy URL must be HTTPS evidence
+for the reviewed source policy. The accepted suffixes are
 `31337`, `421614`, and `42161`. Addresses are validated at startup and incomplete configurations
 remain disabled. The deployment block bounds the governance event scan, so set it to the block where
 the DAO deployment was mined.
