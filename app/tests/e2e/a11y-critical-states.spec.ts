@@ -141,8 +141,8 @@ async function installAnvilProvider(
   await page.addInitScript(
     ({ rpcUrl, account: injectedAccount, chainId: injectedChainId }) => {
       const listeners = new Map<string, Set<(...args: unknown[]) => void>>();
-      let currentAccount = injectedAccount;
-      let currentChainId = injectedChainId;
+      const currentAccount = injectedAccount;
+      const currentChainId = injectedChainId;
       const provider = {
         isMetaMask: true,
         request: async ({ method, params = [] }: { method: string; params?: unknown[] }) => {
