@@ -97,6 +97,7 @@ interface DeploymentEnvironment {
   cpiAdapter: string | undefined;
   cpiSource: string | undefined;
   cpiSourceId: string | undefined;
+  cpiPolicyUrl: string | undefined;
 }
 
 /** Returns a complete deployment only when every address and the deployment block validate. */
@@ -114,6 +115,7 @@ function deploymentFromSource(source: DeploymentSource): HalalDeployment | undef
     cpiAdapter: source.cpiAdapter,
     cpiSource: source.cpiSource,
     cpiSourceId: source.cpiSourceId,
+    cpiPolicyUrl: source.cpiPolicyUrl,
   };
   const addresses = [
     env.token,
@@ -192,6 +194,7 @@ function configuredDeployment(chainId: number): HalalDeployment | undefined {
       cpiAdapter: process.env.NEXT_PUBLIC_HLC_CPI_ADAPTER_31337,
       cpiSource: process.env.NEXT_PUBLIC_HLC_CPI_SOURCE_31337,
       cpiSourceId: process.env.NEXT_PUBLIC_HLC_CPI_SOURCE_ID_31337,
+      cpiPolicyUrl: process.env.NEXT_PUBLIC_HLC_CPI_POLICY_31337,
     },
     "421614": {
       token: process.env.NEXT_PUBLIC_HLC_TOKEN_421614,
@@ -206,6 +209,7 @@ function configuredDeployment(chainId: number): HalalDeployment | undefined {
       cpiAdapter: process.env.NEXT_PUBLIC_HLC_CPI_ADAPTER_421614,
       cpiSource: process.env.NEXT_PUBLIC_HLC_CPI_SOURCE_421614,
       cpiSourceId: process.env.NEXT_PUBLIC_HLC_CPI_SOURCE_ID_421614,
+      cpiPolicyUrl: process.env.NEXT_PUBLIC_HLC_CPI_POLICY_421614,
     },
     "42161": {
       token: process.env.NEXT_PUBLIC_HLC_TOKEN_42161,
@@ -220,6 +224,7 @@ function configuredDeployment(chainId: number): HalalDeployment | undefined {
       cpiAdapter: process.env.NEXT_PUBLIC_HLC_CPI_ADAPTER_42161,
       cpiSource: process.env.NEXT_PUBLIC_HLC_CPI_SOURCE_42161,
       cpiSourceId: process.env.NEXT_PUBLIC_HLC_CPI_SOURCE_ID_42161,
+      cpiPolicyUrl: process.env.NEXT_PUBLIC_HLC_CPI_POLICY_42161,
     },
   };
   const fromEnvironment = environment[suffix];

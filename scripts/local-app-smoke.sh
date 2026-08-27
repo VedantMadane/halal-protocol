@@ -105,6 +105,7 @@ DEPLOYMENT_BLOCK="$(cast block latest --field number --rpc-url "$LOCAL_RPC_URL")
   echo "NEXT_PUBLIC_HLC_CPI_ADAPTER_31337=$ADAPTER_ADDRESS"
   echo "NEXT_PUBLIC_HLC_CPI_SOURCE_31337=$CPI_SOURCE"
   echo "NEXT_PUBLIC_HLC_CPI_SOURCE_ID_31337=$SOURCE_ID"
+  echo "NEXT_PUBLIC_HLC_CPI_POLICY_31337=https://example.invalid/local-cpi-policy"
 } > "$APP_ENV_FILE"
 
 (
