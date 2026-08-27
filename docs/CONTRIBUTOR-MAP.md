@@ -41,8 +41,9 @@ criteria, and a safe local verification path:
   record safe Anvil-only wiring and health rehearsals.
 - [Deployment manifest source-label round trip (#100)](https://github.com/fredrikblau/halal-protocol/issues/100) —
   add an offline recorder-to-registry regression test; no RPC, wallet, signing, or deployment is needed.
-- [CPI source-label reviewer checklist (#101)](https://github.com/fredrikblau/halal-protocol/issues/101) —
-  add a concise checklist connecting the PSM label, adapter source ID, policy record, and deployment evidence.
+- [CPI source-label reviewer checklist](CPI-ADAPTER-SPEC.md#reviewer-checklist-before-a-governed-handoff) —
+  review the PSM label, adapter source ID, policy record, and deployment evidence before a governed handoff;
+  the implementation is complete, so use the open issue list for current contributor tasks.
 - [CPI source policy documentation (#80)](https://github.com/fredrikblau/halal-protocol/issues/80) —
   document how operators record source identity, cadence, custody, and fallback decisions.
 - [dApp accessibility smoke coverage (#102)](https://github.com/fredrikblau/halal-protocol/issues/102) —
