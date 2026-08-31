@@ -46,10 +46,15 @@ help review the existing work instead of duplicating it.
    satisfied.
 
 The `main` branch is protected: changes must arrive through a pull request, receive one approval
-from the code owner, pass path detection plus every applicable Contracts, Scripts, generated-ABI, and
+and, when covered by `CODEOWNERS`, approval from the listed owner. They must also pass path
+detection plus every applicable Contracts, Scripts, generated-ABI, and
 Frontend CI check, use linear history, and resolve review conversations. Path-filtered jobs are
 skipped safely for unrelated documentation changes. Administrators may bypass the rule for repository
 recovery, but normal development should use the review path.
+
+`CODEOWNERS` requests maintainer review for deployed Solidity, deployment scripts, repository
+scripts, and GitHub Actions. Documentation, frontend, and test-only changes are intentionally open
+to outside reviewers; the branch still requires one approval and all applicable checks.
 
 The protected checks also include Slither static analysis, extended fuzzing/invariants, and both
 CodeQL language analyses. Dependency review and OpenSSF Scorecard remain visible advisory workflows;
